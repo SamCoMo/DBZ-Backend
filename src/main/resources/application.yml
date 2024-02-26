@@ -1,11 +1,19 @@
 spring:
-  data:
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    password: samcomo
-    username: samcomo
-    url: jdbc:mariadb://172.19.0.2:3306/samcomo
+  profiles:
+    active: dev
 
-    # docker network =>   url: jdbc:mariadb://localhost:3308/samcomo
-    # EC2 Mariadb => url: jdbc:mariadb://ec2-43-201-206-210.ap-northeast-2.compute.amazonaws.com:3308/samcomo
+  jpa:
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop
 
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+
+springdoc:
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    path: /docs/swagger
