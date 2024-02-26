@@ -1,0 +1,12 @@
+spring:
+  data:
+    redis:
+      host:
+      password:
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+
