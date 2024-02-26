@@ -37,7 +37,7 @@ public class ChatMessage {
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   private List<ChatImage> chatImageList;
 
-  private LocalDateTime sendTime;
+  private LocalDateTime sendAt;
 
   private Boolean readOrNot;
 }

@@ -4,6 +4,7 @@ import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -49,7 +50,7 @@ public class Report extends BaseEntity {
   private String petName;
   private String species;
   private Integer age;
-  private String features;
+  private String description;
   private String streetAddress;
   private String roadAddress;
   private Long latitude;

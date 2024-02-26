@@ -40,7 +40,7 @@ public class Pin extends BaseEntity {
   @OneToMany
   private List<PinImage> pinImageList = new ArrayList<>();
 
-  private String contents;
+  private String description;
 
   private LocalDateTime sightingTime;
 
