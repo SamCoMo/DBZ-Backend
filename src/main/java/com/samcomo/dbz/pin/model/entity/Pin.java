@@ -42,7 +42,7 @@ public class Pin extends BaseEntity {
 
   private String description;
 
-  private LocalDateTime sightingTime;
+  private LocalDateTime foundAt;
 
   private String streetAddress;
 
