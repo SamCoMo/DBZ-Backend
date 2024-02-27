@@ -35,9 +35,8 @@ public class ReportServiceImpl implements ReportService {
   @Transactional
   public ReportResponse uploadReport(long memberId, ReportForm reportForm, List<MultipartFile> multipartFileList) {
 
-    //TODO: 커스텀에러 ErrorCode 변경
     Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new MemberException(ErrorCode.INTERNAL_SERVER_ERROR));
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // 게시글 내용 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
