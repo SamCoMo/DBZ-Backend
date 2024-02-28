@@ -7,6 +7,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public class ReportImage extends BaseEntity {
   private String imageUrl;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn
   private Report report;
 
   public ReportImage(String imageUrl, Report report){

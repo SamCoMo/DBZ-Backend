@@ -22,8 +22,12 @@ public enum ErrorCode {
   // Report
   IMAGE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장중 문제가 발생하였습니다."),
 
-  //Member
-  MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저 정보를 찾을 수 없습니다.");
+  // Member
+  MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저 정보를 찾을 수 없습니다."),
+
+  // Report
+  REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글 정보를 찾을 수 없습니다."),
+  NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 유저의 정보가 일치하지 않습니다.");
 
   private final HttpStatus status;
   private final String message;

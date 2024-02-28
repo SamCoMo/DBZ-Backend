@@ -1,11 +1,11 @@
-package com.samcomo.dbz.global.config.s3;
+package com.samcomo.dbz.global.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.samcomo.dbz.global.config.s3.exception.S3Exception;
+import com.samcomo.dbz.global.s3.exception.S3Exception;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import java.io.IOException;
 import java.util.UUID;
@@ -18,25 +18,22 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class S3ServiceImpl {
+public class S3Service {
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
   private final AmazonS3 amazonS3;
 
-  public ImageUploadState upload(MultipartFile multipartFile){
+  public ImageUploadState upload(MultipartFile multipartFile, ImageType imageType){
+
     String filename = multipartFile.getOriginalFilename();
 
-    int idx = filename.lastIndexOf(".");
-    String extension = filename.substring(idx + 1);
-    String contentType = "image/" + extension;
-
-    String newFilename = createFileId(filename);
+    String newFilename = createFileId(filename, imageType);
 
     ObjectMetadata metadata = new ObjectMetadata();
-    metadata.setContentType(contentType);
-
+    metadata.setContentType(getContentType(filename));
+    metadata.setContentLength(multipartFile.getSize());
 
     try {
       amazonS3.putObject(
@@ -63,8 +60,14 @@ public class S3ServiceImpl {
     }
   }
 
-  public String createFileId(String fileName){
+  public String createFileId(String fileName, ImageType imageType){
     String random = UUID.randomUUID().toString();
-    return random + fileName;
+    return imageType.getName() + "-" + random + fileName;
+  }
+
+  private String getContentType(String filename) {
+    int idx = filename.lastIndexOf(".");
+    String extension = filename.substring(idx + 1);
+    return "image/" + extension;
   }
 }

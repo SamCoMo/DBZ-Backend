@@ -4,7 +4,7 @@ import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
-import com.samcomo.dbz.report.model.dto.ReportForm;
+import com.samcomo.dbz.report.model.dto.ReportDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,6 +12,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,7 @@ public class Report extends BaseEntity {
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn
   private Member member;
 
   @Enumerated(EnumType.STRING)
@@ -52,7 +54,7 @@ public class Report extends BaseEntity {
   private Long views;
   private Boolean showsPhone;
 
-  public static Report from(ReportForm reportForm, Member member){
+  public static Report from(ReportDto.Form reportForm, Member member){
     return Report.builder()
         .member(member)
         .petType(reportForm.getPetType())

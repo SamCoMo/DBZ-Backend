@@ -1,4 +1,4 @@
-package com.samcomo.dbz.global.config.s3.exception;
+package com.samcomo.dbz.global.s3.exception;
 
 import com.samcomo.dbz.global.exception.CustomException;
 import com.samcomo.dbz.global.exception.ErrorCode;

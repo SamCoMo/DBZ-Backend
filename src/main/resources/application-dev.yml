@@ -12,15 +12,15 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 cloud:
   aws:
     credentials:
       instance-profile: true
-      secret-key: Mc2X8hdD1KUyKjh/Vf7aFFmuHT+j12Dq52UZUmr2
-      access-key: AKIAZTEEOWWNVMFADZ6N
+      secret-key: # AWS S3 secret-key
+      access-key: # AWS S3 access-key
     region:
       static: ap-northeast-2
       auto: false

@@ -1,4 +1,4 @@
-package com.samcomo.dbz.global.config.s3;
+package com.samcomo.dbz.global.s3;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
