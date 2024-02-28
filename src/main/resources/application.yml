@@ -3,10 +3,14 @@ spring:
     active: dev
 
   jpa:
-    show-sql: true
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    open-in-view: false
 
   mvc:
     path match:
