@@ -122,7 +122,7 @@ public class ReportController {
     //TODO: 유저 정보 가져오기 >> Auth 파트 구현 끝나면 수정 필요
     long userId = 1L;
 
-    ReportStateDto.Response foundResponse = reportService.complete(userId, reportId);
+    ReportStateDto.Response foundResponse = reportService.changeStatusToFound(userId, reportId);
     return ResponseEntity.ok(foundResponse);
   }
 
