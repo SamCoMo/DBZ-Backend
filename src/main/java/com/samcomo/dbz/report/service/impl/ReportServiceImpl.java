@@ -84,15 +84,16 @@ public class ReportServiceImpl implements ReportService {
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
     report.setViews(report.getViews() + 1);
+    Report newReport = reportRepository.save(report);
 
-    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
+    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
     List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
 
     for (ReportImage reportImage : reportImageList) {
       reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
     }
 
-    return ReportDto.Response.from(report, reportImageResponseList);
+    return ReportDto.Response.from(newReport, reportImageResponseList);
   }
 
   @Override
