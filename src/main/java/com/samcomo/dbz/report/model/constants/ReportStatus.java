@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ReportStatus {
-  PUBLISHED("진행중"),
-  DELETED("삭제됨"),
-  FOUND("완료");
+  PUBLISHED("published"),
+  DELETED("deleted"),
+  FOUND("found");
 
   private final String description;
 }
