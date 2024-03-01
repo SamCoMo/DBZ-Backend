@@ -33,7 +33,7 @@ public class ReportController {
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글을 이미지와 함께 작성")
-  public ResponseEntity<?> registerReport(
+  public ResponseEntity<ReportDto.Response> registerReport(
 //      Authentication authentication
       @RequestPart ReportDto.Form reportForm,
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
@@ -51,7 +51,7 @@ public class ReportController {
 
   @GetMapping("/{reportId}")
   @Operation(summary = "특정 게시글 정보 가져오기")
-  public ResponseEntity<?> getReport(
+  public ResponseEntity<ReportDto.Response> getReport(
       @PathVariable long reportId
   ) {
 
@@ -62,7 +62,7 @@ public class ReportController {
 
   @GetMapping("/list")
   @Operation(summary = "현재 위치와 인접지역의 게시글 조회")
-  public ResponseEntity<?> getReportList(
+  public ResponseEntity<Slice<ReportList>> getReportList(
       @RequestParam long cursorId,
       @RequestParam double latitude,
       @RequestParam double longitude,
@@ -79,7 +79,7 @@ public class ReportController {
   @PutMapping(value = "/{reportId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글 수정")
-  public ResponseEntity<?> updateReport(
+  public ResponseEntity<ReportDto.Response> updateReport(
 //      Authentication authentication
       @PathVariable long reportId,
       @RequestPart ReportDto.Form reportForm,
@@ -99,7 +99,7 @@ public class ReportController {
 
   @DeleteMapping("/{reportId}")
   @Operation(summary = "게시글 삭제")
-  public ResponseEntity<?> deleteReport(
+  public ResponseEntity<ReportStateDto.Response> deleteReport(
 //      Authentication authentication,
       @PathVariable long reportId
   ) {
@@ -114,7 +114,7 @@ public class ReportController {
 
   @PutMapping("/{reportId}/complete")
   @Operation(summary = "게시글 완료 처리")
-  public ResponseEntity<?> completeProcess(
+  public ResponseEntity<ReportStateDto.Response> completeProcess(
       //      Authentication authentication,
       @PathVariable long reportId
   ) {
@@ -128,7 +128,7 @@ public class ReportController {
 
   @GetMapping("/search")
   @Operation(summary = "게시글 검색")
-  public ResponseEntity<?> searchReport(
+  public ResponseEntity<Slice<ReportList>> searchReport(
       @RequestParam boolean showsInProgressOnly,
       @RequestParam String object,
       Pageable pageable
