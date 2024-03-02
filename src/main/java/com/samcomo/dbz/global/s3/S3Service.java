@@ -7,7 +7,11 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.samcomo.dbz.global.s3.exception.S3Exception;
 import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.report.exception.ReportException;
+import com.samcomo.dbz.report.model.entity.ReportImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +55,29 @@ public class S3Service {
         .build();
   }
 
+  public List<ReportImage> uploadAll(List<MultipartFile> multipartFileList){
+    List<ReportImage> imageList = new ArrayList<>();
+
+    for (MultipartFile image : multipartFileList) {
+      ImageUploadState imageUploadState = upload(image, ImageType.REPORT);
+
+      // 이미지 업로드 실패
+      if(!imageUploadState.isSuccess()){
+        //지금까지 저장된 이미지 삭제
+        deleteUploadedImages(imageList);
+
+        throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
+      }
+
+      String imageUrl = imageUploadState.getImageUrl();
+      imageList.add(ReportImage.builder()
+          .imageUrl(imageUrl)
+          .build());
+    }
+
+    return imageList;
+  }
+
   public void delete(String fileName){
     try {
       amazonS3.deleteObject(bucket, fileName);
@@ -69,5 +96,14 @@ public class S3Service {
     int idx = filename.lastIndexOf(".");
     String extension = filename.substring(idx + 1);
     return "image/" + extension;
+  }
+
+  private void deleteUploadedImages(List<ReportImage> imageList){
+    for (ReportImage reportImage : imageList){
+      String imageUrl = reportImage.getImageUrl();
+      int idx = imageUrl.lastIndexOf("/");
+      String fileName = imageUrl.substring(idx + 1);
+      delete(fileName);
+    }
   }
 }
