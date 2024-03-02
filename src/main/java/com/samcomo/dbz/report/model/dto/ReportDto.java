@@ -8,12 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 public class ReportDto {
 
   @Getter
   @AllArgsConstructor
   @NoArgsConstructor
+  @Builder
   public static class Form{
     private String title;
     private PetType petType;
@@ -33,6 +35,7 @@ public class ReportDto {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @ToString
   public static class Response{
     private long reportId;
     private long memberId;
