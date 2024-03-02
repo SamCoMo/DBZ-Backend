@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Repository
@@ -39,7 +38,6 @@ public class ReportServiceImpl implements ReportService {
   private final S3Service s3Service;
 
   @Override
-  @Transactional
   public ReportDto.Response uploadReport(
       long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
   ) {
@@ -47,24 +45,32 @@ public class ReportServiceImpl implements ReportService {
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 게시글 내용 저장
-    Report newReport = reportRepository.save(Report.from(reportForm, member));
-
-    // 게시글 이미지 저장
+    // S3 이미지 저장
     List<ReportImage> imageList = new ArrayList<>();
     if (!multipartFileList.isEmpty()) {
       for (MultipartFile image : multipartFileList) {
         ImageUploadState imageUploadState = s3Service.upload(image, ImageType.REPORT);
-        checkUploadState(imageUploadState);
-        String imageUrl = imageUploadState.getImageUrl();
 
+        // 이미지 업로드 실패
+        if(!imageUploadState.isSuccess()){
+          //지금까지 저장된 이미지 삭제
+          deleteUploadedImages(imageList);
+
+          throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
+        }
+
+        String imageUrl = imageUploadState.getImageUrl();
         imageList.add(ReportImage.builder()
-            .report(newReport)
             .imageUrl(imageUrl)
             .build());
       }
     }
 
+    // 게시글 저장
+    Report newReport = reportRepository.save(Report.from(reportForm, member));
+
+    //게시글 이미지 저장
+    imageList.forEach(reportImage -> reportImage.setReport(newReport));
     List<ReportImage> savedImageList = reportImageRepository.saveAll(imageList);
 
     return ReportDto.Response.from(
@@ -84,15 +90,16 @@ public class ReportServiceImpl implements ReportService {
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
     report.setViews(report.getViews() + 1);
+    Report newReport = reportRepository.save(report);
 
-    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
+    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
     List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
 
     for (ReportImage reportImage : reportImageList) {
       reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
     }
 
-    return ReportDto.Response.from(report, reportImageResponseList);
+    return ReportDto.Response.from(newReport, reportImageResponseList);
   }
 
   @Override
@@ -141,8 +148,6 @@ public class ReportServiceImpl implements ReportService {
     report.setRoadAddress(reportForm.getRoadAddress());
     report.setShowsPhone(reportForm.isShowsPhone());
 
-    Report newReport = reportRepository.save(report);
-
     // s3이미지 삭제
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
     for (ReportImage reportImage : reportImageList) {
@@ -155,14 +160,26 @@ public class ReportServiceImpl implements ReportService {
     List<ReportImage> newImageList = new ArrayList<>();
     for (MultipartFile image : imageList) {
       ImageUploadState imageUploadState = s3Service.upload(image, ImageType.REPORT);
-      checkUploadState(imageUploadState);
-      String imageUrl = imageUploadState.getImageUrl();
 
+      // 이미지 업로드 실패
+      if(!imageUploadState.isSuccess()){
+        //지금까지 저장된 이미지 삭제
+        deleteUploadedImages(newImageList);
+
+        throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
+      }
+
+      String imageUrl = imageUploadState.getImageUrl();
       newImageList.add(ReportImage.builder()
-          .report(newReport)
           .imageUrl(imageUrl)
           .build());
     }
+
+    // 게시글 저장
+    Report newReport = reportRepository.save(report);
+
+    //게시글 이미지 저장
+    newImageList.forEach(reportImage -> reportImage.setReport(newReport));
     List<ReportImage> savedImageList = reportImageRepository.saveAll(newImageList);
 
     return ReportDto.Response.from(
@@ -201,7 +218,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public Response complete(long userId, long reportId) {
+  public Response changeStatusToFound(long userId, long reportId) {
 
     Member member = memberRepository.findById(userId)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
@@ -249,16 +266,17 @@ public class ReportServiceImpl implements ReportService {
   }
 
 
-  private void checkUploadState(ImageUploadState imageUploadState) {
+  private boolean checkImageUpload(ImageUploadState imageUploadState) {
 
-    String imageUrl = imageUploadState.getImageUrl();
+    return imageUploadState.isSuccess();
+  }
 
-    if (!imageUploadState.isSuccess()) {
+  private void deleteUploadedImages(List<ReportImage> imageList){
+    for (ReportImage reportImage : imageList){
+      String imageUrl = reportImage.getImageUrl();
       int idx = imageUrl.lastIndexOf("/");
       String fileName = imageUrl.substring(idx + 1);
       s3Service.delete(fileName);
-
-      throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
     }
   }
 }
