@@ -9,7 +9,6 @@ import com.samcomo.dbz.member.model.entity.Member;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 @Getter
 public class RegisterDto {
@@ -37,7 +36,6 @@ public class RegisterDto {
 
   @Getter
   @Builder
-  @ToString
   public static class Response {
 
     private Long memberId;
@@ -49,7 +47,6 @@ public class RegisterDto {
 
     @Getter
     @Builder
-    @ToString
     public static class MemberInfo {
 
       private String email;

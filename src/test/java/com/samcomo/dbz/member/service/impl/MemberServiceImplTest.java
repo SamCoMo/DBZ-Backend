@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verify;
 
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.dto.RegisterDto;
-import com.samcomo.dbz.member.model.dto.RegisterDto.Response.MemberInfo;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import java.util.Optional;
@@ -42,18 +41,45 @@ class MemberServiceImplTest {
   @Spy
   private PasswordEncoder passwordEncoder;
 
+  private RegisterDto.Request request;
+  private Member savedMember;
+  private String rawEmail;
+  private String rawNickname;
+  private String rawPhone;
+  private String rawPassword;
+
   @BeforeEach
   void init() {
+
     passwordEncoder = new BCryptPasswordEncoder();
+
+    rawEmail = "samcomo@gmail.com";
+    rawPhone = "010-1234-5678";
+    rawNickname = "삼코모";
+    rawPassword = "123";
+
+    request = RegisterDto.Request.builder()
+        .email(rawEmail)
+        .nickname(rawNickname)
+        .phone(rawPhone)
+        .password(rawPassword)
+        .build();
+
+    savedMember = Member.builder()
+        .id(1L)
+        .email(rawEmail)
+        .nickname(rawNickname)
+        .phone(rawPhone)
+        .password(passwordEncoder.encode(rawPassword))
+        .role(MEMBER)
+        .status(ACTIVE)
+        .build();
   }
 
   @Test
   @DisplayName(value = "[성공] 회원가입")
   void successRegister() {
     // given
-    RegisterDto.Request request = getRequestExample();
-    Member savedMember = getSavedMemberExample("123");
-
     given(memberRepository.save(any()))
         .willReturn(savedMember);
 
@@ -66,25 +92,22 @@ class MemberServiceImplTest {
     verify(memberRepository, times(1)).save(captor.capture());
 
     assertEquals(1L, response.getMemberId());
-    assertEquals("samcomo@gmail.com", response.getMemberInfo().getEmail());
-    assertEquals("삼코모", response.getMemberInfo().getNickname());
-    assertEquals("010-1234-5678", response.getMemberInfo().getPhone());
+    assertEquals(rawEmail, response.getMemberInfo().getEmail());
+    assertEquals(rawNickname, response.getMemberInfo().getNickname());
+    assertEquals(rawPhone, response.getMemberInfo().getPhone());
 
     assertEquals(ACTIVE, response.getStatus());
     assertEquals(MEMBER, response.getRole());
 
-    assertTrue(passwordEncoder.matches("123", savedMember.getPassword()));
+    assertTrue(passwordEncoder.matches(rawPassword, savedMember.getPassword()));
   }
 
   @Test
   @DisplayName(value = "[실패] 회원가입-유효성검사 : 이메일 중복")
   void failValidateDuplicateMember_EmailException() {
     // given
-    Member alreadyExistsMember = getSavedMemberExample("123");
-    RegisterDto.Request request = getRequestExample();
-
     given(memberRepository.findByEmail(any()))
-        .willReturn(Optional.of(alreadyExistsMember));
+        .willReturn(Optional.of(savedMember));
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
@@ -98,11 +121,8 @@ class MemberServiceImplTest {
   @DisplayName(value = "[실패] 회원가입-유효성검사 : 닉네임 중복")
   void failValidateDuplicateMember_NicknameException() {
     // given
-    Member alreadyExistsMember = getSavedMemberExample("123");
-    RegisterDto.Request request = getRequestExample();
-
     given(memberRepository.findByNickname(any()))
-        .willReturn(Optional.of(alreadyExistsMember));
+        .willReturn(Optional.of(savedMember));
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
@@ -110,43 +130,5 @@ class MemberServiceImplTest {
 
     // then
     assertEquals(NICKNAME_ALREADY_EXISTS, memberException.getErrorCode());
-  }
-
-  private Member getSavedMemberExample(String rawPassword) {
-
-    return Member.builder()
-        .id(1L)
-        .email("samcomo@gmail.com")
-        .nickname("삼코모")
-        .phone("010-1234-5678")
-        .profileImageUrl("defaultImageUrl.jpg")
-        .password(passwordEncoder.encode(rawPassword))
-        .role(MEMBER)
-        .status(ACTIVE)
-        .build();
-  }
-
-  private RegisterDto.Request getRequestExample() {
-
-    return RegisterDto.Request.builder()
-        .email("samcomo@gmail.com")
-        .nickname("삼코모")
-        .phone("010-1234-5678")
-        .password("123")
-        .build();
-  }
-
-  private RegisterDto.Response getResponseExample() {
-
-    return RegisterDto.Response.builder()
-        .memberInfo(
-            MemberInfo.builder()
-                .email("samcomo@gmail.com")
-                .nickname("삼코모")
-                .phone("010-1234-5678")
-                .build())
-        .status(ACTIVE)
-        .role(MEMBER)
-        .build();
   }
 }
