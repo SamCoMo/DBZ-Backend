@@ -23,5 +23,5 @@ public interface ReportService {
 
   Response changeStatusToFound(long userId, long reportId);
 
-  Slice<ReportList> search(String object, boolean showsInProgressOnly, Pageable pageable);
+  Slice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable);
 }

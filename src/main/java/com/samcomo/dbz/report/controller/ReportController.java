@@ -134,7 +134,7 @@ public class ReportController {
       Pageable pageable
   ){
 
-    Slice<ReportList> result = reportService.search(object, showsInProgressOnly, pageable);
+    Slice<ReportList> result = reportService.searchReport(object, showsInProgressOnly, pageable);
 
     return ResponseEntity.ok(result);
   }
