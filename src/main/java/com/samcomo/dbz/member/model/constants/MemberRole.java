@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum MemberStatus {
+public enum MemberRole {
 
-  DELETED("탈퇴회원"),
-  INACTIVE("휴면회원"),
-  ACTIVE("활성회원");
+  MEMBER("ROLE_MEMBER"),
+  ADMIN("ROLE_ADMIN");
 
-  private final String description;
+  private final String key;
 }
+
