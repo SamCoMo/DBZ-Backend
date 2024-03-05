@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-
   @Query("select r from Report r "
       + "where abs(r.latitude - :latitude) + abs(r.longitude - :longitude) > :cursor "
       + "order by abs(:latitude - r.latitude) + abs(:longitude - r.longitude) ")

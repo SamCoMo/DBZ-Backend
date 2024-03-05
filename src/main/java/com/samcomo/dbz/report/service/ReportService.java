@@ -21,7 +21,7 @@ public interface ReportService {
 
   Response deleteReport(long userId, long reportId);
 
-  Response complete(long userId, long reportId);
+  Response changeStatusToFound(long userId, long reportId);
 
-  Slice<ReportList> search(String object, boolean showsInProgressOnly, Pageable pageable);
+  Slice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable);
 }
