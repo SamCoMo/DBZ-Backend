@@ -1,29 +1,25 @@
 package com.samcomo.dbz.chat.model.entity;
 
-import com.samcomo.dbz.global.entity.BaseEntity;
-import com.samcomo.dbz.member.model.entity.Member;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Getter
 @Setter
+@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-public class ChatRoom extends BaseEntity {
+@Builder
+@Document
+public class ChatRoom {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
-  @OneToOne
-  private Member member1;
-
-  @OneToOne
-  private Member member2;
-
+  private String chatRoomId;
+  private String senderId;
+  private String recipientId;
+  private String lastChatMessageContent;
+  private LocalDateTime lastChatMessageAt;
 }

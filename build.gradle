@@ -42,11 +42,17 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 	// validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// maria DB
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+	// mongo DB
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	//AWS
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
