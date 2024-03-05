@@ -11,5 +11,21 @@ public enum MemberRole {
   ADMIN("ROLE_ADMIN");
 
   private final String key;
+
+  public static MemberRole get(String role) {
+
+    switch (role) {
+
+      case "ROLE_MEMBER" -> {
+        return MEMBER;
+      }
+      case "ROLE_ADMIN" -> {
+        return ADMIN;
+      }
+      default -> {
+        return null;
+      }
+    }
+  }
 }
 
