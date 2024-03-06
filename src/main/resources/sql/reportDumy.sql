@@ -3,8 +3,8 @@
 insert into member (id)
 values (1);
 
-delimiter //
-drop procedure if exists loopinsert//
+delimiter $$
+drop procedure if exists loopinsert$$
 
 create procedure loopinsert()
 begin
@@ -12,7 +12,7 @@ begin
     declare sp VARCHAR(10);
     declare rs varchar(50);
 
-    while i <= 500
+    while i <= 50000
         do
             set sp = IF(rand() < 0.5, 'DOG', 'CAT');
             set rs = if(rand() < 0.33, 'PUBLISHED', if(rand() < 0.67, 'DELETED', 'FOUND'));
@@ -27,7 +27,7 @@ begin
         end while;
 
     set i = 1;
-    while i <= 500
+    while i <= 50000
         do
             set sp = IF(rand() < 0.5, 'DOG', 'CAT');
             set rs = if(rand() < 0.33, 'PUBLISHED', if(rand() < 0.67, 'DELETED', 'FOUND'));
@@ -42,7 +42,7 @@ begin
         end while;
 
     set i = 1;
-    while i <= 500
+    while i <= 50000
         do
             set sp = IF(rand() < 0.5, 'DOG', 'CAT');
             set rs = if(rand() < 0.33, 'PUBLISHED', if(rand() < 0.67, 'DELETED', 'FOUND'));
@@ -57,7 +57,7 @@ begin
         end while;
 
     set i = 1;
-    while i <= 500
+    while i <= 50000
         do
             set sp = IF(rand() < 0.5, 'DOG', 'CAT');
             set rs = if(rand() < 0.33, 'PUBLISHED', if(rand() < 0.67, 'DELETED', 'FOUND'));
@@ -70,7 +70,11 @@ begin
                     rs);
             set i = i + 1;
         end while;
-end //
-delimiter //
+end $$
+delimiter $$
 
 call loopinsert();
+# call loopinsert();
+# call loopinsert();
+# call loopinsert();
+# call loopinsert();
