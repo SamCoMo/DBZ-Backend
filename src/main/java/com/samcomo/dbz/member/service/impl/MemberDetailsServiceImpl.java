@@ -1,11 +1,14 @@
 package com.samcomo.dbz.member.service.impl;
 
-import com.samcomo.dbz.global.exception.ErrorCode;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,15 @@ public class MemberDetailsServiceImpl implements UserDetailsService {
   public MemberDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
     Member member = memberRepository.findByEmail(email).orElseThrow(() ->
-        new MemberException(ErrorCode.MEMBER_NOT_FOUND));
+        new MemberException(MEMBER_NOT_FOUND));
+
+    return new MemberDetails(member);
+  }
+
+  public MemberDetails loadMemberByAuthentication(Authentication authentication) {
+
+    Member member = memberRepository.findByEmail(authentication.getName()).orElseThrow(() ->
+        new MemberException(INVALID_SESSION));
 
     return new MemberDetails(member);
   }

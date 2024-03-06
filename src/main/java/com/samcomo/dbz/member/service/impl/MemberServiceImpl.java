@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.service.impl;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.EMAIL_ALREADY_EXISTS;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
 import static com.samcomo.dbz.global.exception.ErrorCode.NICKNAME_ALREADY_EXISTS;
 
 import com.samcomo.dbz.member.exception.MemberException;
@@ -10,6 +11,7 @@ import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.member.service.MemberService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,15 @@ public class MemberServiceImpl implements MemberService {
     member = memberRepository.save(member);
 
     return RegisterDto.Response.fromEntity(member);
+  }
+
+  @Override
+  public Long getMemberIdByAuthentication(Authentication authentication) {
+
+    Member member = memberRepository.findByEmail(authentication.getName()).orElseThrow(() ->
+        new MemberException(INVALID_SESSION));
+
+    return member.getId();
   }
 
   public void validateDuplicateMember(String email, String nickname) {
