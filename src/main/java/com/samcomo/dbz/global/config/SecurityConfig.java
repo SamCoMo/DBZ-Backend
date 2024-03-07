@@ -47,6 +47,8 @@ public class SecurityConfig {
     // mapping
     http
         .authorizeHttpRequests((auth) -> auth
+            .requestMatchers("/member/register").permitAll()
+            .requestMatchers("/report/**").permitAll()
             .requestMatchers("/member/register", "/member/login").permitAll()
             .requestMatchers("/member/test").hasRole("MEMBER")
             .anyRequest().authenticated());
