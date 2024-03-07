@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### jwt-secret ###
+/src/main/resources/application-jwt-secret.yml
