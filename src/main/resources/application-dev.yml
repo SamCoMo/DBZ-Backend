@@ -28,3 +28,9 @@ cloud:
       auto: false
     s3:
       bucket: samcomo
+logging:
+  level:
+    org:
+      springframework:
+        transaction:
+          interceptor: trace

@@ -20,10 +20,12 @@ import com.samcomo.dbz.report.model.repository.ReportRepository;
 import com.samcomo.dbz.report.service.ReportService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
@@ -38,6 +40,7 @@ public class ReportServiceImpl implements ReportService {
   private final ReportImageRepository reportImageRepository;
   private final MemberRepository memberRepository;
   private final S3Service s3Service;
+  private final RedissonClient redissonClient;
 
   @Override
   public ReportDto.Response uploadReport(
@@ -66,28 +69,55 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
+//  @Transactional
   public ReportDto.Response getReport(long reportId) {
 
-    //TODO: 조회수에 대한 동시성 처리 필요
+    //TODO: AOP를 사용하여 트랜잭션 밖에서 Lock을 먼저 획득하고 트랜잭션 밖에서 Lock을 해제하도록 수정하기
 
-    Report report = reportRepository.findById(reportId)
-        .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
+    String lockName = "redisLock";
+    RLock lock = redissonClient.getLock(lockName);
+    String worker = Thread.currentThread().getName();
 
-    report.setViews(report.getViews() + 1);
-    Report newReport = reportRepository.save(report);
+    Report newReport;
+    try{
+      if (!lock.tryLock(1,3, TimeUnit.SECONDS)){
+        return ReportDto.Response.builder().build();
+      }else {
+        log.info("Lock 획득!!!, Thread : [{}]", worker);
+      }
 
-    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
-    List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
+      Report report = reportRepository.findById(reportId)
+          .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
-    for (ReportImage reportImage : reportImageList) {
-      reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
+      log.info("현재 조회수 : {}", report.getViews());
+
+      report.setViews(report.getViews() + 1);
+      newReport = reportRepository.save(report);
+
+      log.info("저장 완료된 worker : [{}], 저장 후 조회수 : {}", worker, newReport.getViews());
+
+      List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
+      List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
+
+      for (ReportImage reportImage : reportImageList) {
+        reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
+      }
+
+      log.info("================Finish 조회수 : {}===================", newReport.getViews());
+      return ReportDto.Response.from(newReport, reportImageResponseList);
+
+    }catch (InterruptedException e){
+      throw new ReportException(ErrorCode.LOCK_FAIL);
+    }finally {
+      if (lock != null && lock.isLocked()){
+        log.info("[{}] 락 종료", worker);
+        lock.unlock();
+      }
     }
-
-    return ReportDto.Response.from(newReport, reportImageResponseList);
   }
 
   @Override
-  @Cacheable(key = "#lastLatitude +'-'+ #lastLongitude",value = "reportPage")
+//  @Cacheable(key = "#lastLatitude +'-'+ #lastLongitude",value = "reportPage")
   public CustomSlice<ReportList> getReportList(
       double lastLatitude,
       double lastLongitude,
