@@ -11,5 +11,11 @@ public interface ChatRoomService {
   List<ChatRoomDto> getChatRoomsFromMember(String memberId);
 
   // 채팅방 업데이트 : 마지막 채팅내역, 마지막으로 생성된 채팅시각
-  ChatRoomDto updateChatRoomInfo(String chatRoomId);
+  ChatRoomDto updateLastChatInfo(String chatRoomId, String memberId);
+
+  // 채팅방 삭제
+  void deleteChatRoom(String chatRoomId, String memberId);
+
+  // 채팅방에 메시지 존재하지 않을시 채팅방삭제 (채팅방 나올때)
+  void deleteChatRoomIfEmptyMessage(String chatRoomId, String memberId);
 }

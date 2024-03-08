@@ -1,6 +1,7 @@
 package com.samcomo.dbz.chat.model.entity;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ChatRoom {
   @Id
   private String chatRoomId;
-  private String senderId;
+  private Set<String> memberIdList;
   private String recipientId;
   private String lastChatMessageContent;
   private LocalDateTime lastChatMessageAt;
