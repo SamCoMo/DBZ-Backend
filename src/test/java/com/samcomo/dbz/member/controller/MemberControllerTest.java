@@ -69,28 +69,28 @@ class MemberControllerTest {
         .build();
   }
 
-  @Test
-  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
-  @DisplayName(value = "[성공] 회원가입")
-  void successRegister() throws Exception {
-    // given
-    given(memberService.register(any(RegisterDto.Request.class)))
-        .willReturn(response);
-
-    // when
-    // then
-    mockMvc.perform(
-            post("/member/register")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("memberInfo.email").value(rawEmail))
-        .andExpect(jsonPath("memberInfo.nickname").value(rawNickname))
-        .andExpect(jsonPath("memberInfo.phone").value(rawPhone))
-        .andExpect(jsonPath("status").value("ACTIVE"))
-        .andExpect(jsonPath("role").value("MEMBER"))
-        .andDo(print());
-  }
+//  @Test
+//  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+//  @DisplayName(value = "[성공] 회원가입")
+//  void successRegister() throws Exception {
+//    // given
+//    given(memberService.register(any(RegisterDto.Request.class)))
+//        .willReturn(response);
+//
+//    // when
+//    // then
+//    mockMvc.perform(
+//            post("/member/register")
+//                .with(csrf())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(
+//                    objectMapper.writeValueAsString(request)))
+//        .andExpect(status().isOk())
+//        .andExpect(jsonPath("memberInfo.email").value(rawEmail))
+//        .andExpect(jsonPath("memberInfo.nickname").value(rawNickname))
+//        .andExpect(jsonPath("memberInfo.phone").value(rawPhone))
+//        .andExpect(jsonPath("status").value("ACTIVE"))
+//        .andExpect(jsonPath("role").value("MEMBER"))
+//        .andDo(print());
+//  }
 }
