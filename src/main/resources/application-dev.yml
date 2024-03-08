@@ -1,8 +1,8 @@
 spring:
   data:
     redis:
-      host:
-      password:
+      port: 6389
+      host: localhost
 
     mongodb:
       username: ${MONGO_USERNAME} #root

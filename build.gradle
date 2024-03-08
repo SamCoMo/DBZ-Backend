@@ -51,16 +51,22 @@ dependencies {
 	// maria DB
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	// mongo DB
-	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+  // mongo DB
+  implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-	//AWS
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+  // AWS
+  implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
