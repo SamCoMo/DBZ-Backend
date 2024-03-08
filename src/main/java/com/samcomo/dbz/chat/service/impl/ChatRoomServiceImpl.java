@@ -70,7 +70,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   }
 
   @Override
-  @Transactional
   public ChatRoomDto updateLastChatInfo(String chatRoomId, String memberId) {
     // 회원, 채팅방 검증
     ChatRoom chatRoom = chatUtils.verifyChatRoomAndMember(chatRoomId, memberId);
