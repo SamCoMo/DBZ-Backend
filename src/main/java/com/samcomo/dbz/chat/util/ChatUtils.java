@@ -16,7 +16,7 @@ public class ChatUtils {
   private final ChatRoomRepository chatRoomRepository;
   private final MemberRepository memberRepository;
 
-  // 채팅방-회원 검증
+  // 채팅방과 회원이 채팅방에 존재하는지 검증
   public ChatRoom verifyChatRoomAndMember(String chatRoomId, String memberId) {
     // 회원 검증
     memberRepository.findById(Long.parseLong(memberId))
@@ -31,6 +31,11 @@ public class ChatUtils {
       throw new ChatException(ErrorCode.ACCESS_DENIED_CHATROOM);
     }
     return chatRoom;
+  }
+
+  public void verifyChatRoom(String chatRoomId){
+    chatRoomRepository.findById(chatRoomId)
+        .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_FOUND));
   }
 
   // 회원 검증

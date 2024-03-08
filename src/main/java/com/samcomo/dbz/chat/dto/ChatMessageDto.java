@@ -25,7 +25,7 @@ public class ChatMessageDto {
   @NoArgsConstructor
   @Builder
   public static class Response{
-    private String id;
+    private String chatMessageId;
     private String chatRoomId;
     private String senderId;
     private String recipientId;
@@ -35,10 +35,9 @@ public class ChatMessageDto {
 
     public static Response from(ChatMessage chatMessage){
       return Response.builder()
-          .id(chatMessage.getId())
+          .chatMessageId(chatMessage.getChatMessageId())
           .chatRoomId(chatMessage.getChatRoomId())
           .senderId(chatMessage.getSenderId())
-          .recipientId(chatMessage.getRecipientId())
           .content(chatMessage.getContent())
           .imageUrlList(chatMessage.getImageUrlList())
           .createdAt(chatMessage.getCreatedAt())
