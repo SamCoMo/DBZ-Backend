@@ -22,8 +22,7 @@ public class MemberController {
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
   public ResponseEntity<RegisterDto.Response> register(
-      @RequestBody RegisterDto.Request request
-  ) {
+      @RequestBody RegisterDto.Request request) {
 
     return ResponseEntity.ok(memberService.register(request));
   }

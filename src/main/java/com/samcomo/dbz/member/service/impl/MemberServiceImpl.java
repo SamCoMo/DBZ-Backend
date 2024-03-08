@@ -9,7 +9,6 @@ import com.samcomo.dbz.member.model.dto.RegisterDto;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.member.service.MemberService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +22,6 @@ public class MemberServiceImpl implements MemberService {
   private final PasswordEncoder passwordEncoder;
 
   @Override
-  @Transactional
   public RegisterDto.Response register(RegisterDto.Request request) {
 
     validateDuplicateMember(request.getEmail(), request.getNickname());
@@ -45,6 +43,7 @@ public class MemberServiceImpl implements MemberService {
     return member.getId();
   }
 
+  @Override
   public void validateDuplicateMember(String email, String nickname) {
 
     if (memberRepository.findByEmail(email).isPresent()) {

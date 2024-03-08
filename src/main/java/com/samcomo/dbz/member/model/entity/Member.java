@@ -10,16 +10,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
   @Id
@@ -43,21 +44,6 @@ public class Member extends BaseEntity {
   private MemberStatus status;
 
   private String fcmKey;
-
-  @Builder
-  public Member(Long id, String email, String password, String nickname, String phone,
-      String profileImageUrl, MemberRole role, MemberStatus status, String fcmKey) {
-
-    this.id = id;
-    this.email = email;
-    this.password = password;
-    this.nickname = nickname;
-    this.phone = phone;
-    this.profileImageUrl = profileImageUrl;
-    this.role = role;
-    this.status = status;
-    this.fcmKey = fcmKey;
-  }
 
   public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
 

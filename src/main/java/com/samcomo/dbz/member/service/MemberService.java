@@ -9,7 +9,7 @@ public interface MemberService {
 
   RegisterDto.Response register(RegisterDto.Request request);
 
-  void validateDuplicateMember(String email, String nickname);
-
   Long getMemberIdByAuthentication(Authentication authentication);
+
+  void validateDuplicateMember(String email, String nickname);
 }
