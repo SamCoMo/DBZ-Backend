@@ -1,4 +1,4 @@
-package com.samcomo.dbz.member.model.jwt;
+package com.samcomo.dbz.member.jwt;
 
 import com.samcomo.dbz.member.model.constants.TokenType;
 import io.jsonwebtoken.Jwts;

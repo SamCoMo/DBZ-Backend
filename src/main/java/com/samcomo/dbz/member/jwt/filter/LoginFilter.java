@@ -1,10 +1,10 @@
-package com.samcomo.dbz.member.model.jwt.filter;
+package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.jwt.JwtUtil;
+import com.samcomo.dbz.member.jwt.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
