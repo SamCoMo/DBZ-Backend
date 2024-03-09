@@ -1,7 +1,5 @@
 package com.samcomo.dbz.member.model.dto;
 
-import com.samcomo.dbz.member.model.constants.MemberRole;
-import com.samcomo.dbz.member.model.constants.MemberStatus;
 import com.samcomo.dbz.member.model.entity.Member;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,30 +43,6 @@ public class MemberDetails implements UserDetails {
 
   public String getEmail() {
     return member.getEmail();
-  }
-
-  public String getNickname() {
-    return member.getNickname();
-  }
-
-  public String getProfileImageUrl() {
-    return member.getProfileImageUrl();
-  }
-
-  public String getPhone() {
-    return member.getPhone();
-  }
-
-  public MemberRole getRole() {
-    return member.getRole();
-  }
-
-  public MemberStatus getStatus() {
-    return member.getStatus();
-  }
-
-  public String getFcmKey() {
-    return member.getFcmKey();
   }
 
   @Override
