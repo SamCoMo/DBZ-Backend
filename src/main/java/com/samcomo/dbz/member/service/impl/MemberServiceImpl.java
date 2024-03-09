@@ -5,7 +5,8 @@ import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
 import static com.samcomo.dbz.global.exception.ErrorCode.NICKNAME_ALREADY_EXISTS;
 
 import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.dto.RegisterDto;
+import com.samcomo.dbz.member.model.dto.RegisterDto.Request;
+import com.samcomo.dbz.member.model.dto.RegisterDto.Response;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.member.service.MemberService;
@@ -22,25 +23,23 @@ public class MemberServiceImpl implements MemberService {
   private final PasswordEncoder passwordEncoder;
 
   @Override
-  public RegisterDto.Response register(RegisterDto.Request request) {
+  public Response register(Request request) {
 
     validateDuplicateMember(request.getEmail(), request.getNickname());
 
-    Member member = RegisterDto.Request.toEntity(request);
+    Member member = Member.from(request);
     member.encodePassword(passwordEncoder, request.getPassword());
 
     member = memberRepository.save(member);
 
-    return RegisterDto.Response.fromEntity(member);
+    return Response.from(member);
   }
 
   @Override
-  public Long getMemberIdByAuthentication(Authentication authentication) {
+  public Member getMemberIdByAuthentication(Authentication authentication) {
 
-    Member member = memberRepository.findByEmail(authentication.getName()).orElseThrow(() ->
-        new MemberException(INVALID_SESSION));
-
-    return member.getId();
+    return memberRepository.findByEmail(authentication.getName())
+        .orElseThrow(() -> new MemberException(INVALID_SESSION));
   }
 
   @Override

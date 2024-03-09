@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.service;
 
 import com.samcomo.dbz.member.model.dto.RegisterDto;
+import com.samcomo.dbz.member.model.entity.Member;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -9,7 +10,7 @@ public interface MemberService {
 
   RegisterDto.Response register(RegisterDto.Request request);
 
-  Long getMemberIdByAuthentication(Authentication authentication);
+  Member getMemberIdByAuthentication(Authentication authentication);
 
   void validateDuplicateMember(String email, String nickname);
 }
