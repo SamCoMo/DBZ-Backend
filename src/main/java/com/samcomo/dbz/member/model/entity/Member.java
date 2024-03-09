@@ -1,8 +1,12 @@
 package com.samcomo.dbz.member.model.entity;
 
+import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
+import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
+
 import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.MemberStatus;
+import com.samcomo.dbz.member.model.dto.RegisterDto.Request;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -48,5 +52,16 @@ public class Member extends BaseEntity {
   public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
 
     this.password = passwordEncoder.encode(rawPassword);
+  }
+
+  public static Member from(Request request) {
+    return Member.builder()
+        .email(request.getEmail())
+        .nickname(request.getNickname())
+        .profileImageUrl("defaultImageUrl.jpg") // TODO 기본 이미지 url 정하기
+        .phone(request.getPhone())
+        .role(MEMBER)
+        .status(ACTIVE)
+        .build();
   }
 }

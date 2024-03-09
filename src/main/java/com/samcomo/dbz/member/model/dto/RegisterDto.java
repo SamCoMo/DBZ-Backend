@@ -1,8 +1,5 @@
 package com.samcomo.dbz.member.model.dto;
 
-import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
-import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
-
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.MemberStatus;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -21,17 +18,6 @@ public class RegisterDto {
     private String nickname;
     private String phone;
     private String password;
-
-    public static Member toEntity(Request request) {
-      return Member.builder()
-          .email(request.getEmail())
-          .nickname(request.getNickname())
-          .profileImageUrl("defaultImageUrl.jpg") // TODO 기본 이미지 url 정하기
-          .phone(request.getPhone())
-          .role(MEMBER)
-          .status(ACTIVE)
-          .build();
-    }
   }
 
   @Getter
@@ -55,7 +41,7 @@ public class RegisterDto {
       private String phone;
     }
 
-    public static Response fromEntity(Member member) {
+    public static Response from(Member member) {
 
       return Response.builder()
           .memberId(member.getId())
