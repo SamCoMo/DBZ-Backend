@@ -2,10 +2,10 @@ package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
+import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
-import com.samcomo.dbz.member.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
