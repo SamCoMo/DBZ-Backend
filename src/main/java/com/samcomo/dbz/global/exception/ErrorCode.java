@@ -30,7 +30,14 @@ public enum ErrorCode {
   NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 유저의 정보가 일치하지 않습니다."),
 
   // Redis-Lock
-  LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다.");
+  LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다."),
+
+  // Chat
+  ACCESS_DENIED_CHATROOM(HttpStatus.FORBIDDEN, "채팅방에 접근이 거부되었습니다."),
+
+  CHATROOM_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅방을 찾을 수 없습니다."),
+
+  CHATMESSAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅을 찾을 수 없습니다.");
 
   private final HttpStatus status;
   private final String message;
