@@ -10,7 +10,7 @@ public interface MemberService {
 
   RegisterDto.Response register(RegisterDto.Request request);
 
-  Member getMemberIdByAuthentication(Authentication authentication);
+  Member getMemberByAuthentication(Authentication authentication);
 
   void validateDuplicateMember(String email, String nickname);
 }

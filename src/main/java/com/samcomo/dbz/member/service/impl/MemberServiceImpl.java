@@ -36,7 +36,7 @@ public class MemberServiceImpl implements MemberService {
   }
 
   @Override
-  public Member getMemberIdByAuthentication(Authentication authentication) {
+  public Member getMemberByAuthentication(Authentication authentication) {
 
     return memberRepository.findByEmail(authentication.getName())
         .orElseThrow(() -> new MemberException(INVALID_SESSION));
