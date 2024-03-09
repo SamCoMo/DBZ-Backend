@@ -6,7 +6,7 @@ import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
 import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.MemberStatus;
-import com.samcomo.dbz.member.model.dto.RegisterDto.Request;
+import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -54,7 +54,7 @@ public class Member extends BaseEntity {
     this.password = passwordEncoder.encode(rawPassword);
   }
 
-  public static Member from(Request request) {
+  public static Member from(RegisterRequestDto request) {
     return Member.builder()
         .email(request.getEmail())
         .nickname(request.getNickname())

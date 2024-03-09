@@ -1,10 +1,11 @@
 package com.samcomo.dbz.member.controller;
 
-import com.samcomo.dbz.member.model.dto.RegisterDto;
+import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,9 +22,10 @@ public class MemberController {
 
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
-  public ResponseEntity<RegisterDto.Response> register(
-      @RequestBody RegisterDto.Request request) {
+  public ResponseEntity<Void> register(@RequestBody RegisterRequestDto request) {
 
-    return ResponseEntity.ok(memberService.register(request));
+    memberService.register(request);
+
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 }

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.dto.RegisterDto;
+import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import java.util.Optional;
@@ -41,7 +41,7 @@ class MemberServiceImplTest {
   @Spy
   private PasswordEncoder passwordEncoder;
 
-  private RegisterDto.Request request;
+  private RegisterRequestDto request;
   private Member savedMember;
   private String rawEmail;
   private String rawNickname;
@@ -58,7 +58,7 @@ class MemberServiceImplTest {
     rawNickname = "삼코모";
     rawPassword = "123";
 
-    request = RegisterDto.Request.builder()
+    request = RegisterRequestDto.builder()
         .email(rawEmail)
         .nickname(rawNickname)
         .phone(rawPhone)
@@ -77,37 +77,30 @@ class MemberServiceImplTest {
   }
 
   @Test
-  @DisplayName(value = "[성공] 회원가입")
+  @DisplayName(value = "회원가입[성공]")
   void successRegister() {
     // given
-    given(memberRepository.save(any()))
-        .willReturn(savedMember);
+    given(memberRepository.findByEmail(any())).willReturn(Optional.empty());
+    given(memberRepository.findByNickname(any())).willReturn(Optional.empty());
 
     ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
 
     // when
-    RegisterDto.Response response = memberService.register(request);
+    memberService.register(request);
 
     // then
+    verify(memberRepository, times(1)).findByEmail(request.getEmail());
+    verify(memberRepository, times(1)).findByNickname(request.getNickname());
     verify(memberRepository, times(1)).save(captor.capture());
-
-    assertEquals(1L, response.getMemberId());
-    assertEquals(rawEmail, response.getMemberInfo().getEmail());
-    assertEquals(rawNickname, response.getMemberInfo().getNickname());
-    assertEquals(rawPhone, response.getMemberInfo().getPhone());
-
-    assertEquals(ACTIVE, response.getStatus());
-    assertEquals(MEMBER, response.getRole());
 
     assertTrue(passwordEncoder.matches(rawPassword, savedMember.getPassword()));
   }
 
   @Test
-  @DisplayName(value = "[실패] 회원가입-유효성검사 : 이메일 중복")
+  @DisplayName(value = "회원가입[실패] : 이메일 중복")
   void failValidateDuplicateMember_EmailException() {
     // given
-    given(memberRepository.findByEmail(any()))
-        .willReturn(Optional.of(savedMember));
+    given(memberRepository.findByEmail(request.getEmail())).willReturn(Optional.of(savedMember));
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
@@ -118,11 +111,10 @@ class MemberServiceImplTest {
   }
 
   @Test
-  @DisplayName(value = "[실패] 회원가입-유효성검사 : 닉네임 중복")
+  @DisplayName(value = "회원가입[실패] : 닉네임 중복")
   void failValidateDuplicateMember_NicknameException() {
     // given
-    given(memberRepository.findByNickname(any()))
-        .willReturn(Optional.of(savedMember));
+    given(memberRepository.findByNickname(request.getNickname())).willReturn(Optional.of(savedMember));
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
