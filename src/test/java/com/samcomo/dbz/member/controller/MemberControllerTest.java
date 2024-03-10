@@ -3,6 +3,7 @@ package com.samcomo.dbz.member.controller;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,28 +34,30 @@ class MemberControllerTest {
   private MockMvc mockMvc;
 
   private RegisterRequestDto request;
-  private String rawEmail;
-  private String rawNickname;
-  private String rawPhone;
+  private String validEmail;
+  private String validNickname;
+  private String validPhone;
+  private String validPassword;
 
   @BeforeEach
   void init() {
 
-    rawEmail = "samcomo@gmail.com";
-    rawPhone = "010-1234-5678";
-    rawNickname = "삼코모";
+    validEmail = "samcomo@gmail.com";
+    validPhone = "010-1234-5678";
+    validNickname = "삼코모";
+    validPassword = "abcd1234";
 
     request = RegisterRequestDto.builder()
-        .email(rawEmail)
-        .nickname(rawNickname)
-        .phone(rawPhone)
-        .password("123")
+        .email(validEmail)
+        .nickname(validNickname)
+        .phone(validPhone)
+        .password(validPassword)
         .build();
   }
 
   @Test
   @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
-  @DisplayName(value = "[성공] 회원가입")
+  @DisplayName(value = "회원가입[성공]")
   void successRegister() throws Exception {
 
     mockMvc.perform(
@@ -64,6 +67,158 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - 유효성검증(이메일)")
+  void failRegisterEmail() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .email("x")
+        .nickname(validNickname)
+        .phone(validPhone)
+        .password(validPassword)
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").value("이메일 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.nickname").doesNotExist())
+        .andExpect(jsonPath("$.phone").doesNotExist())
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - 유효성검증(닉네임)")
+  void failRegisterNickname() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .email(validEmail)
+        .nickname("x")
+        .phone(validPhone)
+        .password(validPassword)
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").doesNotExist())
+        .andExpect(jsonPath("$.nickname").value("닉네임은 특수문자를 제왼한 2~10자 사이의 문자로 입력해주세요."))
+        .andExpect(jsonPath("$.phone").doesNotExist())
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - 유효성검증(전화번호)")
+  void failRegisterPhone() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .email(validEmail)
+        .nickname(validNickname)
+        .phone("x")
+        .password(validPassword)
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").doesNotExist())
+        .andExpect(jsonPath("$.nickname").doesNotExist())
+        .andExpect(jsonPath("$.phone").value("전화번호 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - 유효성검증(비밀번호)")
+  void failRegisterPassword() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .email(validEmail)
+        .nickname(validNickname)
+        .phone(validPhone)
+        .password("x")
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").doesNotExist())
+        .andExpect(jsonPath("$.nickname").doesNotExist())
+        .andExpect(jsonPath("$.phone").doesNotExist())
+        .andExpect(jsonPath("$.password").value("비밀번호는 8자리 이상 16자리 이하의 영문 대소문자와 숫자로 입력해주세요."))
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - 유효성검증(all)")
+  void failRegisterAll() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .email("x")
+        .nickname("x")
+        .phone("x")
+        .password("x")
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").value("이메일 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.nickname").value("닉네임은 특수문자를 제왼한 2~10자 사이의 문자로 입력해주세요."))
+        .andExpect(jsonPath("$.phone").value("전화번호 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.password").value("비밀번호는 8자리 이상 16자리 이하의 영문 대소문자와 숫자로 입력해주세요."))
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockUser(username = "테스트 관리자", roles = {"SUPER"})
+  @DisplayName(value = "회원가입[실패] - null체크(all)")
+  void failRegisterNull() throws Exception {
+
+    RegisterRequestDto request = RegisterRequestDto.builder()
+        .build();
+
+    mockMvc.perform(
+            post("/member/register")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.email").value("이메일은 필수 항목 입니다."))
+        .andExpect(jsonPath("$.nickname").value("닉네임은 필수 항목 입니다."))
+        .andExpect(jsonPath("$.phone").value("전화번호는 필수 항목 입니다."))
+        .andExpect(jsonPath("$.password").value("비밀번호는 필수 항목 입니다."))
         .andDo(print());
   }
 }
