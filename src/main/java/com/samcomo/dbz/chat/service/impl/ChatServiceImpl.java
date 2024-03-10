@@ -6,7 +6,14 @@ import com.samcomo.dbz.chat.service.ChatService;
 import com.samcomo.dbz.chat.util.ChatUtils;
 import com.samcomo.dbz.chat.model.entity.ChatMessage;
 import com.samcomo.dbz.chat.model.repository.ChatMessageRepository;
+import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.global.s3.constants.ImageCategory;
+import com.samcomo.dbz.global.s3.constants.ImageUploadState;
+import com.samcomo.dbz.global.s3.service.S3Service;
+import com.samcomo.dbz.global.s3.exception.S3Exception;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +29,7 @@ public class ChatServiceImpl implements ChatService {
   private final ChatMessageRepository chatMessageRepository;
   private final SimpMessagingTemplate messagingTemplate;
   private final ChatUtils chatUtils;
-//  private final S3Service s3Service;
+  private final S3Service s3Service;
 
   @Override
   @Transactional
@@ -30,14 +37,26 @@ public class ChatServiceImpl implements ChatService {
     // 채팅방 검증
     chatUtils.verifyChatRoom(chatRoomId);
 
-    //TODO: 이미지 파일을 S3에 업로드하고 URL 을 받아옴
+    // 이미지 URL 업로드
+    List<String> imageUrlList = new ArrayList<>();
+
+    if(request.getImageBase64List() != null && !request.getImageBase64List().isEmpty()){
+      for(String base64Image : request.getImageBase64List()){
+        ImageUploadState imageUploadState = s3Service.uploadBase64(base64Image, ImageCategory.CHAT);
+        if(imageUploadState.isSuccess()){
+          imageUrlList.add(imageUploadState.getImageUrl());
+        } else{
+          throw new S3Exception(ErrorCode.AWS_SDK_ERROR);
+        }
+      }
+    }
 
     // 채팅 메시지 생성
     ChatMessage chatMessage = ChatMessage.builder()
         .chatRoomId(chatRoomId)
         .senderEmail(senderEmail)
         .content(request.getContent())
-        .imageUrlList(null) //TODO : S3연결 작업필요
+        .imageUrlList(imageUrlList)
         .createdAt(LocalDateTime.now())
         .build();
 

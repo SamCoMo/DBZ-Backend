@@ -72,7 +72,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     // 마지막 채팅 조회
     ChatMessage chatMessage
         = chatMessageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoomId)
-        .orElseThrow(() -> new ChatException(ErrorCode.CHATMESSAGE_NOT_FOUND));
+        .orElseThrow(() -> new ChatException(ErrorCode.CHAT_MESSAGE_NOT_FOUND));
 
     // 마지막 채팅내역, 채팅시간 업데이트
     chatRoom.setLastChatMessageContent(chatMessage.getContent());
