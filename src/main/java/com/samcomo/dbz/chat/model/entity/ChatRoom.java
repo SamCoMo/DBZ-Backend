@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ChatRoom {
   @Id
   private String chatRoomId;
-  private Set<String> memberIdList;
+  private Set<String> memberEmailList;
   private String recipientId;
   private String lastChatMessageContent;
   private LocalDateTime lastChatMessageAt;

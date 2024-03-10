@@ -17,7 +17,7 @@ public class ChatMessageDto {
   @Builder
   public static class Request{
     private String content;
-    private List<MultipartFile> imageUrlList;
+    private List<MultipartFile> MultipartFileList;
   }
 
   @Getter
@@ -37,7 +37,7 @@ public class ChatMessageDto {
       return Response.builder()
           .chatMessageId(chatMessage.getChatMessageId())
           .chatRoomId(chatMessage.getChatRoomId())
-          .senderId(chatMessage.getSenderId())
+          .senderId(chatMessage.getSenderEmail())
           .content(chatMessage.getContent())
           .imageUrlList(chatMessage.getImageUrlList())
           .createdAt(chatMessage.getCreatedAt())
