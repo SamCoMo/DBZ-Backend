@@ -45,7 +45,7 @@ class MemberControllerTest {
     validEmail = "samcomo@gmail.com";
     validPhone = "010-1234-5678";
     validNickname = "삼코모";
-    validPassword = "abcd1234";
+    validPassword = "abcd1234!";
 
     request = RegisterRequestDto.builder()
         .email(validEmail)
@@ -89,7 +89,7 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("이메일 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식 입니다."))
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
         .andExpect(jsonPath("$.password").doesNotExist())
@@ -116,7 +116,7 @@ class MemberControllerTest {
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.email").doesNotExist())
-        .andExpect(jsonPath("$.nickname").value("닉네임은 특수문자를 제왼한 2~10자 사이의 문자로 입력해주세요."))
+        .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").doesNotExist())
         .andExpect(jsonPath("$.password").doesNotExist())
         .andDo(print());
@@ -143,7 +143,7 @@ class MemberControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
-        .andExpect(jsonPath("$.phone").value("전화번호 형식이 올바르지 않습니다."))
+        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식 입니다."))
         .andExpect(jsonPath("$.password").doesNotExist())
         .andDo(print());
   }
@@ -170,7 +170,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").value("비밀번호는 8자리 이상 16자리 이하의 영문 대소문자와 숫자로 입력해주세요."))
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
         .andDo(print());
   }
 
@@ -193,10 +193,10 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("이메일 형식이 올바르지 않습니다."))
-        .andExpect(jsonPath("$.nickname").value("닉네임은 특수문자를 제왼한 2~10자 사이의 문자로 입력해주세요."))
-        .andExpect(jsonPath("$.phone").value("전화번호 형식이 올바르지 않습니다."))
-        .andExpect(jsonPath("$.password").value("비밀번호는 8자리 이상 16자리 이하의 영문 대소문자와 숫자로 입력해주세요."))
+        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식 입니다."))
+        .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
+        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식 입니다."))
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
         .andDo(print());
   }
 
