@@ -42,7 +42,7 @@ public class ChatServiceImpl implements ChatService {
 
     if(request.getImageBase64List() != null && !request.getImageBase64List().isEmpty()){
       for(String base64Image : request.getImageBase64List()){
-        ImageUploadState imageUploadState = s3Service.uploadBase64(base64Image, ImageCategory.CHAT);
+        ImageUploadState imageUploadState = s3Service.uploadBase64ByStream(base64Image, ImageCategory.CHAT);
         if(imageUploadState.isSuccess()){
           imageUrlList.add(imageUploadState.getImageUrl());
         } else{

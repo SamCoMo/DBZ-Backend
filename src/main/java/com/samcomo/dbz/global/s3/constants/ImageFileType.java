@@ -16,10 +16,9 @@ public enum ImageFileType {
   private final String mimeType;
   private final String extension;
   private static final Set<String> VALID_IMAGE_EXTENSTION
-      = new HashSet<>(Arrays.asList("jpg","jpeg","png"));
+      = new HashSet<>(Arrays.asList("jpg","jpeg","png","JPG","JPEG","PNG"));
 
   public static boolean isValidImageFileType(String extension){
     return VALID_IMAGE_EXTENSTION.contains(extension);
-
   }
 }

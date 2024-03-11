@@ -38,7 +38,7 @@ public class S3Service {
 
   private final int maxImageSize = 5 * 1024 * 1024; // 5MB
 
-  public ImageUploadState uploadMultipartFile(MultipartFile multipartFile, ImageCategory imageCategory){
+  public ImageUploadState uploadMultipartFileByStream(MultipartFile multipartFile, ImageCategory imageCategory){
 
     String filename = multipartFile.getOriginalFilename();
 
@@ -65,10 +65,11 @@ public class S3Service {
   }
 
   public List<ReportImage> uploadReportImageList(List<MultipartFile> multipartFileList){
+    // public List<String> uploadImageList(List<MultipartFile> multipartFileList, ImageCategory imageCategory){
     List<ReportImage> imageList = new ArrayList<>();
 
     for (MultipartFile image : multipartFileList) {
-      ImageUploadState imageUploadState = uploadMultipartFile(image, ImageCategory.REPORT);
+      ImageUploadState imageUploadState = uploadMultipartFileByStream(image, ImageCategory.REPORT);
 
       // 이미지 업로드 실패
       if(!imageUploadState.isSuccess()){
@@ -117,7 +118,7 @@ public class S3Service {
   }
 
   // Base64 이미지 업로드
-  public ImageUploadState uploadBase64(String base64ImageData, ImageCategory imageCategory) {
+  public ImageUploadState uploadBase64ByStream(String base64ImageData, ImageCategory imageCategory) {
     // base64ImageData 형식 : "data:image/png;base64,iVBORw0KGgasdfQWhjfel"
 
     // MIME 타입 <-> 데이터 분리
