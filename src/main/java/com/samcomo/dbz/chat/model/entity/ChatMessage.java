@@ -20,7 +20,7 @@ public class ChatMessage {
   @Id
   private String chatMessageId;
   private String chatRoomId;
-  private String senderId;
+  private String senderEmail;
   private String content;
   private List<String> imageUrlList;
   private LocalDateTime createdAt;

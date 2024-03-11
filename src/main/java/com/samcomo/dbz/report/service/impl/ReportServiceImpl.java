@@ -1,7 +1,7 @@
 package com.samcomo.dbz.report.service.impl;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.global.s3.S3Service;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -51,7 +51,7 @@ public class ReportServiceImpl implements ReportService {
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
-    List<ReportImage> imageList = s3Service.uploadAll(multipartFileList);
+    List<ReportImage> imageList = s3Service.uploadReportImageList(multipartFileList);
 
     // 게시글 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
@@ -177,11 +177,28 @@ public class ReportServiceImpl implements ReportService {
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     // 변경된 이미지 저장
-    List<ReportImage> newImageList = s3Service.uploadAll(multipartFileList);
+
+    List<ReportImage> newImageList = s3Service.uploadReportImageList(multipartFileList);
+//    for (MultipartFile image : imageList) {
+//      ImageUploadState imageUploadState = s3Service.upload(image, ImageType.REPORT);
+//
+//      // 이미지 업로드 실패
+//      if(!imageUploadState.isSuccess()){
+//        //지금까지 저장된 이미지 삭제
+//        deleteUploadedImages(newImageList);
+//
+//        throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
+//      }
+//
+//      String imageUrl = imageUploadState.getImageUrl();
+//      newImageList.add(ReportImage.builder()
+//          .imageUrl(imageUrl)
+//          .build());
+//    }
 
     // 게시글 저장
     Report newReport = reportRepository.save(report);
@@ -214,7 +231,7 @@ public class ReportServiceImpl implements ReportService {
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     reportRepository.delete(report);

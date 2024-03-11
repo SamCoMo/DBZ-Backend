@@ -5,7 +5,6 @@ import com.samcomo.dbz.chat.model.entity.ChatRoom;
 import com.samcomo.dbz.chat.model.repository.ChatRoomRepository;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,10 +15,10 @@ public class ChatUtils {
   private final ChatRoomRepository chatRoomRepository;
   private final MemberRepository memberRepository;
 
-  // 채팅방과 회원이 채팅방에 존재하는지 검증
-  public ChatRoom verifyChatRoomAndMember(String chatRoomId, String memberId) {
+  // 채팅방 검증 + 회원이 채팅방에 존재하는지 검증
+  public ChatRoom verifyChatRoomAndMember(String chatRoomId, String memberEmail) {
     // 회원 검증
-    memberRepository.findById(Long.parseLong(memberId))
+    memberRepository.findByEmail(memberEmail)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // 채팅방 조회
@@ -27,20 +26,21 @@ public class ChatUtils {
         .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_FOUND));
 
     // 채팅방에 내가 존재하는지 확인
-    if (!chatRoom.getMemberIdList().contains(memberId)) {
+    if (!chatRoom.getMemberEmailList().contains(memberEmail)) {
       throw new ChatException(ErrorCode.ACCESS_DENIED_CHATROOM);
     }
     return chatRoom;
   }
 
+  // 채팅방 검증
   public void verifyChatRoom(String chatRoomId){
     chatRoomRepository.findById(chatRoomId)
         .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_FOUND));
   }
 
   // 회원 검증
-  public Member verifyMember(String memberId){
-    return memberRepository.findById(Long.parseLong(memberId))
+  public void verifyMember(String memberEmail){
+    memberRepository.findByEmail(memberEmail)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
   }
 

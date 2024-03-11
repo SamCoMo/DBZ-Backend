@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 public class ChatMessageDto {
 
@@ -17,7 +16,7 @@ public class ChatMessageDto {
   @Builder
   public static class Request{
     private String content;
-    private List<MultipartFile> imageUrlList;
+    private List<String> imageBase64List;
   }
 
   @Getter
@@ -37,7 +36,7 @@ public class ChatMessageDto {
       return Response.builder()
           .chatMessageId(chatMessage.getChatMessageId())
           .chatRoomId(chatMessage.getChatRoomId())
-          .senderId(chatMessage.getSenderId())
+          .senderId(chatMessage.getSenderEmail())
           .content(chatMessage.getContent())
           .imageUrlList(chatMessage.getImageUrlList())
           .createdAt(chatMessage.getCreatedAt())
