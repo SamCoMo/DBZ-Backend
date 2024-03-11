@@ -32,7 +32,7 @@ public class DistributedLockAop {
 
     String lockName = distributedLock.key();
     LockType type = distributedLock.lockType();
-    RLock lock = redissonClient.getLock(lockName + ":" + type);
+    RLock lock = redissonClient.getLock(type + ":" + lockName);
 
     try{
       if (!lock.tryLock(

@@ -1,10 +1,10 @@
 package com.samcomo.dbz.report.service.impl;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.global.redis.LockType;
 import com.samcomo.dbz.global.redis.aop.DistributedLock;
-import com.samcomo.dbz.global.s3.S3Service;
+import com.samcomo.dbz.global.s3.constants.ImageCategory;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -50,20 +50,25 @@ public class ReportServiceImpl implements ReportService {
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
-    List<ReportImage> imageList = s3Service.uploadReportImageList(multipartFileList);
+    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
 
     //게시글 이미지 저장
-    imageList.forEach(reportImage -> reportImage.setReport(newReport));
-    List<ReportImage> savedImageList = reportImageRepository.saveAll(imageList);
+    List<ReportImage> reportImageList = imageUrlList.stream()
+        .map(imageUrl ->
+            ReportImage.builder()
+                .imageUrl(imageUrl)
+                .report(newReport)
+                .build()
+        )
+        .toList();
+    List<ReportImage> savedImageList = reportImageRepository.saveAll(reportImageList);
 
-    return ReportDto.Response.from(
-        newReport,
-        savedImageList.stream()
-            .map(ReportImageDto.Response::from)
-            .collect(Collectors.toList())
+    return ReportDto.Response.from(newReport, savedImageList.stream()
+        .map(ReportImageDto.Response::from)
+        .collect(Collectors.toList())
     );
   }
 
@@ -154,19 +159,23 @@ public class ReportServiceImpl implements ReportService {
     }
 
     // 변경된 이미지 저장
-
-    List<ReportImage> newImageList = s3Service.uploadReportImageList(multipartFileList);
+    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(report);
 
     //게시글 이미지 저장
-    newImageList.forEach(reportImage -> reportImage.setReport(newReport));
-    List<ReportImage> savedImageList = reportImageRepository.saveAll(newImageList);
+    List<ReportImage> reportImages = imageUrlList.stream()
+        .map(imageUrl -> ReportImage.builder()
+            .imageUrl(imageUrl)
+            .report(newReport)
+            .build())
+        .toList();
+    List<ReportImage> updatedReportImageList = reportImageRepository.saveAll(reportImages);
 
     return ReportDto.Response.from(
         newReport,
-        savedImageList.stream()
+        updatedReportImageList.stream()
             .map(ReportImageDto.Response::from)
             .collect(Collectors.toList()));
   }
