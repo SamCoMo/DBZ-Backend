@@ -1,6 +1,7 @@
 package com.samcomo.dbz.report.service.impl;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.global.redis.LockType;
 import com.samcomo.dbz.global.redis.aop.DistributedLock;
 import com.samcomo.dbz.global.s3.S3Service;
@@ -49,7 +50,7 @@ public class ReportServiceImpl implements ReportService {
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
-    List<ReportImage> imageList = s3Service.uploadAll(multipartFileList);
+    List<ReportImage> imageList = s3Service.uploadReportImageList(multipartFileList);
 
     // 게시글 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
@@ -149,11 +150,12 @@ public class ReportServiceImpl implements ReportService {
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     // 변경된 이미지 저장
-    List<ReportImage> newImageList = s3Service.uploadAll(multipartFileList);
+
+    List<ReportImage> newImageList = s3Service.uploadReportImageList(multipartFileList);
 
     // 게시글 저장
     Report newReport = reportRepository.save(report);
@@ -186,7 +188,7 @@ public class ReportServiceImpl implements ReportService {
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     reportRepository.delete(report);

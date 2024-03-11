@@ -1,8 +1,8 @@
 package com.samcomo.dbz.report.service;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.global.s3.ImageUploadState;
-import com.samcomo.dbz.global.s3.S3Service;
+import com.samcomo.dbz.global.s3.constants.ImageUploadState;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -100,7 +100,7 @@ public class ReportServiceTest {
 
     Mockito.when(memberRepository.findById(Mockito.anyLong()))
         .thenReturn(Optional.of(member));
-    Mockito.when(s3Service.uploadAll(multipartFileList))
+    Mockito.when(s3Service.uploadReportImageList(multipartFileList))
         .thenReturn(List.of(reportImage));
 
     newReport.setId(1L);
@@ -296,7 +296,7 @@ public class ReportServiceTest {
     Mockito.when(reportImageRepository.findAllByReport(Mockito.any(Report.class)))
         .thenReturn(reportImageList);
 
-    Mockito.when(s3Service.uploadAll(Mockito.any()))
+    Mockito.when(s3Service.uploadReportImageList(Mockito.any()))
         .thenReturn(List.of(reportImage));
 
 
@@ -311,7 +311,7 @@ public class ReportServiceTest {
     Response response = reportService.updateReport(1L, reportForm, multipartFileList, 1L);
 
     //then
-    Mockito.verify(s3Service).delete(fileNameCaptor.capture());
+    Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
     String fileName = fileNameCaptor.getValue();
 
     Assertions.assertEquals("test.png", fileName);
@@ -387,7 +387,7 @@ public class ReportServiceTest {
     ReportStateDto.Response response = reportService.deleteReport(1L, 1L);
 
     // then
-    Mockito.verify(s3Service).delete(fileNameCaptor.capture());
+    Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
     String deletedFileName = fileNameCaptor.getValue();
 
     Assertions.assertEquals("test.png", deletedFileName);

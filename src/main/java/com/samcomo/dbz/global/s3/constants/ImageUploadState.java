@@ -1,4 +1,4 @@
-package com.samcomo.dbz.global.s3;
+package com.samcomo.dbz.global.s3.constants;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
