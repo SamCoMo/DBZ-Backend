@@ -38,6 +38,7 @@ class MemberControllerTest {
   private String validNickname;
   private String validPhone;
   private String validPassword;
+  private static final String DEFAULT_MESSAGE = "은(는) 필수 항목입니다.";
 
   @BeforeEach
   void init() {
@@ -89,7 +90,7 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식 입니다."))
+        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
         .andExpect(jsonPath("$.password").doesNotExist())
@@ -143,7 +144,7 @@ class MemberControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
-        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식 입니다."))
+        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
         .andExpect(jsonPath("$.password").doesNotExist())
         .andDo(print());
   }
@@ -193,9 +194,9 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식 입니다."))
+        .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
-        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식 입니다."))
+        .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
         .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
         .andDo(print());
   }
@@ -215,10 +216,10 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("이메일은 필수 항목 입니다."))
-        .andExpect(jsonPath("$.nickname").value("닉네임은 필수 항목 입니다."))
-        .andExpect(jsonPath("$.phone").value("전화번호는 필수 항목 입니다."))
-        .andExpect(jsonPath("$.password").value("비밀번호는 필수 항목 입니다."))
+        .andExpect(jsonPath("$.email").value("이메일" + DEFAULT_MESSAGE))
+        .andExpect(jsonPath("$.nickname").value("닉네임" + DEFAULT_MESSAGE))
+        .andExpect(jsonPath("$.phone").value("전화번호" + DEFAULT_MESSAGE))
+        .andExpect(jsonPath("$.password").value("비밀번호" + DEFAULT_MESSAGE))
         .andDo(print());
   }
 }
