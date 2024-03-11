@@ -1,5 +1,7 @@
 package com.samcomo.dbz.member.model.constants;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,24 +10,20 @@ import lombok.RequiredArgsConstructor;
 public enum MemberRole {
 
   MEMBER("ROLE_MEMBER"),
-  ADMIN("ROLE_ADMIN");
+  ADMIN("ROLE_ADMIN"),
+  ;
 
   private final String key;
+  private static final Map<String, MemberRole> roleMap = new HashMap<>();
+
+  static {
+    for (MemberRole role : MemberRole.values()) {
+      roleMap.put(role.getKey(), role);
+    }
+  }
 
   public static MemberRole get(String role) {
-
-    switch (role) {
-
-      case "ROLE_MEMBER" -> {
-        return MEMBER;
-      }
-      case "ROLE_ADMIN" -> {
-        return ADMIN;
-      }
-      default -> {
-        return null;
-      }
-    }
+    return roleMap.get(role);
   }
 }
 

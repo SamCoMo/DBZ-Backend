@@ -9,6 +9,7 @@ import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
+import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportDto.Response;
 import com.samcomo.dbz.report.model.dto.ReportList;
@@ -189,9 +190,10 @@ public class ReportServiceTest {
     //given
 
     Pageable pageable = PageRequest.of(1, 10);
-    int cursorId = 0;
-    double latitude = 37.1234;
-    double longitude = 127.1234;
+    double lastLatitude = 37.1111;
+    double lastLongitude = 127.1111;
+    double curLatitude = 37.1234;
+    double curLongitude = 127.1234;
 
     List<Report> reportList = new ArrayList<>();
     for (int i = 1; i <= 10; i++) {
@@ -204,21 +206,23 @@ public class ReportServiceTest {
 
     Slice<Report> reportSlice = new SliceImpl<>(reportList, pageable, true);
     Mockito.when(reportRepository.findAllOrderByDistance(
-            Mockito.anyLong(),
-            Mockito.anyDouble(),
-            Mockito.anyDouble(),
+            Mockito.anyDouble(), Mockito.anyDouble(),
+            Mockito.anyDouble(), Mockito.anyDouble(),
             Mockito.any(Pageable.class)))
         .thenReturn(reportSlice);
 
     //when
-    Slice<ReportList> reportListSlice = reportService.getReportList(0, latitude, longitude, false,
+    CustomSlice<ReportList> reportListSlice = reportService.getReportList(
+        lastLatitude, lastLongitude,
+        curLatitude, lastLongitude,
+        false,
         pageable);
     //then
     int  sliceSize = reportListSlice.getContent().size();
     System.out.println(sliceSize);
     Assertions.assertEquals(1L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(10L, reportListSlice.getContent().get(9).getReportId());
-    Assertions.assertTrue(reportListSlice.hasNext());
+    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(pageable.getPageSize(), reportListSlice.getSize());
   }
 
@@ -228,9 +232,10 @@ public class ReportServiceTest {
     //given
 
     Pageable pageable = PageRequest.of(1, 10);
-    int cursorId = 0;
-    double latitude = 37.1234;
-    double longitude = 127.1234;
+    double lastLatitude = 37.1111;
+    double lastLongitude = 127.1111;
+    double curLatitude = 37.1234;
+    double curLongitude = 127.1234;
 
     List<Report> reportList = new ArrayList<>();
     for (int i = 1; i <= 10; i++) {
@@ -243,24 +248,30 @@ public class ReportServiceTest {
 
     Slice<Report> reportSlice = new SliceImpl<>(reportList, pageable, true);
     Mockito.when(reportRepository.findAllInProcessOrderByDistance(
-            Mockito.anyLong(),
-            Mockito.anyDouble(),
-            Mockito.anyDouble(),
+            Mockito.anyDouble(), Mockito.anyDouble(),
+            Mockito.anyDouble(), Mockito.anyDouble(),
             Mockito.any(Pageable.class)))
         .thenReturn(reportSlice);
 
     //when
-    Slice<ReportList> reportListSlice = reportService.getReportList(0, latitude, longitude, true,
+    CustomSlice<ReportList> reportListSlice = reportService.getReportList(
+        lastLatitude, lastLongitude,
+        curLatitude, curLongitude,
+        true,
         pageable);
+
     //then
     int  sliceSize = reportListSlice.getContent().size();
     System.out.println(sliceSize);
     Assertions.assertEquals(1L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(10L, reportListSlice.getContent().get(9).getReportId());
-    Assertions.assertTrue(reportListSlice.hasNext());
+    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(pageable.getPageSize(), reportListSlice.getSize());
     Mockito.verify(reportRepository, Mockito.times(0))
-        .findAllOrderByDistance(Mockito.anyLong(), Mockito.anyDouble() ,Mockito.anyDouble() , Mockito.any(Pageable.class));
+        .findAllOrderByDistance(
+            Mockito.anyDouble(), Mockito.anyDouble(),
+            Mockito.anyDouble() ,Mockito.anyDouble(),
+            Mockito.any(Pageable.class));
   }
 
   @Test
@@ -533,10 +544,10 @@ public class ReportServiceTest {
             .build()));
 
     // when
-    Slice<ReportList> reportListSlice = reportService.searchReport("test", false, pageable);
+    CustomSlice<ReportList> reportListSlice = reportService.searchReport("test", false, pageable);
 
     // then
-    Assertions.assertTrue(reportListSlice.hasNext());
+    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(0L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(pageable.getPageNumber(), reportListSlice.getPageable().getPageNumber());
   }
@@ -574,10 +585,10 @@ public class ReportServiceTest {
             .build()));
 
     // when
-    Slice<ReportList> reportListSlice = reportService.searchReport("test", true, pageable);
+    CustomSlice<ReportList> reportListSlice = reportService.searchReport("test", true, pageable);
 
     // then
-    Assertions.assertTrue(reportListSlice.hasNext());
+    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(0L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(pageable.getPageNumber(), reportListSlice.getPageable().getPageNumber());
     Assertions.assertEquals(reportSlice.getContent().get(0).getReportStatus(), reportListSlice.getContent().get(0).getReportStatus());

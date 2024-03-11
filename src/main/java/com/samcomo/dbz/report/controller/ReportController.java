@@ -1,5 +1,6 @@
 package com.samcomo.dbz.report.controller;
 
+import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportList;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,16 +62,17 @@ public class ReportController {
 
   @GetMapping("/list")
   @Operation(summary = "현재 위치와 인접지역의 게시글 조회")
-  public ResponseEntity<Slice<ReportList>> getReportList(
-      @RequestParam long cursorId,
-      @RequestParam double latitude,
-      @RequestParam double longitude,
+  public ResponseEntity<CustomSlice<ReportList>> getReportList(
+      @RequestParam double lastLatitude,
+      @RequestParam double lastLongitude,
+      @RequestParam double curLatitude,
+      @RequestParam double curLongitude,
       @RequestParam boolean showsInProcessOnly,
       Pageable pageable
   ) {
 
-    Slice<ReportList> result =
-        reportService.getReportList(cursorId, latitude, longitude, showsInProcessOnly, pageable);
+    CustomSlice<ReportList> result =
+        reportService.getReportList(lastLongitude, lastLatitude, curLatitude, curLongitude, showsInProcessOnly, pageable);
 
     return ResponseEntity.ok(result);
   }
@@ -128,13 +129,13 @@ public class ReportController {
 
   @GetMapping("/search")
   @Operation(summary = "게시글 검색")
-  public ResponseEntity<Slice<ReportList>> searchReport(
+  public ResponseEntity<CustomSlice<ReportList>> searchReport(
       @RequestParam boolean showsInProgressOnly,
       @RequestParam String object,
       Pageable pageable
   ){
 
-    Slice<ReportList> result = reportService.searchReport(object, showsInProgressOnly, pageable);
+    CustomSlice<ReportList> result = reportService.searchReport(object, showsInProgressOnly, pageable);
 
     return ResponseEntity.ok(result);
   }

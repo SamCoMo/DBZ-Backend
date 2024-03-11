@@ -43,8 +43,10 @@ public enum ErrorCode {
   // Report
 
   REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글 정보를 찾을 수 없습니다."),
-
   NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 유저의 정보가 일치하지 않습니다."),
+
+  // Redis-Lock
+  LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다."),
 
   // Chat
 

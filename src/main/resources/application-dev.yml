@@ -1,8 +1,8 @@
 spring:
   data:
     redis:
-      host:
-      password:
+      port: 6389
+      host: localhost
 
     mongodb:
       username: ${MONGO_USERNAME} #root
@@ -40,6 +40,12 @@ cloud:
     s3:
       bucket: ${AWS_BUCKET} #samcomo
 
+logging:
+  level:
+    org:
+      springframework:
+        transaction:
+          interceptor: trace
 
 
 # 환경변수 설정

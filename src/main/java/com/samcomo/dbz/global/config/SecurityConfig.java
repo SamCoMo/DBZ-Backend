@@ -1,8 +1,8 @@
 package com.samcomo.dbz.global.config;
 
-import com.samcomo.dbz.member.model.jwt.JwtUtil;
-import com.samcomo.dbz.member.model.jwt.filter.JwtFilter;
-import com.samcomo.dbz.member.model.jwt.filter.LoginFilter;
+import com.samcomo.dbz.member.jwt.JwtUtil;
+import com.samcomo.dbz.member.jwt.filter.JwtFilter;
+import com.samcomo.dbz.member.jwt.filter.LoginFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +48,7 @@ public class SecurityConfig {
     http
         .authorizeHttpRequests((auth) -> auth
             .requestMatchers("/member/register", "/member/login").permitAll()
-            .requestMatchers("/member/test").hasRole("MEMBER")
+            .requestMatchers("/report/**").permitAll()
             .anyRequest().authenticated());
 
     // session : stateless

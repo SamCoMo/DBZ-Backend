@@ -1,11 +1,11 @@
-package com.samcomo.dbz.member.model.jwt.filter;
+package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
+import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
-import com.samcomo.dbz.member.model.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -44,8 +44,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     MemberDetails memberDetails = new MemberDetails(member);
 
-    Authentication authToken = new UsernamePasswordAuthenticationToken(memberDetails, null,
-        memberDetails.getAuthorities());
+    Authentication authToken = new UsernamePasswordAuthenticationToken(
+        memberDetails, null, memberDetails.getAuthorities());
 
     SecurityContextHolder.getContext().setAuthentication(authToken);
 

@@ -7,6 +7,8 @@ import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
+import com.samcomo.dbz.report.model.dto.CustomPageable;
+import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportImageDto;
 import com.samcomo.dbz.report.model.dto.ReportList;
@@ -18,9 +20,12 @@ import com.samcomo.dbz.report.model.repository.ReportRepository;
 import com.samcomo.dbz.report.service.ReportService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
@@ -35,6 +40,7 @@ public class ReportServiceImpl implements ReportService {
   private final ReportImageRepository reportImageRepository;
   private final MemberRepository memberRepository;
   private final S3Service s3Service;
+  private final RedissonClient redissonClient;
 
   @Override
   public ReportDto.Response uploadReport(
@@ -63,43 +69,80 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
+//  @Transactional
   public ReportDto.Response getReport(long reportId) {
 
-    //TODO: 조회수에 대한 동시성 처리 필요
+    //TODO: AOP를 사용하여 트랜잭션 밖에서 Lock을 먼저 획득하고 트랜잭션 밖에서 Lock을 해제하도록 수정하기
 
-    Report report = reportRepository.findById(reportId)
-        .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
+    String lockName = "redisLock";
+    RLock lock = redissonClient.getLock(lockName);
+    String worker = Thread.currentThread().getName();
 
-    report.setViews(report.getViews() + 1);
-    Report newReport = reportRepository.save(report);
+    Report newReport;
+    try{
+      if (!lock.tryLock(1,3, TimeUnit.SECONDS)){
+        return ReportDto.Response.builder().build();
+      }else {
+        log.info("Lock 획득!!!, Thread : [{}]", worker);
+      }
 
-    List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
-    List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
+      Report report = reportRepository.findById(reportId)
+          .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
-    for (ReportImage reportImage : reportImageList) {
-      reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
+      log.info("현재 조회수 : {}", report.getViews());
+
+      report.setViews(report.getViews() + 1);
+      newReport = reportRepository.save(report);
+
+      log.info("저장 완료된 worker : [{}], 저장 후 조회수 : {}", worker, newReport.getViews());
+
+      List<ReportImage> reportImageList = reportImageRepository.findAllByReport(newReport);
+      List<ReportImageDto.Response> reportImageResponseList = new ArrayList<>();
+
+      for (ReportImage reportImage : reportImageList) {
+        reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
+      }
+
+      log.info("================Finish 조회수 : {}===================", newReport.getViews());
+      return ReportDto.Response.from(newReport, reportImageResponseList);
+
+    }catch (InterruptedException e){
+      throw new ReportException(ErrorCode.LOCK_FAIL);
+    }finally {
+      if (lock != null && lock.isLocked()){
+        log.info("[{}] 락 종료", worker);
+        lock.unlock();
+      }
     }
-
-    return ReportDto.Response.from(newReport, reportImageResponseList);
   }
 
   @Override
-  public Slice<ReportList> getReportList(
-      long cursorId,
-      double latitude,
-      double longitude,
+//  @Cacheable(key = "#lastLatitude +'-'+ #lastLongitude",value = "reportPage")
+  public CustomSlice<ReportList> getReportList(
+      double lastLatitude,
+      double lastLongitude,
+      double curLatitude,
+      double curLongitude,
       boolean showsInProcessOnly,
       Pageable pageable
   ) {
 
     //TODO: 마지막 데이터에 대한 정보 필요 >> cursorId(마지막 데이터의 절대값)
 
+
     Slice<Report> reportSlice =
         showsInProcessOnly ?
-            reportRepository.findAllInProcessOrderByDistance(cursorId, latitude, longitude, pageable) :
-            reportRepository.findAllOrderByDistance(cursorId, latitude, longitude, pageable);
+            reportRepository.findAllInProcessOrderByDistance(
+                lastLatitude, lastLongitude,
+                curLatitude, curLongitude,
+                pageable)
+            :
+            reportRepository.findAllOrderByDistance(
+                lastLatitude, lastLongitude,
+                curLatitude, curLongitude,
+                pageable);
 
-    return getReportListSlice(reportSlice);
+    return getCustomSlice(reportSlice, pageable);
   }
 
   @Override
@@ -138,6 +181,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     // 변경된 이미지 저장
+
     List<ReportImage> newImageList = s3Service.uploadReportImageList(multipartFileList);
 //    for (MultipartFile image : imageList) {
 //      ImageUploadState imageUploadState = s3Service.upload(image, ImageType.REPORT);
@@ -221,7 +265,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public Slice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable) {
+  public CustomSlice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable) {
 
     Slice<Report> reportSlice = showsInProgressOnly ?
         reportRepository
@@ -230,27 +274,32 @@ public class ReportServiceImpl implements ReportService {
         reportRepository
             .findAllByTitleContainsOrPetNameContainsOrSpeciesContains(object, object, object, pageable);
 
-    return getReportListSlice(reportSlice);
+    return getCustomSlice(reportSlice, pageable);
   }
 
-  private Slice<ReportList> getReportListSlice(Slice<Report> reportSlice) {
+  private CustomSlice<ReportList> getCustomSlice(Slice<Report> reportSlice, Pageable pageable) {
 
-    return reportSlice.map(report -> {
-      ReportList reportList = ReportList.from(report);
+    CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(),
+        pageable.getPageSize());
 
-      reportImageRepository.findFirstByReport(report)
-          .ifPresent(reportImage -> reportList.setImageUrl(reportImage.getImageUrl()));
+    List<ReportList> contentReportList = reportSlice.getContent().stream()
+        .map(report -> {
+          ReportList reportList = ReportList.from(report);
+          reportImageRepository.findFirstByReport(report)
+              .ifPresent(reportImage -> reportList.setImageUrl(reportImage.getImageUrl()));
+          return reportList;
+        })
+        .toList();
 
-      return reportList;
-    });
+    return new CustomSlice<>(
+        contentReportList,
+        customPageable,
+        reportSlice.isFirst(),
+        reportSlice.isLast(),
+        reportSlice.getNumber(),
+        reportSlice.getSize(),
+        reportSlice.getNumberOfElements()
+    );
   }
 
-//  private void deleteUploadedImages(List<ReportImage> imageList){
-//    for (ReportImage reportImage : imageList){
-//      String imageUrl = reportImage.getImageUrl();
-//      int idx = imageUrl.lastIndexOf("/");
-//      String fileName = imageUrl.substring(idx + 1);
-//      s3Service.delete(fileName);
-//    }
-//  }
 }
