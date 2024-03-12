@@ -64,28 +64,23 @@ public class S3Service {
         .build();
   }
 
-  public List<ReportImage> uploadReportImageList(List<MultipartFile> multipartFileList){
-    // public List<String> uploadImageList(List<MultipartFile> multipartFileList, ImageCategory imageCategory){
-    List<ReportImage> imageList = new ArrayList<>();
+  public List<String> uploadImageList(List<MultipartFile> multipartFileList, ImageCategory imageCategory){
+    List<String> imageUrlList = new ArrayList<>();
 
     for (MultipartFile image : multipartFileList) {
-      ImageUploadState imageUploadState = uploadMultipartFileByStream(image, ImageCategory.REPORT);
+      ImageUploadState imageUploadState = uploadMultipartFileByStream(image, imageCategory);
 
       // 이미지 업로드 실패
       if(!imageUploadState.isSuccess()){
         //지금까지 저장된 이미지 삭제
-        deleteUploadedReportImageList(imageList);
-
+        deleteUploadedImageList(imageUrlList);
         throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
       }
 
       String imageUrl = imageUploadState.getImageUrl();
-      imageList.add(ReportImage.builder()
-          .imageUrl(imageUrl)
-          .build());
+      imageUrlList.add(imageUrl);
     }
-
-    return imageList;
+    return imageUrlList;
   }
 
   public void deleteFile(String fileName){
@@ -111,6 +106,14 @@ public class S3Service {
   private void deleteUploadedReportImageList(List<ReportImage> imageList){
     for (ReportImage reportImage : imageList){
       String imageUrl = reportImage.getImageUrl();
+      int idx = imageUrl.lastIndexOf("/");
+      String fileName = imageUrl.substring(idx + 1);
+      deleteFile(fileName);
+    }
+  }
+
+  private void deleteUploadedImageList(List<String> imageUrlList){
+    for (String imageUrl : imageUrlList){
       int idx = imageUrl.lastIndexOf("/");
       String fileName = imageUrl.substring(idx + 1);
       deleteFile(fileName);

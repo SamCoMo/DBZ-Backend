@@ -1,9 +1,6 @@
 package com.samcomo.dbz.report.service;
 
-import com.samcomo.dbz.global.s3.S3Service;
-import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.model.entity.Report;
-import com.samcomo.dbz.report.model.repository.ReportImageRepository;
 import com.samcomo.dbz.report.model.repository.ReportRepository;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -20,12 +17,6 @@ public class ReportViewTest {
   @Autowired
   private ReportRepository reportRepository;
   @Autowired
-  private ReportImageRepository reportImageRepository;
-  @Autowired
-  private MemberRepository memberRepository;
-  @Autowired
-  private S3Service s3Service;
-  @Autowired
   private ReportService reportService;
 
   @AfterEach
@@ -36,7 +27,7 @@ public class ReportViewTest {
   }
 
   @Test
-  void 게시글_조회수_동시성테스트_요청_10000개() throws InterruptedException {
+  void 게시글_조회수_동시성테스트_요청_100개() throws InterruptedException {
     int threadCount = 100;
 
     // 비동기로 실행하는 작업을 단순화 하여 사용할 수 있게 도와주는 자바의 API
@@ -59,13 +50,5 @@ public class ReportViewTest {
     Report report = reportRepository.findById(1L).orElseThrow();
     Assertions.assertEquals(100L, report.getViews());
   }
-
-//  @Test
-//  void test(){
-//    reportService.getReport(1L);
-//
-//    Assertions.assertEquals(1L, reportRepository.findById(1L).get().getViews());
-//
-//  }
 
 }

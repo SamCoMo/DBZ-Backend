@@ -1,6 +1,7 @@
 package com.samcomo.dbz.report.service;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
@@ -96,12 +97,14 @@ public class ReportServiceTest {
     ReportImage reportImage = ReportImage.builder()
         .imageUrl(imageUploadState.getImageUrl())
         .build();
+    String imageUrl = imageUploadState.getImageUrl();
+
     Report newReport = Report.from(reportForm, member);
 
     Mockito.when(memberRepository.findById(Mockito.anyLong()))
         .thenReturn(Optional.of(member));
-    Mockito.when(s3Service.uploadReportImageList(multipartFileList))
-        .thenReturn(List.of(reportImage));
+    Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
+        .thenReturn(List.of(imageUrl));
 
     newReport.setId(1L);
     Mockito.when(reportRepository.save(Mockito.any()))
@@ -287,17 +290,18 @@ public class ReportServiceTest {
     ReportImage reportImage = ReportImage.builder()
         .imageUrl(imageUploadState.getImageUrl())
         .build();
+    String imageUrl = imageUploadState.getImageUrl();
 
 
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
+    Mockito.when(memberRepository.findById(1L))
         .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findById(1L))
         .thenReturn(Optional.of(report));
     Mockito.when(reportImageRepository.findAllByReport(Mockito.any(Report.class)))
         .thenReturn(reportImageList);
 
-    Mockito.when(s3Service.uploadReportImageList(Mockito.any()))
-        .thenReturn(List.of(reportImage));
+    Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
+        .thenReturn(List.of(imageUrl));
 
 
     Mockito.when(reportRepository.save(report))

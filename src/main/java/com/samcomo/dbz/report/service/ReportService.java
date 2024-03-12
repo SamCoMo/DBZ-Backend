@@ -13,7 +13,6 @@ public interface ReportService {
   ReportDto.Response uploadReport(long memberId, ReportDto.Form reportForm, List<MultipartFile> imageList);
 
   ReportDto.Response getReport(long reportId);
-
   CustomSlice<ReportList> getReportList(
       double lastLatitude, double lastLongitude, double curLatitude, double curLongitude, boolean showsInProcessOnly, Pageable pageable);
 
