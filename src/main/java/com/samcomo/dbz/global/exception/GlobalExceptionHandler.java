@@ -36,17 +36,17 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleValidException(
       MethodArgumentNotValidException e) {
 
-    Map<String, String> errorList = new HashMap<>();
+    Map<String, String> errorResponse = new HashMap<>();
 
     String[] arguments = Objects.requireNonNull(e.getDetailMessageArguments())[1]
         .toString().split(", and ");
 
     for (String arg : arguments) {
       String[] errorString = arg.split(": ");
-      errorList.put(errorString[0], errorString[1]);
+      errorResponse.put(errorString[0], errorString[1]);
     }
 
-    return ResponseEntity.status(BAD_REQUEST).body(errorList);
+    return ResponseEntity.status(BAD_REQUEST).body(errorResponse);
   }
 }
 

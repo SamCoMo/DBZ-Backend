@@ -1,7 +1,9 @@
 package com.samcomo.dbz.member.jwt.filter;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
+import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
@@ -35,7 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     String email = jwtUtil.getEmail(accessToken);
-    MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken));
+    MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
+        .orElseThrow(() -> new MemberException(INVALID_SESSION));
 
     Member member = Member.builder()
         .email(email)
