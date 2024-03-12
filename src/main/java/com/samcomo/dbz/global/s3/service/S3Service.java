@@ -7,11 +7,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.exception.S3Exception;
-import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.entity.ReportImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -74,7 +73,7 @@ public class S3Service {
       if(!imageUploadState.isSuccess()){
         //지금까지 저장된 이미지 삭제
         deleteUploadedImageList(imageUrlList);
-        throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
+        throw new S3Exception(ErrorCode.IMAGE_UPLOAD_FAIL);
       }
 
       String imageUrl = imageUploadState.getImageUrl();
