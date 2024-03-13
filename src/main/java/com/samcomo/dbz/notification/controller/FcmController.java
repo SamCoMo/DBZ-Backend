@@ -20,7 +20,7 @@ public class FcmController {
 
   @PostMapping("/send")
   public ResponseEntity<?> pushMessage() throws IOException {
-    fcmService.sendPinMessage();
+    fcmService.sendPinNotification();
 
     return new ResponseEntity<>(HttpStatus.OK);
 

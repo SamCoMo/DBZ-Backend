@@ -55,7 +55,11 @@ public enum ErrorCode {
 
   CHATROOM_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅방을 찾을 수 없습니다."),
 
-  CHAT_MESSAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅을 찾을 수 없습니다.");
+  CHAT_MESSAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅을 찾을 수 없습니다."),
+
+  // Notification
+
+  PIN_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "핀 알림 전송을 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;

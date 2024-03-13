@@ -6,5 +6,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface FcmService {
-  void sendPinMessage() throws IOException;
+  void sendPinNotification() throws IOException;
+
+  void sendReportNotification();
+
+//  void sendChatNotification();
 }

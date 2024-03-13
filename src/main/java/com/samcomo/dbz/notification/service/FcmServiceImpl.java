@@ -33,11 +33,12 @@ public class FcmServiceImpl implements FcmService {
   private String FCM_API_URL;
 
   @Override
-  public void sendPinMessage() {
+  public void sendPinNotification() {
 
     try{
 
-      //유저 토큰값 서치
+      //TODO: 유저 토큰값 서치
+
       SendPinDto sendPinDto = SendPinDto.builder()
           .token("tokentoken")
           .title(PinMessage.PIN_MESSAGE.getTitle())
@@ -63,10 +64,13 @@ public class FcmServiceImpl implements FcmService {
     }
   }
 
+  @Override
+  public void sendReportNotification(){
+
+  }
+
   private String getAccessToken() throws IOException {
     try {
-      String firebaseConfigPath = "firebase/firebase-adminsdk.json";
-
       GoogleCredentials googleCredentials = GoogleCredentials
           .fromStream(new ClassPathResource(SERVICE_ACCOUNT_JSON).getInputStream())
           .createScoped(List.of("https://www.googleapis.com/auth/cloud-platform"));
