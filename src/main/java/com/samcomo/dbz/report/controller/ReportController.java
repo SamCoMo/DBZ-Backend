@@ -1,10 +1,12 @@
 package com.samcomo.dbz.report.controller;
 
 import com.samcomo.dbz.member.service.MemberService;
+import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportList;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
+import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,13 +40,14 @@ public class ReportController {
   @Operation(summary = "게시글을 이미지와 함께 작성")
   public ResponseEntity<ReportDto.Response> registerReport(
       Authentication authentication,
-      @RequestPart(value = "reportForm") ReportDto.Form reportForm,
+      @RequestPart ReportDto.Form reportForm,
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
   ) {
 
-    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+    // TODO(Goo) : db 조회 안 하고 가져오는 방법 고민
+    Member member = memberService.getMemberByAuthentication(authentication);
 
-    ReportDto.Response reportResponse = reportService.uploadReport(email, reportForm, imageList);
+    ReportDto.Response reportResponse = reportService.uploadReport(member, reportForm, imageList);
 
     return ResponseEntity.ok(reportResponse);
   }
@@ -52,28 +55,30 @@ public class ReportController {
   @GetMapping("/{reportId}")
   @Operation(summary = "특정 게시글 정보 가져오기")
   public ResponseEntity<ReportDto.Response> getReport(
-     Authentication authentication,
+      Authentication authentication,
       @PathVariable(value = "reportId") long reportId
   ) {
 
-    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+    Member member = memberService.getMemberByAuthentication(authentication);
 
-    ReportDto.Response reportResponse = reportService.getReport(reportId, email);
+    ReportDto.Response reportResponse = reportService.getReport(reportId, member);
 
     return ResponseEntity.ok(reportResponse);
   }
 
   @GetMapping("/list")
   @Operation(summary = "현재 위치와 인접지역의 게시글 조회")
-  public ResponseEntity<CustomSlice<ReportList>> getReportList(
-      @RequestParam double lastLatitude, @RequestParam double lastLongitude,
-      @RequestParam double curLatitude, @RequestParam double curLongitude,
+  public ResponseEntity<CustomSlice<ReportSummaryDto>> getReportList(
+      @RequestParam double lastLatitude,
+      @RequestParam double lastLongitude,
+      @RequestParam double curLatitude,
+      @RequestParam double curLongitude,
       @RequestParam boolean showsInProcessOnly,
       Pageable pageable
   ) {
 
-    CustomSlice<ReportList> result =
-        reportService.getReportList(lastLatitude, lastLongitude, curLatitude, curLongitude,
+    CustomSlice<ReportSummaryDto> result =
+        reportService.getReportList(lastLongitude, lastLatitude, curLatitude, curLongitude,
             showsInProcessOnly, pageable);
 
     return ResponseEntity.ok(result);
@@ -89,10 +94,10 @@ public class ReportController {
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
   ) {
 
-    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+    Member member = memberService.getMemberByAuthentication(authentication);
 
     ReportDto.Response reportResponse = reportService.updateReport(reportId, reportForm, imageList,
-        email);
+        member);
 
     return ResponseEntity.ok(reportResponse);
   }
@@ -104,9 +109,9 @@ public class ReportController {
       @PathVariable long reportId
   ) {
 
-    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+    Member member = memberService.getMemberByAuthentication(authentication);
 
-    ReportStateDto.Response deleteResponse = reportService.deleteReport(email, reportId);
+    ReportStateDto.Response deleteResponse = reportService.deleteReport(member, reportId);
 
     return ResponseEntity.ok(deleteResponse);
   }
@@ -118,21 +123,22 @@ public class ReportController {
       @PathVariable long reportId
   ) {
 
-    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+    Member member = memberService.getMemberByAuthentication(authentication);
 
-    ReportStateDto.Response foundResponse = reportService.changeStatusToFound(email, reportId);
+    ReportStateDto.Response foundResponse = reportService.changeStatusToFound(member, reportId);
+
     return ResponseEntity.ok(foundResponse);
   }
 
   @GetMapping("/search")
   @Operation(summary = "게시글 검색")
-  public ResponseEntity<CustomSlice<ReportList>> searchReport(
+  public ResponseEntity<CustomSlice<ReportSummaryDto>> searchReport(
       @RequestParam boolean showsInProgressOnly,
       @RequestParam String object,
       Pageable pageable
   ) {
 
-    CustomSlice<ReportList> result = reportService.searchReport(object, showsInProgressOnly,
+    CustomSlice<ReportSummaryDto> result = reportService.searchReport(object, showsInProgressOnly,
         pageable);
 
     return ResponseEntity.ok(result);
