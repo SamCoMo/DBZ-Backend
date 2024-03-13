@@ -27,8 +27,8 @@ public class ReportDto {
     private String feature;
     private String streetAddress;
     private String roadAddress;
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
   }
 
   @Getter
@@ -37,8 +37,8 @@ public class ReportDto {
   @Builder
   @ToString
   public static class Response{
-    private long reportId;
-    private long memberId;
+    private Long reportId;
+    private Long memberId;
     private String phone;
     private String title;
     private PetType petType;
@@ -49,16 +49,17 @@ public class ReportDto {
     private String petName;
     private String feature;
     private String streetAddress;
+    private boolean isWriter;
     private long views;
     private String roadAddress;
-    private double latitude;
-    private double longitude;
+    private Double latitude;
+    private Double longitude;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ReportImageDto.Response> imageList;
 
     public static Response from(Report report,
-        List<ReportImageDto.Response> reportImageResponseList) {
+        List<ReportImageDto.Response> reportImageResponseList, boolean isWriter) {
       return Response.builder()
           .reportId(report.getId())
           .memberId(report.getMember().getId())
@@ -73,6 +74,7 @@ public class ReportDto {
           .petName(report.getPetName())
           .feature(report.getFeature())
           .streetAddress(report.getStreetAddress())
+          .isWriter(isWriter)
           .roadAddress(report.getRoadAddress())
           .latitude(report.getLatitude())
           .longitude(report.getLongitude())

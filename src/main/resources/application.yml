@@ -1,11 +1,10 @@
 spring:
   profiles:
-    active: dev
-
+    active: dev, jwt-secret
   jpa:
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: true

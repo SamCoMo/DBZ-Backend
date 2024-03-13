@@ -1,12 +1,17 @@
 package com.samcomo.dbz.report.service.impl;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.global.s3.S3Service;
+import com.samcomo.dbz.global.redis.LockType;
+import com.samcomo.dbz.global.redis.aop.DistributedLock;
+import com.samcomo.dbz.global.s3.constants.ImageCategory;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
+import com.samcomo.dbz.report.model.dto.CustomPageable;
+import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportImageDto;
 import com.samcomo.dbz.report.model.dto.ReportList;
@@ -38,37 +43,48 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   public ReportDto.Response uploadReport(
-      long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
+      String email, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
   ) {
-
-    Member member = memberRepository.findById(memberId)
+    Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
-    List<ReportImage> imageList = s3Service.uploadAll(multipartFileList);
+    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
 
     //게시글 이미지 저장
-    imageList.forEach(reportImage -> reportImage.setReport(newReport));
-    List<ReportImage> savedImageList = reportImageRepository.saveAll(imageList);
+    List<ReportImage> reportImageList = imageUrlList.stream()
+        .map(imageUrl ->
+            ReportImage.builder()
+                .imageUrl(imageUrl)
+                .report(newReport)
+                .build()
+        )
+        .toList();
+    List<ReportImage> savedImageList = reportImageRepository.saveAll(reportImageList);
 
-    return ReportDto.Response.from(
-        newReport,
-        savedImageList.stream()
-            .map(ReportImageDto.Response::from)
-            .collect(Collectors.toList())
+    return ReportDto.Response.from(newReport, savedImageList.stream()
+        .map(ReportImageDto.Response::from)
+        .collect(Collectors.toList())
+        ,true
     );
   }
 
   @Override
-  public ReportDto.Response getReport(long reportId) {
-
-    //TODO: 조회수에 대한 동시성 처리 필요
+  @DistributedLock(lockType = LockType.REPORT ,key = "redisLock", waitTime = 3L, leaseTime = 5L)
+  public ReportDto.Response getReport(long reportId, String email) {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
+
+    Member member = memberRepository.findByEmail(email)
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
+
+    boolean isWriter = report.getMember().equals(member);
+
+    log.info("현재 조회수 : {}", report.getViews());
 
     report.setViews(report.getViews() + 1);
     Report newReport = reportRepository.save(report);
@@ -80,43 +96,45 @@ public class ReportServiceImpl implements ReportService {
       reportImageResponseList.add(ReportImageDto.Response.from(reportImage));
     }
 
-    return ReportDto.Response.from(newReport, reportImageResponseList);
+    log.info("================Finish 조회수 : {}===================", newReport.getViews());
+    return ReportDto.Response.from(newReport, reportImageResponseList, isWriter);
   }
 
   @Override
-  public Slice<ReportList> getReportList(
-      long cursorId,
-      double latitude,
-      double longitude,
+  public CustomSlice<ReportList> getReportList(
+      double lastLatitude,
+      double lastLongitude,
+      double curLatitude,
+      double curLongitude,
       boolean showsInProcessOnly,
       Pageable pageable
   ) {
 
     //TODO: 마지막 데이터에 대한 정보 필요 >> cursorId(마지막 데이터의 절대값)
 
+
     Slice<Report> reportSlice =
         showsInProcessOnly ?
-            reportRepository.findAllInProcessOrderByDistance(cursorId, latitude, longitude, pageable) :
-            reportRepository.findAllOrderByDistance(cursorId, latitude, longitude, pageable);
+            reportRepository.findAllInProcessOrderByDistance(
+                lastLatitude, lastLongitude,
+                curLatitude, curLongitude,
+                pageable)
+            :
+            reportRepository.findAllOrderByDistance(
+                lastLatitude, lastLongitude,
+                curLatitude, curLongitude,
+                pageable);
 
-    return getReportListSlice(reportSlice);
+    return getCustomSlice(reportSlice, pageable);
   }
 
   @Override
   public ReportDto.Response updateReport(
-      long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, long userId
+      long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, String email
   ) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    // 게시글 작성자와 수정 요청한 유저가 동일한지 검사
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     report.setPetType(reportForm.getPetType());
     report.setTitle(reportForm.getTitle());
@@ -134,60 +152,42 @@ public class ReportServiceImpl implements ReportService {
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     // 변경된 이미지 저장
-    List<ReportImage> newImageList = s3Service.uploadAll(multipartFileList);
-//    for (MultipartFile image : imageList) {
-//      ImageUploadState imageUploadState = s3Service.upload(image, ImageType.REPORT);
-//
-//      // 이미지 업로드 실패
-//      if(!imageUploadState.isSuccess()){
-//        //지금까지 저장된 이미지 삭제
-//        deleteUploadedImages(newImageList);
-//
-//        throw new ReportException(ErrorCode.IMAGE_UPLOAD_FAIL);
-//      }
-//
-//      String imageUrl = imageUploadState.getImageUrl();
-//      newImageList.add(ReportImage.builder()
-//          .imageUrl(imageUrl)
-//          .build());
-//    }
+    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(report);
 
     //게시글 이미지 저장
-    newImageList.forEach(reportImage -> reportImage.setReport(newReport));
-    List<ReportImage> savedImageList = reportImageRepository.saveAll(newImageList);
+    List<ReportImage> reportImages = imageUrlList.stream()
+        .map(imageUrl -> ReportImage.builder()
+            .imageUrl(imageUrl)
+            .report(newReport)
+            .build())
+        .toList();
+    List<ReportImage> updatedReportImageList = reportImageRepository.saveAll(reportImages);
 
     return ReportDto.Response.from(
         newReport,
-        savedImageList.stream()
+        updatedReportImageList.stream()
             .map(ReportImageDto.Response::from)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()), true);
   }
 
   @Override
-  public ReportStateDto.Response deleteReport(long userId, long reportId) {
+  public ReportStateDto.Response deleteReport(String email, long reportId) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
     for (ReportImage reportImage : reportImageList) {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
-      s3Service.delete(url.substring(idx + 1));
+      s3Service.deleteFile(url.substring(idx + 1));
     }
 
     reportRepository.delete(report);
@@ -199,17 +199,10 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public ReportStateDto.Response changeStatusToFound(long userId, long reportId) {
+  public ReportStateDto.Response changeStatusToFound(String email, long reportId) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     report.setReportStatus(ReportStatus.FOUND);
     Report savedReport = reportRepository.save(report);
@@ -221,7 +214,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public Slice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable) {
+  public CustomSlice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable) {
 
     Slice<Report> reportSlice = showsInProgressOnly ?
         reportRepository
@@ -230,27 +223,32 @@ public class ReportServiceImpl implements ReportService {
         reportRepository
             .findAllByTitleContainsOrPetNameContainsOrSpeciesContains(object, object, object, pageable);
 
-    return getReportListSlice(reportSlice);
+    return getCustomSlice(reportSlice, pageable);
   }
 
-  private Slice<ReportList> getReportListSlice(Slice<Report> reportSlice) {
+  private CustomSlice<ReportList> getCustomSlice(Slice<Report> reportSlice, Pageable pageable) {
 
-    return reportSlice.map(report -> {
-      ReportList reportList = ReportList.from(report);
+    CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(),
+        pageable.getPageSize());
 
-      reportImageRepository.findFirstByReport(report)
-          .ifPresent(reportImage -> reportList.setImageUrl(reportImage.getImageUrl()));
+    List<ReportList> contentReportList = reportSlice.getContent().stream()
+        .map(report -> {
+          ReportList reportList = ReportList.from(report);
+          reportImageRepository.findFirstByReport(report)
+              .ifPresent(reportImage -> reportList.setImageUrl(reportImage.getImageUrl()));
+          return reportList;
+        })
+        .toList();
 
-      return reportList;
-    });
+    return new CustomSlice<>(
+        contentReportList,
+        customPageable,
+        reportSlice.isFirst(),
+        reportSlice.isLast(),
+        reportSlice.getNumber(),
+        reportSlice.getSize(),
+        reportSlice.getNumberOfElements()
+    );
   }
 
-//  private void deleteUploadedImages(List<ReportImage> imageList){
-//    for (ReportImage reportImage : imageList){
-//      String imageUrl = reportImage.getImageUrl();
-//      int idx = imageUrl.lastIndexOf("/");
-//      String fileName = imageUrl.substring(idx + 1);
-//      s3Service.delete(fileName);
-//    }
-//  }
 }

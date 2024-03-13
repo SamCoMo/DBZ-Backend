@@ -42,18 +42,31 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 	// validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// maria DB
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-	//AWS
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+  // mongo DB
+  implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-	//FCM
-	implementation 'com.google.firebase:firebase-admin:9.1.1'
-	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.10.0'
+  // AWS
+  implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.18.0'
+
+
+	// jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
 }
 
 tasks.named('test') {

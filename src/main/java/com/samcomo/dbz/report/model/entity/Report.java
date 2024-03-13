@@ -49,8 +49,8 @@ public class Report extends BaseEntity {
   private String feature;
   private String streetAddress;
   private String roadAddress;
-  private double latitude;
-  private double longitude;
+  private Double latitude;
+  private Double longitude;
   private Long views;
   private Boolean showsPhone;
 
