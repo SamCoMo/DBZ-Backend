@@ -28,3 +28,10 @@ cloud:
       auto: false
     s3:
       bucket: samcomo
+
+fcm:
+  key:
+    path: firebase/firebase-adminsdk.json
+    scope: https://www.googleapis.com/auth/cloud-platform
+  api:
+    url: https://fcm.googleapis.com/v1/projects/${fcm-project-id}/messages:send
