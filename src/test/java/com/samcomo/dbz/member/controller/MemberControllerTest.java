@@ -38,7 +38,7 @@ class MemberControllerTest {
   private String validNickname;
   private String validPhone;
   private String validPassword;
-  private static final String DEFAULT_MESSAGE = "은(는) 필수 항목입니다.";
+  private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
 
   @BeforeEach
   void init() {
@@ -216,10 +216,10 @@ class MemberControllerTest {
                 .content(
                     objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.email").value("이메일" + DEFAULT_MESSAGE))
-        .andExpect(jsonPath("$.nickname").value("닉네임" + DEFAULT_MESSAGE))
-        .andExpect(jsonPath("$.phone").value("전화번호" + DEFAULT_MESSAGE))
-        .andExpect(jsonPath("$.password").value("비밀번호" + DEFAULT_MESSAGE))
+        .andExpect(jsonPath("$.email").value("이메일" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.nickname").value("닉네임" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.phone").value("전화번호" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE))
         .andDo(print());
   }
 }

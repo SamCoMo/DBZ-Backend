@@ -1,6 +1,6 @@
-package com.samcomo.dbz.member.utils;
+package com.samcomo.dbz.global.utils;
 
-import com.samcomo.dbz.member.utils.annotation.EmailCheck;
+import com.samcomo.dbz.global.utils.annotation.EmailCheck;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

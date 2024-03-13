@@ -1,9 +1,9 @@
-package com.samcomo.dbz.member.utils.annotation;
+package com.samcomo.dbz.global.utils.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.samcomo.dbz.member.utils.EmailValidator;
+import com.samcomo.dbz.global.utils.EmailValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.Retention;
