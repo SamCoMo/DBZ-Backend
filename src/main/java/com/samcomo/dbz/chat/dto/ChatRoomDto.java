@@ -16,14 +16,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChatRoomDto {
   private String chatRoomId;
-  private Set<String> memberIdList;
+  private Set<String> memberEmailList;
   private String lastChatMessageContent;
   private LocalDateTime lastChatMessageAt;
 
   public static ChatRoomDto from(ChatRoom chatRoom){
     return ChatRoomDto.builder()
         .chatRoomId(chatRoom.getChatRoomId())
-        .memberIdList(chatRoom.getMemberIdList())
+        .memberEmailList(chatRoom.getMemberEmailList())
         .lastChatMessageContent(chatRoom.getLastChatMessageContent())
         .lastChatMessageAt(chatRoom.getLastChatMessageAt())
         .build();

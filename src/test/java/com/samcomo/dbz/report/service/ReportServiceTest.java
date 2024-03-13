@@ -1,8 +1,9 @@
 package com.samcomo.dbz.report.service;
 
 import com.samcomo.dbz.global.exception.ErrorCode;
-import com.samcomo.dbz.global.s3.ImageUploadState;
-import com.samcomo.dbz.global.s3.S3Service;
+import com.samcomo.dbz.global.s3.constants.ImageCategory;
+import com.samcomo.dbz.global.s3.constants.ImageUploadState;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -96,12 +97,14 @@ public class ReportServiceTest {
     ReportImage reportImage = ReportImage.builder()
         .imageUrl(imageUploadState.getImageUrl())
         .build();
+    String imageUrl = imageUploadState.getImageUrl();
+
     Report newReport = Report.from(reportForm, member);
 
     Mockito.when(memberRepository.findById(Mockito.anyLong()))
         .thenReturn(Optional.of(member));
-    Mockito.when(s3Service.uploadAll(multipartFileList))
-        .thenReturn(List.of(reportImage));
+    Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
+        .thenReturn(List.of(imageUrl));
 
     newReport.setId(1L);
     Mockito.when(reportRepository.save(Mockito.any()))
@@ -287,17 +290,18 @@ public class ReportServiceTest {
     ReportImage reportImage = ReportImage.builder()
         .imageUrl(imageUploadState.getImageUrl())
         .build();
+    String imageUrl = imageUploadState.getImageUrl();
 
 
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
+    Mockito.when(memberRepository.findById(1L))
         .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findById(1L))
         .thenReturn(Optional.of(report));
     Mockito.when(reportImageRepository.findAllByReport(Mockito.any(Report.class)))
         .thenReturn(reportImageList);
 
-    Mockito.when(s3Service.uploadAll(Mockito.any()))
-        .thenReturn(List.of(reportImage));
+    Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
+        .thenReturn(List.of(imageUrl));
 
 
     Mockito.when(reportRepository.save(report))
@@ -311,7 +315,7 @@ public class ReportServiceTest {
     Response response = reportService.updateReport(1L, reportForm, multipartFileList, 1L);
 
     //then
-    Mockito.verify(s3Service).delete(fileNameCaptor.capture());
+    Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
     String fileName = fileNameCaptor.getValue();
 
     Assertions.assertEquals("test.png", fileName);
@@ -387,7 +391,7 @@ public class ReportServiceTest {
     ReportStateDto.Response response = reportService.deleteReport(1L, 1L);
 
     // then
-    Mockito.verify(s3Service).delete(fileNameCaptor.capture());
+    Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
     String deletedFileName = fileNameCaptor.getValue();
 
     Assertions.assertEquals("test.png", deletedFileName);

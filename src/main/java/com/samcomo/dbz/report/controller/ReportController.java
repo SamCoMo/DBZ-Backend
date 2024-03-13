@@ -52,7 +52,7 @@ public class ReportController {
   @GetMapping("/{reportId}")
   @Operation(summary = "특정 게시글 정보 가져오기")
   public ResponseEntity<ReportDto.Response> getReport(
-      @PathVariable long reportId
+      @PathVariable(value = "reportId") long reportId
   ) {
 
     ReportDto.Response reportResponse = reportService.getReport(reportId);
