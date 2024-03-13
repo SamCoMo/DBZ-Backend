@@ -1,7 +1,6 @@
 package com.samcomo.dbz.report.controller;
 
-import com.samcomo.dbz.member.jwt.JwtUtil;
-import com.samcomo.dbz.member.model.entity.Member;
+import com.samcomo.dbz.member.service.MemberService;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportList;
@@ -14,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,19 +32,17 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReportController {
 
   private final ReportService reportService;
-  private final JwtUtil jwtUtil;
+  private final MemberService memberService;
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글을 이미지와 함께 작성")
   public ResponseEntity<ReportDto.Response> registerReport(
-      @AuthenticationPrincipal Member member,
-      @RequestPart ReportDto.Form reportForm,
+      Authentication authentication,
+      @RequestPart(value = "reportForm") ReportDto.Form reportForm,
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
   ) {
 
-    //TODO: Authentication에서 Member 정보 가져오기
-    String email = member.getEmail();
-    // Member 도메인코드가 작성이 안돼서 임시로 진행
+    String email = memberService.getMemberByAuthentication(authentication).getEmail();
 
     ReportDto.Response reportResponse = reportService.uploadReport(email, reportForm, imageList);
 
@@ -55,11 +52,13 @@ public class ReportController {
   @GetMapping("/{reportId}")
   @Operation(summary = "특정 게시글 정보 가져오기")
   public ResponseEntity<ReportDto.Response> getReport(
-      @AuthenticationPrincipal Member member,
+     Authentication authentication,
       @PathVariable(value = "reportId") long reportId
   ) {
 
-    ReportDto.Response reportResponse = reportService.getReport(reportId, member.getEmail());
+    String email = memberService.getMemberByAuthentication(authentication).getEmail();
+
+    ReportDto.Response reportResponse = reportService.getReport(reportId, email);
 
     return ResponseEntity.ok(reportResponse);
   }
@@ -67,16 +66,14 @@ public class ReportController {
   @GetMapping("/list")
   @Operation(summary = "현재 위치와 인접지역의 게시글 조회")
   public ResponseEntity<CustomSlice<ReportList>> getReportList(
-      @RequestParam double lastLatitude,
-      @RequestParam double lastLongitude,
-      @RequestParam double curLatitude,
-      @RequestParam double curLongitude,
+      @RequestParam double lastLatitude, @RequestParam double lastLongitude,
+      @RequestParam double curLatitude, @RequestParam double curLongitude,
       @RequestParam boolean showsInProcessOnly,
       Pageable pageable
   ) {
 
     CustomSlice<ReportList> result =
-        reportService.getReportList(lastLongitude, lastLatitude, curLatitude, curLongitude,
+        reportService.getReportList(lastLatitude, lastLongitude, curLatitude, curLongitude,
             showsInProcessOnly, pageable);
 
     return ResponseEntity.ok(result);
@@ -86,16 +83,13 @@ public class ReportController {
       MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글 수정")
   public ResponseEntity<ReportDto.Response> updateReport(
-      @AuthenticationPrincipal Member member,
+      Authentication authentication,
       @PathVariable long reportId,
       @RequestPart ReportDto.Form reportForm,
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
   ) {
 
-    //TODO: 이미지 수정에대한 처리 리팩토링 필요
-
-    //TODO: 유저 정보 가져오기 >> Auth 파트 구현 끝나면 수정 필요
-    String email = member.getEmail();
+    String email = memberService.getMemberByAuthentication(authentication).getEmail();
 
     ReportDto.Response reportResponse = reportService.updateReport(reportId, reportForm, imageList,
         email);
@@ -106,12 +100,11 @@ public class ReportController {
   @DeleteMapping("/{reportId}")
   @Operation(summary = "게시글 삭제")
   public ResponseEntity<ReportStateDto.Response> deleteReport(
-      @AuthenticationPrincipal Member member,
+      Authentication authentication,
       @PathVariable long reportId
   ) {
 
-    //TODO: 유저 정보 가져오기 >> Auth 파트 구현 끝나면 수정 필요
-    String email = member.getEmail();
+    String email = memberService.getMemberByAuthentication(authentication).getEmail();
 
     ReportStateDto.Response deleteResponse = reportService.deleteReport(email, reportId);
 
@@ -121,12 +114,11 @@ public class ReportController {
   @PutMapping("/{reportId}/complete")
   @Operation(summary = "게시글 완료 처리")
   public ResponseEntity<ReportStateDto.Response> completeProcess(
-      @AuthenticationPrincipal Member member,
+      Authentication authentication,
       @PathVariable long reportId
   ) {
 
-    //TODO: 유저 정보 가져오기 >> Auth 파트 구현 끝나면 수정 필요
-    String email = member.getEmail();
+    String email = memberService.getMemberByAuthentication(authentication).getEmail();
 
     ReportStateDto.Response foundResponse = reportService.changeStatusToFound(email, reportId);
     return ResponseEntity.ok(foundResponse);
