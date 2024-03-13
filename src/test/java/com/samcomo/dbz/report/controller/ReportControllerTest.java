@@ -15,8 +15,8 @@ import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportDto.Form;
 import com.samcomo.dbz.report.model.dto.ReportDto.Response;
-import com.samcomo.dbz.report.model.dto.ReportList;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
+import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,7 +96,6 @@ public class ReportControllerTest {
     response = Response.builder()
         .reportId(1L)
         .memberId(1L)
-        .age(3)
         .title("test title")
         .isWriter(true)
         .latitude(37.12345)
@@ -113,7 +112,7 @@ public class ReportControllerTest {
         .thenReturn(member);
 
     Mockito
-        .when(reportService.uploadReport(Mockito.anyString(), Mockito.any(ReportDto.Form.class), Mockito.any()))
+        .when(reportService.uploadReport(Mockito.any(Member.class), Mockito.any(ReportDto.Form.class), Mockito.any()))
         .thenReturn(response);
 
     //when
@@ -140,7 +139,6 @@ public class ReportControllerTest {
     Response response = Response.builder()
         .reportId(1L)
         .memberId(1L)
-        .age(3)
         .isWriter(true)
         .latitude(37.12345)
         .longitude(127.12345)
@@ -148,7 +146,7 @@ public class ReportControllerTest {
 
     Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
         .thenReturn(member);
-    Mockito.when(reportService.getReport(reportId, member.getEmail()))
+    Mockito.when(reportService.getReport(reportId, member))
         .thenReturn(response);
     // when
     ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/report/" + reportId)
@@ -164,6 +162,7 @@ public class ReportControllerTest {
   @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
   @DisplayName("게시글 목록 가져오기 성공 - \"PUBLISHED\" 상태")
   void getReportListSuccess() throws Exception {
+
     // given
     double lastLatitude = 37.12345;
     double lastLongitude = 127.12345;
@@ -172,17 +171,22 @@ public class ReportControllerTest {
     boolean showsInProcessOnly = true;
     Pageable pageable = PageRequest.of(1, 10);
 
-    ReportList reportList = ReportList.builder()
+    ReportSummaryDto reportSummaryDto = ReportSummaryDto.builder()
         .reportId(1L)
         .title("test title")
         .build();
 
     CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(),
         pageable.getPageSize());
-    CustomSlice<ReportList> reportListCustomSlice =
-        new CustomSlice<>(List.of(reportList), customPageable, true, false, pageable.getPageNumber(),
-            pageable.getPageSize(),
-            pageable.getPageSize());
+    CustomSlice<ReportSummaryDto> reportListCustomSlice = CustomSlice.<ReportSummaryDto>builder()
+        .content(List.of(reportSummaryDto))
+        .pageable(customPageable)
+        .first(true)
+        .last(false)
+        .number(pageable.getPageNumber())
+        .size(pageable.getPageSize())
+        .numberOfElements(pageable.getPageSize())
+        .build();
 
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("lastLatitude", String.valueOf(lastLatitude));
@@ -193,12 +197,10 @@ public class ReportControllerTest {
     params.add("page", String.valueOf(pageable.getPageNumber()));
     params.add("size", String.valueOf(pageable.getPageSize()));
 
-
     Mockito.when(reportService.getReportList(
-        lastLatitude, lastLongitude, curLatitude, curLongitude,
-            showsInProcessOnly, pageable))
+            Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(),
+            Mockito.anyBoolean(), Mockito.any(Pageable.class)))
         .thenReturn(reportListCustomSlice);
-
 
     // when
     ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/report/list")
@@ -222,7 +224,7 @@ public class ReportControllerTest {
     Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
         .thenReturn(member);
     Mockito.when(
-        reportService.updateReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any(), Mockito.anyString()))
+        reportService.updateReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any(), Mockito.any()))
         .thenReturn(response);
 
     // when
@@ -236,7 +238,8 @@ public class ReportControllerTest {
     result
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.reportId").value(1L))
-        .andExpect(jsonPath("$.title").value("test title"));
+        .andExpect(jsonPath("$.title").value("test title"))
+        .andDo(print());
   }
 
   @Test
@@ -254,7 +257,7 @@ public class ReportControllerTest {
     Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
         .thenReturn(member);
 
-    Mockito.when(reportService.deleteReport(member.getEmail(), reportId))
+    Mockito.when(reportService.deleteReport(member, reportId))
         .thenReturn(deleteResponse);
 
     // when
@@ -284,7 +287,7 @@ public class ReportControllerTest {
     Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
         .thenReturn(member);
 
-    Mockito.when(reportService.changeStatusToFound(member.getEmail(), reportId))
+    Mockito.when(reportService.changeStatusToFound(member, reportId))
         .thenReturn(foundResponse);
     // when
     ResultActions result = mockMvc.perform(
@@ -306,14 +309,21 @@ public class ReportControllerTest {
     boolean showsInProgressOnly = true;
     Pageable pageable = PageRequest.of(1, 10);
 
-    ReportList reportList = ReportList.builder()
+    ReportSummaryDto reportSummaryDto = ReportSummaryDto.builder()
         .reportId(1L)
         .title("test title")
         .build();
 
     CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(), pageable.getPageSize());
-    CustomSlice<ReportList> reportListSlice = new CustomSlice<>(List.of(reportList), customPageable, true, false,
-        pageable.getPageNumber(), pageable.getPageSize(), pageable.getPageSize());
+    CustomSlice<ReportSummaryDto> reportListSlice = CustomSlice.<ReportSummaryDto>builder()
+        .content(List.of(reportSummaryDto))
+        .pageable(customPageable)
+        .first(true)
+        .last(false)
+        .number(pageable.getPageNumber())
+        .size(pageable.getPageSize())
+        .numberOfElements(pageable.getPageSize())
+        .build();
 
     MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
     params.add("showsInProgressOnly", String.valueOf(showsInProgressOnly));

@@ -4,7 +4,6 @@ import com.samcomo.dbz.member.service.MemberService;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
-import com.samcomo.dbz.report.model.dto.ReportList;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
