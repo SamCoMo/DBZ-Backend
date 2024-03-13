@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ReportStatus {
+
   PUBLISHED("published"),
   DELETED("deleted"),
   FOUND("found");

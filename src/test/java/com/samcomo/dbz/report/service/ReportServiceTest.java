@@ -5,15 +5,14 @@ import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.model.entity.Member;
-import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportDto.Response;
-import com.samcomo.dbz.report.model.dto.ReportList;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
+import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.entity.ReportImage;
 import com.samcomo.dbz.report.model.repository.ReportImageRepository;
@@ -48,8 +47,6 @@ public class ReportServiceTest {
   @Mock
   private ReportImageRepository reportImageRepository;
   @Mock
-  private MemberRepository memberRepository;
-  @Mock
   private S3Service s3Service;
   @InjectMocks
   private ReportServiceImpl reportService;
@@ -59,14 +56,11 @@ public class ReportServiceTest {
   private List<MultipartFile> multipartFileList;
   private ImageUploadState imageUploadState;
   private Report report;
-  private String memberEmail;
-
 
   @BeforeEach
   void setUp(){
       member = Member.builder()
         .id(1L)
-        .email("test@gmail.com")
         .build();
 
     reportForm = ReportDto.Form.builder()
@@ -88,8 +82,6 @@ public class ReportServiceTest {
         .showsPhone(true)
         .views(0L)
         .build();
-
-    memberEmail = "test@gmail.com";
   }
 
   @Test
@@ -103,9 +95,6 @@ public class ReportServiceTest {
 
     Report newReport = Report.from(reportForm, member);
 
-    Mockito.when(memberRepository.findByEmail(memberEmail))
-        .thenReturn(Optional.of(member));
-
     Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
         .thenReturn(List.of(imageUrl));
 
@@ -116,7 +105,7 @@ public class ReportServiceTest {
         .thenReturn(List.of(reportImage, reportImage));
 
     //when
-    Response response = reportService.uploadReport("test@gmail.com", reportForm, multipartFileList);
+    Response response = reportService.uploadReport(member, reportForm, multipartFileList);
 
     //then
     Assertions.assertEquals(newReport.getId() ,response.getReportId());
@@ -130,8 +119,6 @@ public class ReportServiceTest {
     //given
     Mockito.when(reportRepository.findById(1L))
         .thenReturn(Optional.of(report));
-    Mockito.when(memberRepository.findByEmail(memberEmail))
-        .thenReturn(Optional.of(member));
 
     report.setViews(report.getViews() + 1);
     Mockito.when(reportRepository.save(Mockito.any(Report.class)))
@@ -152,7 +139,7 @@ public class ReportServiceTest {
         ));
 
     //when
-    ReportDto.Response response = reportService.getReport(1L, "test@gmail.com");
+    ReportDto.Response response = reportService.getReport(1L, member);
 
     //then
     Assertions.assertEquals(report.getId(), response.getReportId());
@@ -170,7 +157,7 @@ public class ReportServiceTest {
 
     //when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.getReport(1L, "test@gmail.com"));
+        () -> reportService.getReport(1L, member));
 
     //then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
@@ -192,6 +179,7 @@ public class ReportServiceTest {
       reportList.add(
           Report.builder()
               .id((long) i)
+              .member(member) // 여러개의 진행중인 게시글 생성을 위해 1명이 작성했다고 가정
               .build()
       );
     }
@@ -204,7 +192,7 @@ public class ReportServiceTest {
         .thenReturn(reportSlice);
 
     //when
-    CustomSlice<ReportList> reportListSlice = reportService.getReportList(
+    CustomSlice<ReportSummaryDto> reportListSlice = reportService.getReportList(
         lastLatitude, lastLongitude,
         curLatitude, curLongitude,
         false,
@@ -234,6 +222,7 @@ public class ReportServiceTest {
       reportList.add(
           Report.builder()
               .id((long)i)
+              .member(member) // 여러개의 진행중인 게시글 생성을 위해 1명이 작성했다고 가정
               .build()
       );
     }
@@ -246,7 +235,7 @@ public class ReportServiceTest {
         .thenReturn(reportSlice);
 
     //when
-    CustomSlice<ReportList> reportListSlice = reportService.getReportList(
+    CustomSlice<ReportSummaryDto> reportListSlice = reportService.getReportList(
         lastLatitude, lastLongitude,
         curLatitude, curLongitude,
         true,
@@ -286,7 +275,7 @@ public class ReportServiceTest {
         .build();
     String imageUrl = imageUploadState.getImageUrl();
 
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.of(report));
     Mockito.when(reportImageRepository.findAllByReport(report))
         .thenReturn(reportImageList);
@@ -303,7 +292,7 @@ public class ReportServiceTest {
     ArgumentCaptor<String> fileNameCaptor = ArgumentCaptor.forClass(String.class);
 
     //when
-    Response response = reportService.updateReport(1L, reportForm, multipartFileList, "test@gmail.com");
+    Response response = reportService.updateReport(1L, reportForm, multipartFileList, member);
 
     //then
     Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
@@ -317,11 +306,11 @@ public class ReportServiceTest {
   @DisplayName("게시글 수정 실패 - 게시글 정보 없음")
   void updateReportFail1(){
     //given
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.empty());
     //when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        ()-> reportService.updateReport(1L, reportForm, multipartFileList, "test@gmail.com"));
+        ()-> reportService.updateReport(1L, reportForm, multipartFileList, member));
 
     //then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
@@ -336,14 +325,14 @@ public class ReportServiceTest {
         .imageUrl("http://testUpload/test.png")
         .build());
 
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.of(report));
     Mockito.when(reportImageRepository.findAllByReport(report))
         .thenReturn(reportImageList);
 
     ArgumentCaptor<String> fileNameCaptor = ArgumentCaptor.forClass(String.class);
     // when
-    ReportStateDto.Response response = reportService.deleteReport("test@gmail.com", 1L);
+    ReportStateDto.Response response = reportService.deleteReport(member, 1L);
 
     // then
     Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
@@ -358,12 +347,12 @@ public class ReportServiceTest {
   @DisplayName("게시글 삭제 실패 - 게시글 정보 없음")
   void deleteReportFail2(){
     // given
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.empty());
 
     // when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.deleteReport("test@gmail.com", 1L));
+        () -> reportService.deleteReport(member, 1L));
 
     // then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage() ,exception.getMessage());
@@ -373,14 +362,14 @@ public class ReportServiceTest {
   @DisplayName("게시글 상태 '찾음' 으로 변경 성공")
   void changeStatusToFoundSuccess(){
     // given
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.of(report));
     report.setReportStatus(ReportStatus.FOUND);
     Mockito.when(reportRepository.save(report))
         .thenReturn(report);
 
     // when
-    ReportStateDto.Response response = reportService.changeStatusToFound("test@gmail.com", 1L);
+    ReportStateDto.Response response = reportService.changeStatusToFound(member, 1L);
 
     // then
     Assertions.assertEquals(report.getId(), response.getReportId());
@@ -391,12 +380,12 @@ public class ReportServiceTest {
   @DisplayName("게시글 상태 '찾음'으로 변경 실패 - 게시글 정보 없음")
   void changeStatusToFoundFail2(){
     // given
-    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
+    Mockito.when(reportRepository.findByIdAndMember(1L, member))
         .thenReturn(Optional.empty());
 
     // when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.changeStatusToFound("test@gmail.com", 1L));
+        () -> reportService.changeStatusToFound(member, 1L));
 
     // then
 
@@ -414,6 +403,7 @@ public class ReportServiceTest {
       reportList.add(
           Report.builder()
               .id((long) i)
+              .member(member) // 여러개의 진행중인 게시글 생성을 위해 1명이 작성했다고 가정
               .build()
       );
     }
@@ -428,7 +418,7 @@ public class ReportServiceTest {
             .build()));
 
     // when
-    CustomSlice<ReportList> reportListSlice = reportService.searchReport("test", false, pageable);
+    CustomSlice<ReportSummaryDto> reportListSlice = reportService.searchReport("test", false, pageable);
 
     // then
     Assertions.assertFalse(reportListSlice.isLast());
@@ -448,6 +438,7 @@ public class ReportServiceTest {
       reportList.add(
           Report.builder()
               .id((long) i)
+              .member(member) // 여러개의 진행중인 게시글 생성을 위해 1명이 작성했다고 가정
               .reportStatus(ReportStatus.PUBLISHED)
               .build()
       );
@@ -470,7 +461,7 @@ public class ReportServiceTest {
             .build()));
 
     // when
-    CustomSlice<ReportList> reportListSlice = reportService.searchReport("test", true, pageable);
+    CustomSlice<ReportSummaryDto> reportListSlice = reportService.searchReport("test", true, pageable);
 
     // then
     Assertions.assertFalse(reportListSlice.isLast());

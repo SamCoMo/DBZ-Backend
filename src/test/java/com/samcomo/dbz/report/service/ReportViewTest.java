@@ -1,5 +1,6 @@
 package com.samcomo.dbz.report.service;
 
+import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.repository.ReportRepository;
 import java.util.concurrent.CountDownLatch;
@@ -7,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +20,16 @@ public class ReportViewTest {
   private ReportRepository reportRepository;
   @Autowired
   private ReportService reportService;
+
+  private Member member;
+
+  @BeforeEach
+  void setUp() {
+    member = Member.builder()
+        .id(1L)
+        .email("test@gmail.com")
+        .build();
+  }
 
   @AfterEach
   void reset(){
@@ -38,7 +50,7 @@ public class ReportViewTest {
     for (int i = 0; i < threadCount; i++) {
       executorService.submit(() -> {
         try {
-          reportService.getReport(1L, "test@gmail.com");
+          reportService.getReport(1L, member);
         } finally {
           latch.countDown();
         }

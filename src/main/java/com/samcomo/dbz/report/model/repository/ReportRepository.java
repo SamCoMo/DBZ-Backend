@@ -12,9 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-
   Optional<Report> findByIdAndMember(Long id, Member member);
-  Optional<Report> findByIdAndMember_Email(Long id, String email);
 
   @Query(value = "select r "
       + "from Report r "
@@ -35,7 +33,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
       @Param("lastLatitude") double lastLatitude, @Param("lastLongitude") double lastLongitude,
       @Param("curLatitude") double curLatitude, @Param("curLongitude") double curLongitude,
       Pageable pageable);
-
 
   Slice<Report> findAllByTitleContainsOrPetNameContainsOrSpeciesContains(String title, String petName, String species, Pageable pageable);
 
