@@ -43,10 +43,9 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   public ReportDto.Response uploadReport(
-      long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
+      String email, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
   ) {
-
-    Member member = memberRepository.findById(memberId)
+    Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
@@ -69,15 +68,21 @@ public class ReportServiceImpl implements ReportService {
     return ReportDto.Response.from(newReport, savedImageList.stream()
         .map(ReportImageDto.Response::from)
         .collect(Collectors.toList())
+        ,true
     );
   }
 
   @Override
   @DistributedLock(lockType = LockType.REPORT ,key = "redisLock", waitTime = 3L, leaseTime = 5L)
-  public ReportDto.Response getReport(long reportId) {
+  public ReportDto.Response getReport(long reportId, String email) {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
+
+    Member member = memberRepository.findByEmail(email)
+        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
+
+    boolean isWriter = report.getMember().equals(member);
 
     log.info("현재 조회수 : {}", report.getViews());
 
@@ -92,7 +97,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     log.info("================Finish 조회수 : {}===================", newReport.getViews());
-    return ReportDto.Response.from(newReport, reportImageResponseList);
+    return ReportDto.Response.from(newReport, reportImageResponseList, isWriter);
   }
 
   @Override
@@ -125,19 +130,11 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   public ReportDto.Response updateReport(
-      long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, long userId
+      long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, String email
   ) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    // 게시글 작성자와 수정 요청한 유저가 동일한지 검사
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     report.setPetType(reportForm.getPetType());
     report.setTitle(reportForm.getTitle());
@@ -177,21 +174,14 @@ public class ReportServiceImpl implements ReportService {
         newReport,
         updatedReportImageList.stream()
             .map(ReportImageDto.Response::from)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()), true);
   }
 
   @Override
-  public ReportStateDto.Response deleteReport(long userId, long reportId) {
+  public ReportStateDto.Response deleteReport(String email, long reportId) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
     for (ReportImage reportImage : reportImageList) {
@@ -209,17 +199,10 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public ReportStateDto.Response changeStatusToFound(long userId, long reportId) {
+  public ReportStateDto.Response changeStatusToFound(String email, long reportId) {
 
-    Member member = memberRepository.findById(userId)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
-
-    Report report = reportRepository.findById(reportId)
+    Report report = reportRepository.findByIdAndMember_Email(reportId, email)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    if (!report.getMember().equals(member)) {
-      throw new ReportException(ErrorCode.NOT_SAME_MEMBER);
-    }
 
     report.setReportStatus(ReportStatus.FOUND);
     Report savedReport = reportRepository.save(report);
