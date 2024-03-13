@@ -47,14 +47,12 @@ public class DistributedLockAop {
     }catch (InterruptedException e){
       throw new RedissonException(ErrorCode.LOCK_FAIL);
     }finally {
-
-      if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+      try{
         lock.unlock();
         log.info("Lock 제거");
-      }else{
+      }catch (IllegalMonitorStateException e) {
         log.info("이미 Lock을 제거했습니다.");
       }
-
     }
   }
 

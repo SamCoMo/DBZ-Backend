@@ -9,7 +9,7 @@ public class ReportStateDto {
   @Getter
   @Builder
   public static class Response{
-    private long reportId;
+    private Long reportId;
     private String status;
 
   }

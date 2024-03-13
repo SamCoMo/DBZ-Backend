@@ -4,7 +4,6 @@ import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.service.S3Service;
-import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
@@ -60,6 +59,7 @@ public class ReportServiceTest {
   private List<MultipartFile> multipartFileList;
   private ImageUploadState imageUploadState;
   private Report report;
+  private String memberEmail;
 
 
   @BeforeEach
@@ -88,6 +88,8 @@ public class ReportServiceTest {
         .showsPhone(true)
         .views(0L)
         .build();
+
+    memberEmail = "test@gmail.com";
   }
 
   @Test
@@ -101,19 +103,20 @@ public class ReportServiceTest {
 
     Report newReport = Report.from(reportForm, member);
 
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
+    Mockito.when(memberRepository.findByEmail(memberEmail))
         .thenReturn(Optional.of(member));
+
     Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
         .thenReturn(List.of(imageUrl));
 
     newReport.setId(1L);
-    Mockito.when(reportRepository.save(Mockito.any()))
+    Mockito.when(reportRepository.save(Mockito.any(Report.class)))
         .thenReturn(newReport);
-    Mockito.when(reportImageRepository.saveAll(Mockito.any()))
+    Mockito.when(reportImageRepository.saveAll(Mockito.any(List.class)))
         .thenReturn(List.of(reportImage, reportImage));
 
     //when
-    Response response = reportService.uploadReport(1L, reportForm, multipartFileList);
+    Response response = reportService.uploadReport("test@gmail.com", reportForm, multipartFileList);
 
     //then
     Assertions.assertEquals(newReport.getId() ,response.getReportId());
@@ -122,27 +125,13 @@ public class ReportServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 업로드 실패 - 멤버 정보 없음")
-  void uploadReportFail1(){
-    //given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.empty());
-
-    //when
-    Throwable exception = Assertions.assertThrows(MemberException.class,
-        () -> reportService.uploadReport(1L, reportForm, multipartFileList));
-
-    //then
-    Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND.getMessage(), exception.getMessage());
-
-  }
-
-  @Test
   @DisplayName("게시글 가져오기 성공")
   void getReportSuccess(){
     //given
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findById(1L))
         .thenReturn(Optional.of(report));
+    Mockito.when(memberRepository.findByEmail(memberEmail))
+        .thenReturn(Optional.of(member));
 
     report.setViews(report.getViews() + 1);
     Mockito.when(reportRepository.save(Mockito.any(Report.class)))
@@ -163,7 +152,7 @@ public class ReportServiceTest {
         ));
 
     //when
-    ReportDto.Response response = reportService.getReport(1L);
+    ReportDto.Response response = reportService.getReport(1L, "test@gmail.com");
 
     //then
     Assertions.assertEquals(report.getId(), response.getReportId());
@@ -176,12 +165,12 @@ public class ReportServiceTest {
   @DisplayName("게시글 가져오기 실패 - 게시글 정보 없음")
   void getReportFail1(){
     //given
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findById(1L))
         .thenReturn(Optional.empty());
 
     //when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.getReport(1L));
+        () -> reportService.getReport(1L, "test@gmail.com"));
 
     //then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
@@ -209,15 +198,15 @@ public class ReportServiceTest {
 
     Slice<Report> reportSlice = new SliceImpl<>(reportList, pageable, true);
     Mockito.when(reportRepository.findAllOrderByDistance(
-            Mockito.anyDouble(), Mockito.anyDouble(),
-            Mockito.anyDouble(), Mockito.anyDouble(),
-            Mockito.any(Pageable.class)))
+            lastLatitude, lastLongitude,
+            curLatitude, curLongitude,
+            pageable))
         .thenReturn(reportSlice);
 
     //when
     CustomSlice<ReportList> reportListSlice = reportService.getReportList(
         lastLatitude, lastLongitude,
-        curLatitude, lastLongitude,
+        curLatitude, curLongitude,
         false,
         pageable);
     //then
@@ -251,9 +240,9 @@ public class ReportServiceTest {
 
     Slice<Report> reportSlice = new SliceImpl<>(reportList, pageable, true);
     Mockito.when(reportRepository.findAllInProcessOrderByDistance(
-            Mockito.anyDouble(), Mockito.anyDouble(),
-            Mockito.anyDouble(), Mockito.anyDouble(),
-            Mockito.any(Pageable.class)))
+            lastLatitude, lastLongitude,
+            curLatitude, curLongitude,
+            pageable))
         .thenReturn(reportSlice);
 
     //when
@@ -287,17 +276,19 @@ public class ReportServiceTest {
             .imageUrl("http://testUpload/test.png")
         .build());
 
-    ReportImage reportImage = ReportImage.builder()
+    ReportImage reportImage1 = ReportImage.builder()
+        .id(1L)
+        .imageUrl(imageUploadState.getImageUrl())
+        .build();
+    ReportImage reportImage2 = ReportImage.builder()
+        .id(2L)
         .imageUrl(imageUploadState.getImageUrl())
         .build();
     String imageUrl = imageUploadState.getImageUrl();
 
-
-    Mockito.when(memberRepository.findById(1L))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(1L))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.of(report));
-    Mockito.when(reportImageRepository.findAllByReport(Mockito.any(Report.class)))
+    Mockito.when(reportImageRepository.findAllByReport(report))
         .thenReturn(reportImageList);
 
     Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
@@ -306,13 +297,13 @@ public class ReportServiceTest {
 
     Mockito.when(reportRepository.save(report))
         .thenReturn(report);
-    Mockito.when(reportImageRepository.saveAll(Mockito.any()))
-        .thenReturn(List.of(reportImage, reportImage));
+    Mockito.when(reportImageRepository.saveAll(Mockito.any(List.class)))
+        .thenReturn(List.of(reportImage1, reportImage2));
 
     ArgumentCaptor<String> fileNameCaptor = ArgumentCaptor.forClass(String.class);
 
     //when
-    Response response = reportService.updateReport(1L, reportForm, multipartFileList, 1L);
+    Response response = reportService.updateReport(1L, reportForm, multipartFileList, "test@gmail.com");
 
     //then
     Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
@@ -323,51 +314,17 @@ public class ReportServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 수정 실패 - 멤버 정보 없음")
+  @DisplayName("게시글 수정 실패 - 게시글 정보 없음")
   void updateReportFail1(){
     //given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.empty());
-    //when
-    Throwable exception = Assertions.assertThrows(MemberException.class,
-        ()-> reportService.updateReport(1L, reportForm, multipartFileList, 1L));
-
-    //then
-    Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND.getMessage(), exception.getMessage());
-  }
-
-  @Test
-  @DisplayName("게시글 수정 실패 - 게시글 정보 없음")
-  void updateReportFail2(){
-    //given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.empty());
     //when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        ()-> reportService.updateReport(1L, reportForm, multipartFileList, 1L));
+        ()-> reportService.updateReport(1L, reportForm, multipartFileList, "test@gmail.com"));
 
     //then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
-  }
-
-  @Test
-  @DisplayName("게시글 수정 실패 - 게시글 작성자와 수정 유청자가 다름")
-  void updateReportFail3(){
-    //given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    report.setMember(Member.builder().id(2L).build());
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(report));
-
-    //when
-    Throwable exception = Assertions.assertThrows(ReportException.class,
-        ()-> reportService.updateReport(1L, reportForm, multipartFileList, 1L));
-
-    //then
-    Assertions.assertEquals(ErrorCode.NOT_SAME_MEMBER.getMessage(), exception.getMessage());
   }
 
   @Test
@@ -379,16 +336,14 @@ public class ReportServiceTest {
         .imageUrl("http://testUpload/test.png")
         .build());
 
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.of(report));
-    Mockito.when(reportImageRepository.findAllByReport(Mockito.any(Report.class)))
+    Mockito.when(reportImageRepository.findAllByReport(report))
         .thenReturn(reportImageList);
 
     ArgumentCaptor<String> fileNameCaptor = ArgumentCaptor.forClass(String.class);
     // when
-    ReportStateDto.Response response = reportService.deleteReport(1L, 1L);
+    ReportStateDto.Response response = reportService.deleteReport("test@gmail.com", 1L);
 
     // then
     Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
@@ -400,70 +355,32 @@ public class ReportServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 삭제 실패 - 멤버 정보 없음")
-  void deleteReportFail1(){
-    // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.empty());
-
-    // when
-    Throwable exception = Assertions.assertThrows(MemberException.class,
-        () -> reportService.deleteReport(1L, 1L));
-
-    // then
-
-    Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND.getMessage() ,exception.getMessage());
-  }
-
-  @Test
   @DisplayName("게시글 삭제 실패 - 게시글 정보 없음")
   void deleteReportFail2(){
     // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.empty());
 
     // when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.deleteReport(1L, 1L));
+        () -> reportService.deleteReport("test@gmail.com", 1L));
 
     // then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage() ,exception.getMessage());
   }
 
   @Test
-  @DisplayName("게시글 삭제 실패 - 게시글 작성자와 삭제 요청자 불일치")
-  void deleteReportFail3(){
-    // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    report.setMember(Member.builder().id(2L).build());
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(report));
-
-    // when
-    Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.deleteReport(2L, 1L));
-
-    // then
-    Assertions.assertEquals(ErrorCode.NOT_SAME_MEMBER.getMessage() ,exception.getMessage());
-  }
-
-  @Test
-  @DisplayName("게시글 상태 '찾음'으로 변경 성공")
+  @DisplayName("게시글 상태 '찾음' 으로 변경 성공")
   void changeStatusToFoundSuccess(){
     // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.of(report));
     report.setReportStatus(ReportStatus.FOUND);
-    Mockito.when(reportRepository.save(Mockito.any(Report.class)))
+    Mockito.when(reportRepository.save(report))
         .thenReturn(report);
 
     // when
-    ReportStateDto.Response response = reportService.changeStatusToFound(1L, 1L);
+    ReportStateDto.Response response = reportService.changeStatusToFound("test@gmail.com", 1L);
 
     // then
     Assertions.assertEquals(report.getId(), response.getReportId());
@@ -471,56 +388,19 @@ public class ReportServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 상태 '찾음'으로 변경 실패 - 멤버 정보 없음")
-  void changeStatusToFoundFail1(){
-    // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.empty());
-
-    // when
-    Throwable exception = Assertions.assertThrows(MemberException.class,
-        () -> reportService.changeStatusToFound(1L, 1L));
-
-    // then
-
-    Assertions.assertEquals(ErrorCode.MEMBER_NOT_FOUND.getMessage(), exception.getMessage());
-  }
-
-  @Test
   @DisplayName("게시글 상태 '찾음'으로 변경 실패 - 게시글 정보 없음")
   void changeStatusToFoundFail2(){
     // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
+    Mockito.when(reportRepository.findByIdAndMember_Email(1L, "test@gmail.com"))
         .thenReturn(Optional.empty());
 
     // when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.changeStatusToFound(1L, 1L));
+        () -> reportService.changeStatusToFound("test@gmail.com", 1L));
 
     // then
 
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
-  }
-
-  @Test
-  @DisplayName("게시글 상태 '찾음'으로 변경 실패 - 상태 변경 요청자와 게시글 작성자 불일치")
-  void changeStatusToFoundFail3(){
-    // given
-    Mockito.when(memberRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(member));
-    report.setMember(Member.builder().id(2L).build());
-    Mockito.when(reportRepository.findById(Mockito.anyLong()))
-        .thenReturn(Optional.of(report));
-
-    // when
-    Throwable exception = Assertions.assertThrows(ReportException.class,
-        () -> reportService.changeStatusToFound(1L, 1L));
-
-    // then
-
-    Assertions.assertEquals(ErrorCode.NOT_SAME_MEMBER.getMessage(), exception.getMessage());
   }
 
   @Test
@@ -561,6 +441,7 @@ public class ReportServiceTest {
   void searchReportSuccess2(){
     //given
     Pageable pageable = PageRequest.of(1, 10);
+    String object = "test";
 
     List<Report> reportList = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
@@ -576,11 +457,11 @@ public class ReportServiceTest {
 
     Mockito.when(reportRepository
         .findAllByTitleContainsOrPetNameContainsOrSpeciesContainsAndReportStatus(
-            Mockito.anyString(),
-            Mockito.anyString(),
-            Mockito.anyString(),
-            Mockito.any(ReportStatus.class),
-            Mockito.any(Pageable.class)
+            object,
+            object,
+            object,
+            ReportStatus.PUBLISHED,
+            pageable
         ))
         .thenReturn(reportSlice);
     Mockito.when(reportImageRepository.findFirstByReport(Mockito.any(Report.class)))

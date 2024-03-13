@@ -27,7 +27,6 @@ public class ReportList {
   private String feature;
   private String streetAddress;
   private String roadAddress;
-  private double lastDistance;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private String imageUrl;

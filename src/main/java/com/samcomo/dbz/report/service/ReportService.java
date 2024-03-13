@@ -10,17 +10,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ReportService {
 
-  ReportDto.Response uploadReport(long memberId, ReportDto.Form reportForm, List<MultipartFile> imageList);
+  ReportDto.Response uploadReport(String email, ReportDto.Form reportForm, List<MultipartFile> imageList);
 
-  ReportDto.Response getReport(long reportId);
+  ReportDto.Response getReport(long reportId, String email);
   CustomSlice<ReportList> getReportList(
       double lastLatitude, double lastLongitude, double curLatitude, double curLongitude, boolean showsInProcessOnly, Pageable pageable);
 
-  ReportDto.Response updateReport(long reportId, ReportDto.Form reportForm, List<MultipartFile> imageList, long userId);
+  ReportDto.Response updateReport(long reportId, ReportDto.Form reportForm, List<MultipartFile> imageList, String email);
 
-  Response deleteReport(long userId, long reportId);
+  Response deleteReport(String email, long reportId);
 
-  Response changeStatusToFound(long userId, long reportId);
+  Response changeStatusToFound(String email, long reportId);
 
   CustomSlice<ReportList> searchReport(String object, boolean showsInProgressOnly, Pageable pageable);
 }
