@@ -47,8 +47,9 @@ public class SecurityConfig {
     // mapping
     http
         .authorizeHttpRequests((auth) -> auth
-            .requestMatchers("/report/", "/aop/").permitAll()
             .requestMatchers("/member/register", "/member/login").permitAll()
+            .requestMatchers("/report/**").hasRole("MEMBER")
+            .requestMatchers("/aop/").permitAll()
             .anyRequest().authenticated());
 
     // session : stateless
