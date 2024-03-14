@@ -59,7 +59,8 @@ public enum ErrorCode {
 
   // Notification
 
-  PIN_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "핀 알림 전송을 실패했습니다.");
+  PIN_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "핀 알림 전송을 실패했습니다."),
+  REPORT_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 알림 전송을 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;

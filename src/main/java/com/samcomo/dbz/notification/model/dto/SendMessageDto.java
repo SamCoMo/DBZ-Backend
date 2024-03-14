@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SendPinDto {
+public class SendMessageDto {
 
   private String token;
   private String title;
