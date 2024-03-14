@@ -185,6 +185,7 @@ public class ReportServiceImpl implements ReportService {
       s3Service.deleteFile(url.substring(idx + 1));
     }
 
+    reportImageRepository.deleteAll(reportImageList);
     reportRepository.delete(report);
 
     return ReportStateDto.Response.builder()

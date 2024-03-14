@@ -36,8 +36,4 @@ public class ReportImage extends BaseEntity {
   @JoinColumn
   private Report report;
 
-  public ReportImage(String imageUrl, Report report){
-    this.imageUrl = imageUrl;
-    this.report = report;
-  }
 }
