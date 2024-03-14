@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,9 +25,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Report extends BaseEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -44,9 +46,7 @@ public class Report extends BaseEntity {
   private String title;
   private String petName;
   private String species;
-  private Integer age;
   private String description;
-  private String feature;
   private String streetAddress;
   private String roadAddress;
   private Double latitude;
@@ -62,12 +62,11 @@ public class Report extends BaseEntity {
         .title(reportForm.getTitle())
         .petName(reportForm.getPetName())
         .species(reportForm.getSpecies())
-        .age(reportForm.getAge())
         .description(reportForm.getDescriptions())
-        .feature(reportForm.getFeature())
         .streetAddress(reportForm.getStreetAddress())
         .roadAddress(reportForm.getRoadAddress())
         .latitude(reportForm.getLatitude())
+        .longitude(reportForm.getLongitude())
         .views(0L)
         .showsPhone(reportForm.isShowsPhone())
         .build();

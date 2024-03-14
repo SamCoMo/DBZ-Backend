@@ -1,5 +1,7 @@
 package com.samcomo.dbz.report.model.dto;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.entity.Report;
@@ -11,38 +13,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Setter
-public class ReportList {
+@Builder
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
+public class ReportSummaryDto {
 
   private long reportId;
+  private long memberId;
   private String title;
+  private String petName;
   private PetType petType;
   private String species;
-  private ReportStatus reportStatus;
-  private Integer age;
-  private String petName;
-  private String feature;
   private String streetAddress;
   private String roadAddress;
+  private String imageUrl;
+  private ReportStatus reportStatus;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
-  private String imageUrl;
 
-  public static ReportList from(Report report){
-    return ReportList.builder()
+  public static ReportSummaryDto from(Report report) {
+    return ReportSummaryDto.builder()
         .reportId(report.getId())
+        .memberId(report.getMember().getId())
         .title(report.getTitle())
+        .petName(report.getPetName())
         .petType(report.getPetType())
         .species(report.getSpecies())
-        .reportStatus(report.getReportStatus())
-        .age(report.getAge())
-        .petName(report.getPetName())
-        .feature(report.getFeature())
         .streetAddress(report.getStreetAddress())
         .roadAddress(report.getRoadAddress())
+        .reportStatus(report.getReportStatus())
         .createdAt(report.getCreatedAt())
         .updatedAt(report.getUpdatedAt())
         .build();

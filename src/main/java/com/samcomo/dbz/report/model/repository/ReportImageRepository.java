@@ -11,6 +11,4 @@ public interface ReportImageRepository extends JpaRepository<ReportImage, Long> 
   List<ReportImage> findAllByReport(Report report);
 
   Optional<ReportImage> findFirstByReport(Report report);
-
-  List<ReportImage> findAllByReportIn(List<Report> reportList);
 }

@@ -1,13 +1,17 @@
 package com.samcomo.dbz.report.model.dto;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 public class CustomSlice<T> {
 
   private List<T> content;
@@ -17,5 +21,4 @@ public class CustomSlice<T> {
   private int number;
   private int size;
   private int numberOfElements;
-
 }
