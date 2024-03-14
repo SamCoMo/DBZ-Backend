@@ -118,7 +118,7 @@ public class FcmServiceImpl implements FcmService {
 
       return googleCredentials.refreshAccessToken().getTokenValue();
     } catch (IOException e) {
-      throw new IllegalArgumentException("실패");
+      throw new NotiException(ErrorCode.ACCESS_TOKEN_ERROR);
     }
   }
 
