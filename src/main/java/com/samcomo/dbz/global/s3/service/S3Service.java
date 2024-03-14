@@ -11,7 +11,6 @@ import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.exception.S3Exception;
-import com.samcomo.dbz.report.model.entity.ReportImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,16 +100,6 @@ public class S3Service {
     String extension = filename.substring(idx + 1);
     return "image/" + extension;
   }
-
-  private void deleteUploadedReportImageList(List<ReportImage> imageList){
-    for (ReportImage reportImage : imageList){
-      String imageUrl = reportImage.getImageUrl();
-      int idx = imageUrl.lastIndexOf("/");
-      String fileName = imageUrl.substring(idx + 1);
-      deleteFile(fileName);
-    }
-  }
-
   private void deleteUploadedImageList(List<String> imageUrlList){
     for (String imageUrl : imageUrlList){
       int idx = imageUrl.lastIndexOf("/");

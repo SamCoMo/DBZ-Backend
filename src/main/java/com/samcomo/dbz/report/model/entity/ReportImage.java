@@ -1,5 +1,7 @@
 package com.samcomo.dbz.report.model.entity;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.samcomo.dbz.global.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,10 +20,11 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 public class ReportImage extends BaseEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -33,8 +36,4 @@ public class ReportImage extends BaseEntity {
   @JoinColumn
   private Report report;
 
-  public ReportImage(String imageUrl, Report report){
-    this.imageUrl = imageUrl;
-    this.report = report;
-  }
 }
