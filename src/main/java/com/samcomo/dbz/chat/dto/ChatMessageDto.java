@@ -3,16 +3,12 @@ package com.samcomo.dbz.chat.dto;
 import com.samcomo.dbz.chat.model.entity.ChatMessage;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 public class ChatMessageDto {
 
   @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
   @Builder
   public static class Request{
     private String content;
@@ -20,8 +16,6 @@ public class ChatMessageDto {
   }
 
   @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
   @Builder
   public static class Response{
     private String chatMessageId;

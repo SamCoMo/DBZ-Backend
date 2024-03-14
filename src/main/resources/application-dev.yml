@@ -1,11 +1,11 @@
 spring:
   data:
     redis:
-      port: 6389
-      host: localhost
+      port: ${REDIS_PORT} # 6389
+      host: ${REDIS_HOST} # localhost
 
     mongodb:
-      username: ${MONGO_USERNAME} #root
+      username: ${MONGO_USERNAME} # root
       password: ${MONGO_PASSWORD} # root
       host: ${MONGO_HOST} #220.85.169.165
       port: ${MONGO_PORT} #27017
@@ -49,4 +49,4 @@ logging:
 
 
 # 환경변수 설정
-# JWT_SECRET=NulVADBtpXoUKTkzWFr+rCc5ckITa+A6uaLcZ9btLgg=;MONGO_USERNAME=root;MONGO_PASSWORD=root;MONGO_HOST=220.85.169.165;MONGO_PORT=27017;MONGO_DATABASE=chat;MARIA_PASSWORD=samcomo;MARIA_USERNAME=samcomo;MARIA_URL=jdbc:mariadb://localhost:3308/samcomo;AWS_SECRET_KEY=노션참고;AWS_ACCESS_KEY=노션참고;AWS_BUCKET=samcomo
+# REDIS_PORT=6379;REDIS_HOST=220.85.169.165;JWT_SECRET=NulVADBtpXoUKTkzWFr+rCc5ckITa+A6uaLcZ9btLgg=;MONGO_USERNAME=root;MONGO_PASSWORD=root;MONGO_HOST=220.85.169.165;MONGO_PORT=27017;MONGO_DATABASE=chat;MARIA_PASSWORD=samcomo;MARIA_USERNAME=samcomo;MARIA_URL=jdbc:mariadb://localhost:3308/samcomo;AWS_SECRET_KEY=노션참고;AWS_ACCESS_KEY=노션참고;AWS_BUCKET=samcomo

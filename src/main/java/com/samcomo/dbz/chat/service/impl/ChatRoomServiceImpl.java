@@ -32,10 +32,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   @Override
   @Transactional
   public ChatRoomDto createOrGetChatRoom(String memberEmail, String recipientEmail) {
-    // 회원 검증
-    chatUtils.verifyMember(memberEmail);
-    chatUtils.verifyMember(recipientEmail);
-
     // 채팅방 ID 생성
     String chatRoomId = generateRoomId(memberEmail, recipientEmail);
     Set<String> memberEmailList = new HashSet<>(Arrays.asList(memberEmail, recipientEmail));
@@ -55,9 +51,6 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
   @Transactional(readOnly = true)
   public List<ChatRoomDto> getChatRoomsFromMember(String memberEmail) {
-    // 회원 검증
-    chatUtils.verifyMember(memberEmail);
-
     // 채팅방 리스트 불러오기 ( 최신 업데이트된 메시지 순서 )
     return chatRoomRepository.findByMemberEmailSortedByLastChatMessageAtDesc(memberEmail)
         .stream().map(ChatRoomDto::from)
