@@ -40,6 +40,8 @@ public class FcmServiceImpl implements FcmService {
   @Value("${fcm.api.url}")
   private String FCM_API_URL;
 
+  private static final Integer DISTANCE = 3000;
+
   private final MemberRepository memberRepository;
 
   @Override
@@ -79,13 +81,15 @@ public class FcmServiceImpl implements FcmService {
   @Override
   public void sendReportNotification(ReportDto.Form reportForm){
 
+
+
     SendMessageDto sendMessageDto = SendMessageDto.builder()
         .title(PinMessage.PIN_MESSAGE.getTitle())
         .body(reportForm.getDescriptions().substring(0,20)
             +PinMessage.PIN_MESSAGE.getBody())
         .build();
     //게시글 주변 회원 검색 & token get
-//    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), 3000);
+//    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), DISTANCE);
 
     List<String> tokenList = List.of("e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
         "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
