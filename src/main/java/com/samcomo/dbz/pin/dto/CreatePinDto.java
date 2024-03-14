@@ -5,17 +5,13 @@ import com.samcomo.dbz.pin.model.entity.PinImage;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 public class CreatePinDto {
 
   @Getter
-  @AllArgsConstructor
-  @NoArgsConstructor
   @Builder
   public static class Request {
     private String description;
@@ -30,8 +26,6 @@ public class CreatePinDto {
   }
 
   @Getter
-  @NoArgsConstructor
-  @AllArgsConstructor
   @Builder
   public static class Response{
     private Long pinId;

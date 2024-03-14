@@ -4,7 +4,6 @@ package com.samcomo.dbz.pin.service.impl;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.pin.dto.CreatePinDto;
-import com.samcomo.dbz.pin.dto.CreatePinDto.Request;
 import com.samcomo.dbz.pin.dto.CreatePinDto.Response;
 import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
 import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
@@ -31,7 +30,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
-  public Response createPin(String memberEmail, Long reportId, Request request) {
+  public Response createPin(String memberEmail, Long reportId, CreatePinDto.Request request) {
 
     // 핀 생성 검증 및 저장
     Pin newPin = pinRepository.save(

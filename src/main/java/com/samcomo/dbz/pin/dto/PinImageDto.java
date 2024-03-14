@@ -1,14 +1,10 @@
 package com.samcomo.dbz.pin.dto;
 
 import com.samcomo.dbz.pin.model.entity.PinImage;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class PinImageDto {
   private Long pinImageId;

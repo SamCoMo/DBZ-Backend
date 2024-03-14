@@ -2,15 +2,11 @@ package com.samcomo.dbz.pin.dto;
 
 import com.samcomo.dbz.pin.model.entity.Pin;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 public class UpdatePinDataDto {
   @Getter
-  @NoArgsConstructor
-  @AllArgsConstructor
   @Builder
   public static class Request {
 
@@ -21,8 +17,6 @@ public class UpdatePinDataDto {
   }
 
   @Getter
-  @NoArgsConstructor
-  @AllArgsConstructor
   @Builder
   public static class Response {
 
