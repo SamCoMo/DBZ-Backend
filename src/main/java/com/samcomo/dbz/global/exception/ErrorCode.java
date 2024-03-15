@@ -1,5 +1,6 @@
 package com.samcomo.dbz.global.exception;
 
+import com.google.api.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,13 @@ public enum ErrorCode {
 
   CHATROOM_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅방을 찾을 수 없습니다."),
 
-  CHAT_MESSAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅을 찾을 수 없습니다.");
+  CHAT_MESSAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "채팅을 찾을 수 없습니다."),
+
+  // Notification
+
+  PIN_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "핀 알림 전송을 실패했습니다."),
+  REPORT_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 알림 전송을 실패했습니다."),
+  ACCESS_TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Access Token을 획득하는데 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;
