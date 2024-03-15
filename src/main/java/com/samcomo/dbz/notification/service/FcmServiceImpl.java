@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.notification.exception.NotiException;
-import com.samcomo.dbz.notification.model.constants.PinMessage;
 import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -38,12 +38,9 @@ public class FcmServiceImpl implements FcmService {
     try{
 
       //TODO: 유저 토큰값 서치
+      String token = "토큰";
 
-      SendPinDto sendPinDto = SendPinDto.builder()
-          .token("tokentoken")
-          .title(PinMessage.PIN_MESSAGE.getTitle())
-          .body(PinMessage.PIN_MESSAGE.getBody())
-          .build();
+      SendPinDto sendPinDto = new SendPinDto(token);
       String message = makeSingleMessage(sendPinDto);
 
       OkHttpClient client = new OkHttpClient();
@@ -58,7 +55,7 @@ public class FcmServiceImpl implements FcmService {
 
       Response response = client.newCall(httpRequest).execute();
 
-      log.info("핀 알림 전송 성공: {}", response.body().string());
+      log.info("핀 알림 전송 성공: {}", Objects.requireNonNull(response.body()).string());
     }catch(IOException e){
       throw new NotiException(ErrorCode.PIN_NOTIFICATION_FAILED);
     }

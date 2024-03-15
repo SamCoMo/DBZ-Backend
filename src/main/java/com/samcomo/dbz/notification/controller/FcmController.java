@@ -1,5 +1,7 @@
 package com.samcomo.dbz.notification.controller;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 import com.samcomo.dbz.notification.service.FcmService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +21,10 @@ public class FcmController {
 
 
   @PostMapping("/send")
-  public ResponseEntity<?> pushMessage() throws IOException {
+  public ResponseEntity<Void> pushMessage() throws IOException {
     fcmService.sendPinNotification();
 
-    return new ResponseEntity<>(HttpStatus.OK);
+    return ResponseEntity.status(CREATED).build();
 
   }
 }
