@@ -30,7 +30,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
 
-  private static final Long EXPIRATION_ACCESS_TOKEN = 6000L * 10 * 10; // 10분
+  private static final Long EXPIRATION_ACCESS_TOKEN = 6000L * 10 * 1000; // 10분
   private static final Long EXPIRATION_REFRESH_TOKEN = 6000L * 10 * 60 * 24; // 24시간
 
   public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {

@@ -51,10 +51,6 @@ public enum ErrorCode {
 
   NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 회원의 정보가 일치하지 않습니다."),
 
-  IMAGE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장중 문제가 발생하였습니다."),
-  
-  NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 멤버의 정보가 일치하지 않습니다."),
-  
   // Redis-Lock
 
   LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다."),
