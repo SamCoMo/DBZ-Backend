@@ -39,5 +39,4 @@ out/
 ### Firebase ###
 firebase-adminsdk.json
 
-application-prod.yml
 todo.md
