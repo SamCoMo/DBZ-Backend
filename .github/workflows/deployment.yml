@@ -27,6 +27,7 @@ jobs:
       - name: Set yml & json
         run: |
           echo "${{secrets.APPLICATION_YML}}" | base64 --decode > src/main/resources/application.yml
+          mkdir -p src/main/resources/firebase
           echo "${{secrets.FIREBASE_KEY_FILE}}" | base64 --decode > src/main/resources/firebase/firebase-adminsdk.json
 
       - name: Build with Gradle Wrapper
