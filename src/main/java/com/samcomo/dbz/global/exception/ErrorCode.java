@@ -27,10 +27,9 @@ public enum ErrorCode {
 
   IMAGE_FILE_SIZE_EXCEEDED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 파일 크기 제한을 초과하였습니다."),
 
-
   // Member
 
-  MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저 정보를 찾을 수 없습니다."),
+  MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원 정보를 찾을 수 없습니다."),
 
   EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일 계정입니다."),
 
@@ -38,14 +37,24 @@ public enum ErrorCode {
 
   INVALID_SESSION(HttpStatus.UNAUTHORIZED, "세션 정보가 유효하지 않습니다."),
 
+  // Pin
+
+  PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),
+
+  ACCESS_DENIED_PIN(HttpStatus.UNAUTHORIZED, "핀 정보에 접근이 거부되었습니다."),
+
   // Report
 
   IMAGE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장중 문제가 발생하였습니다."),
 
   REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글 정보를 찾을 수 없습니다."),
 
-  NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 멤버의 정보가 일치하지 않습니다."),
+  NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 회원의 정보가 일치하지 않습니다."),
 
+  IMAGE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장중 문제가 발생하였습니다."),
+  
+  NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 멤버의 정보가 일치하지 않습니다."),
+  
   // Redis-Lock
 
   LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다."),
