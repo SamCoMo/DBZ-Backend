@@ -37,7 +37,7 @@ public class MemberDetails implements UserDetails {
     return member.getEmail();
   }
 
-  public Long getId() {
+  public long getId() {
     return member.getId();
   }
 
