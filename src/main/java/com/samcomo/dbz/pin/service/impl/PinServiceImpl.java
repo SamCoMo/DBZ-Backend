@@ -29,7 +29,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
-  public Response createPin(Long memberId, Long reportId, RegisterPinDto.Request request) {
+  public Response registerPin(Long memberId, Long reportId, RegisterPinDto.Request request) {
 
     // 핀 생성 검증 및 저장
     Pin newPin = pinRepository.save(

@@ -32,7 +32,7 @@ public class PinController {
   ){
 
     RegisterPinDto.Response createPinResponse =
-        pinService.createPin(details.getId(), reportId, request);
+        pinService.registerPin(details.getId(), reportId, request);
 
     return ResponseEntity.ok(createPinResponse);
   }
