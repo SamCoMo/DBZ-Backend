@@ -26,7 +26,7 @@ jobs:
 
       - name: Set application.yml
         run: |
-          echo "${{secrets.APPLICATION_YML}}" | base64 --decode > src/main/resources/application_prod.yml
+          echo "${{secrets.APPLICATION_YML}}" | base64 --decode > src/main/resources/application.yml
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build -x test
@@ -54,10 +54,4 @@ jobs:
             docker rm samcomo
             docker rmi ${{secrets.DOCKER_USER}}/samcomo
             docker pull ${{secrets.DOCKER_USER}}/samcomo:latest
-            docker run -d -p ${{secrets.PROJECT_PORT}}:${{secrets.PROJECT_PORT}} --name samcomo --network ${{secrets.DOCKER_NETWORK}} ${{secrets.DOCKER_USER}}/samcomo 
-
-
-
-
-
-
+            docker run -d -p ${{secrets.PROJECT_PORT}}:${{secrets.PROJECT_PORT}} --name samcomo --network ${{secrets.DOCKER_NETWORK}} ${{secrets.DOCKER_USER}}/samcomo
