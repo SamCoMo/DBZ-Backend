@@ -2,7 +2,7 @@ name: SAMCOMO CI/CD actions
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" , "deploy-test"]
 
 jobs:
   build-project:
