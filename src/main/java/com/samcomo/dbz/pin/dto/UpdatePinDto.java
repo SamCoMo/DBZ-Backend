@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
 
-public class UpdatePinDataDto {
+public class UpdatePinDto {
+
   @Getter
   @Builder
   public static class Request {
@@ -13,7 +14,6 @@ public class UpdatePinDataDto {
     private String description;
 
     private LocalDateTime foundAt;
-
   }
 
   @Getter
@@ -26,7 +26,7 @@ public class UpdatePinDataDto {
 
     private LocalDateTime foundAt;
 
-    public static UpdatePinDataDto.Response from(Pin pin){
+    public static UpdatePinDto.Response from(Pin pin){
       return Response.builder()
           .pinId(pin.getPinId())
           .description(pin.getDescription())
