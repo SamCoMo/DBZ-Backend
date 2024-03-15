@@ -50,7 +50,7 @@ public class ReportViewTest {
     for (int i = 0; i < threadCount; i++) {
       executorService.submit(() -> {
         try {
-          reportService.getReport(1L, member);
+          reportService.getReport(1L, member.getId());
         } finally {
           latch.countDown();
         }
