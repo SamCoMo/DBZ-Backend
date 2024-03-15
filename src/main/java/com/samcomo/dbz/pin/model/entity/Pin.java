@@ -40,9 +40,7 @@ public class Pin extends BaseEntity {
 
   private LocalDateTime foundAt;
 
-  private String streetAddress;
-
-  private String roadAddress;
+  private String address;
 
   private Double latitude;
 

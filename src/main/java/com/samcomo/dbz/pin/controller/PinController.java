@@ -38,7 +38,7 @@ public class PinController {
     return ResponseEntity.ok(createPinResponse);
   }
 
-  // Pin 주소 업데이트 (프론트엔드 - 카카오 API 사용)
+  // Pin 주소 업데이트 (프론트엔드 - 카카오 API 사용) : 보류
   @PutMapping("/{pinId}/address")
   public ResponseEntity<UpdatePinAddressDto.Response> updatePinAddress(
       @AuthenticationPrincipal Member member,

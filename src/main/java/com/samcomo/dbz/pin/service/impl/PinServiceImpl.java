@@ -39,8 +39,7 @@ public class PinServiceImpl implements PinService {
         .member(pinUtils.verifyMemberByEmail(memberEmail)) // member 검증
         .description(request.getDescription())
         .foundAt(request.getFoundAt())
-        .streetAddress(null)
-        .roadAddress(null)
+        .address(request.getAddress())
         .latitude(request.getLatitude())
         .longitude(request.getLongitude())
         .build());
@@ -71,8 +70,7 @@ public class PinServiceImpl implements PinService {
     Pin pin = pinUtils.verifyPinByIdAndMemberEmail(memberEmail,pinId);
 
     // 핀 주소 업데이트
-    pin.setStreetAddress(request.getStreetAddress());
-    pin.setRoadAddress(request.getRoadAddress());
+    pin.setAddress(request.getAddress());
 
     // 핀 저장
     return UpdatePinAddressDto.Response.from(pinRepository.save(pin));

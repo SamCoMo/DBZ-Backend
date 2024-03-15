@@ -9,9 +9,7 @@ public class UpdatePinAddressDto {
   @Builder
   public static class Request {
 
-    private String streetAddress;
-
-    private String roadAddress;
+    private String address;
 
   }
 
@@ -21,9 +19,7 @@ public class UpdatePinAddressDto {
 
     private Long pinId;
 
-    private String streetAddress;
-
-    private String roadAddress;
+    private String address;
 
     private Double latitude;
 
@@ -32,8 +28,7 @@ public class UpdatePinAddressDto {
     public static UpdatePinAddressDto.Response from(Pin pin){
       return Response.builder()
           .pinId(pin.getPinId())
-          .roadAddress(pin.getRoadAddress())
-          .streetAddress(pin.getStreetAddress())
+          .address(pin.getAddress())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .build();

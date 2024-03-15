@@ -20,6 +20,8 @@ public class CreatePinDto {
 
     private LocalDateTime foundAt;
 
+    private String address;
+
     private Double latitude;
 
     private Double longitude;
@@ -38,9 +40,7 @@ public class CreatePinDto {
 
     private LocalDateTime foundAt;
 
-    private String streetAddress; // 생성시 null
-
-    private String roadAddress; // 생성시 null
+    private String address;
 
     private Double latitude;
 
@@ -54,8 +54,7 @@ public class CreatePinDto {
           .memberId(pin.getMember().getId())
           .description(pin.getDescription())
           .foundAt(pin.getFoundAt())
-          .streetAddress(pin.getStreetAddress())
-          .roadAddress(pin.getRoadAddress())
+          .address(pin.getAddress())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .pinImageDtoList(pinImageList.stream()

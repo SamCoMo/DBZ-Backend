@@ -18,4 +18,8 @@ public interface PinService {
 
   // 핀 삭제
   void deletePin(String memberEmail, Long pinId);
+
+  //TODO 게시물 - 핀 리스트 가져오기
+
+  //TODO 핀 상세정보 가져오기
 }
