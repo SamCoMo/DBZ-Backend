@@ -1,7 +1,6 @@
 package com.samcomo.dbz.pin.controller;
 
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.pin.dto.RegisterPinDto;
 import com.samcomo.dbz.pin.dto.PinDto;
 import com.samcomo.dbz.pin.dto.PinListDto;
