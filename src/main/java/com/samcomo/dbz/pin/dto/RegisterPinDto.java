@@ -9,14 +9,17 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
-public class CreatePinDto {
+public class RegisterPinDto {
 
   @Getter
   @Builder
   public static class Request {
+
     private String description;
 
     private List<MultipartFile> multipartFileList;
+
+    private String address;
 
     private LocalDateTime foundAt;
 
@@ -28,6 +31,7 @@ public class CreatePinDto {
   @Getter
   @Builder
   public static class Response{
+
     private Long pinId;
 
     private Long reportId;
@@ -38,9 +42,7 @@ public class CreatePinDto {
 
     private LocalDateTime foundAt;
 
-    private String streetAddress; // 생성시 null
-
-    private String roadAddress; // 생성시 null
+    private String address;
 
     private Double latitude;
 
@@ -54,8 +56,7 @@ public class CreatePinDto {
           .memberId(pin.getMember().getId())
           .description(pin.getDescription())
           .foundAt(pin.getFoundAt())
-          .streetAddress(pin.getStreetAddress())
-          .roadAddress(pin.getRoadAddress())
+          .address(pin.getAddress())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .pinImageDtoList(pinImageList.stream()
