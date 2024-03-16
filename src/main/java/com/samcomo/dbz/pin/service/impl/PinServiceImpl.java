@@ -62,14 +62,14 @@ public class PinServiceImpl implements PinService {
 
   @Override
   public UpdatePinDto.Response updatePin(
-      Long memberId, Long pinId, UpdatePinDto.Response updatePinResponseDto) {
+      Long memberId, Long pinId, UpdatePinDto.Request request) {
 
     // 핀 검증 + 회원 접근 검증
     Pin pin = pinUtils.verifyPinByIdAndMemberId(pinId, memberId);
 
     // 핀 Data 업데이트 ( 발견시각, 내용 )
-    pin.setDescription(updatePinResponseDto.getDescription());
-    pin.setFoundAt(updatePinResponseDto.getFoundAt());
+    pin.setDescription(request.getDescription());
+    pin.setFoundAt(request.getFoundAt());
 
     // 핀 저장
     return UpdatePinDto.Response.from(pinRepository.save(pin));
@@ -79,6 +79,7 @@ public class PinServiceImpl implements PinService {
   @Transactional
   public void deletePin(Long memberId, Long pinId) {
     // 핀 검증 + 회원 접근 검증 -> 삭제
+    // TODO : 테스트 필요
     pinRepository.delete(pinUtils.verifyPinByIdAndMemberId(pinId, memberId));
   }
 }

@@ -31,22 +31,22 @@ public class PinController {
       @RequestParam Long reportId
   ){
 
-    RegisterPinDto.Response createPinResponse =
+    RegisterPinDto.Response pinResponse =
         pinService.registerPin(details.getId(), reportId, request);
 
-    return ResponseEntity.ok(createPinResponse);
+    return ResponseEntity.ok(pinResponse);
   }
 
   // Pin 수정
   @PutMapping("/{pinId}")
   public ResponseEntity<UpdatePinDto.Response> updatePinData(
       @AuthenticationPrincipal MemberDetails details,
-      @ModelAttribute UpdatePinDto.Response updatePinResponseDto,
+      @ModelAttribute UpdatePinDto.Request request,
       @PathVariable Long pinId
   ){
 
     UpdatePinDto.Response updatePinDto =
-        pinService.updatePin(details.getId(), pinId, updatePinResponseDto);
+        pinService.updatePin(details.getId(), pinId, request);
 
     return ResponseEntity.ok(updatePinDto);
   }

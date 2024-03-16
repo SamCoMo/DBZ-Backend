@@ -10,7 +10,7 @@ public interface PinService {
   Response registerPin(Long memberId, Long reportId, Request request);
 
   // 핀 업데이트 (주소는 바꿀수 없습니다.)
-  UpdatePinDto.Response updatePin(Long memberId, Long pinId, UpdatePinDto.Response updatePinResponseDto);
+  UpdatePinDto.Response updatePin(Long memberId, Long pinId, UpdatePinDto.Request request);
 
   // 핀 삭제
   void deletePin(Long memberId, Long pinId);
