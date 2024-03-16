@@ -1,6 +1,5 @@
 package com.samcomo.dbz.report.model.repository;
 
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.entity.Report;
 import io.lettuce.core.dynamic.annotation.Param;
@@ -12,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-  Optional<Report> findByIdAndMember(Long id, Member member);
+  Optional<Report> findByIdAndMember_Id(Long id, Long memberId);
 
   @Query(value = "select r "
       + "from Report r "

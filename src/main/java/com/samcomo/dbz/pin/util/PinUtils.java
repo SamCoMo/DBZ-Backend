@@ -1,6 +1,10 @@
 package com.samcomo.dbz.pin.util;
 
-import com.samcomo.dbz.global.exception.ErrorCode;
+import static com.samcomo.dbz.global.exception.ErrorCode.ACCESS_DENIED_PIN;
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+import static com.samcomo.dbz.global.exception.ErrorCode.PIN_NOT_FOUND;
+import static com.samcomo.dbz.global.exception.ErrorCode.REPORT_NOT_FOUND;
+
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -25,38 +29,38 @@ public class PinUtils {
   private final PinImageRepository pinImageRepository;
 
   // 회원 이메일 검증
-  public Member verifyMemberByEmail(String memberEmail){
-    return memberRepository.findByEmail(memberEmail)
-        .orElseThrow(() -> new MemberException(ErrorCode.MEMBER_NOT_FOUND));
+  public Member verifyMemberById(Long memberId){
+    return memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
   }
 
   // 리포트 아이디 검증
   public Report verifyReportById(Long reportId){
     return reportRepository.findById(reportId)
-        .orElseThrow(()-> new ReportException(ErrorCode.REPORT_NOT_FOUND));
+        .orElseThrow(()-> new ReportException(REPORT_NOT_FOUND));
   }
 
   // 핀 검증
   public Pin verifyPinById(Long pinId){
     return pinRepository.findById(pinId)
-        .orElseThrow(() -> new PinException(ErrorCode.PIN_NOT_FOUND));
+        .orElseThrow(() -> new PinException(PIN_NOT_FOUND));
   }
 
   // 핀 검증 + 업데이트 권한 회원 검증
-  public Pin verifyUpdateMemberByPinId(String memberEmail, Long pinId){
+  public Pin verifyUpdateMemberByPinId(Long memberId, Long pinId){
     // 핀 검증
     Pin pin = verifyPinById(pinId);
 
     // 핀 작성자만 pin 수정 가능
-    if(!(pin.getMember().getEmail().equals(memberEmail))){
-      throw new PinException(ErrorCode.ACCESS_DENIED_PIN);
+    if(!(pin.getMember().getId().equals(memberId))){
+      throw new PinException(ACCESS_DENIED_PIN);
     }
 
     return pin;
   }
 
   // 핀 검증 + 삭제 권한 회원 검증
-  public Pin verifyDeleteMemberByPinId (String memberEmail, Long pinId){
+  public Pin verifyDeleteMemberByPinId (Long memberId, Long pinId){
     // 핀 검증
     Pin pin = verifyPinById(pinId);
 
@@ -64,15 +68,15 @@ public class PinUtils {
     Report report = verifyReportById(pin.getReport().getId());
 
     // report 생성회원 or pin 생성회원만 삭제 가능
-    if(!(report.getMember().getEmail().equals(memberEmail) ||
-        pin.getMember().getEmail().equals(memberEmail))){
-      throw new PinException(ErrorCode.ACCESS_DENIED_PIN);
+    if(!(report.getMember().getId().equals(memberId) ||
+        pin.getMember().getId().equals(memberId))){
+      throw new PinException(ACCESS_DENIED_PIN);
     }
     return pin;
   }
 
   // 핀 사진 가져오기
   public List<PinImage> getPinImageListByPinId(Long pinId){
-   return pinImageRepository.findAllByPinId(pinId);
+    return pinImageRepository.findAllByPin_PinId(pinId);
   }
 }

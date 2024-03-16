@@ -3,8 +3,8 @@ package com.samcomo.dbz.member.jwt.filter;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
-import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.jwt.JwtUtil;
+import com.samcomo.dbz.member.model.dto.MemberDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -71,6 +71,7 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
       throws IOException, ServletException {
 
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
+    String id = String.valueOf(memberDetails.getId());
     String email = memberDetails.getEmail();
 
     Iterator<? extends GrantedAuthority> iterator = authResult.getAuthorities().iterator();
@@ -78,9 +79,9 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
     String role = auth.getAuthority();
 
     String accessToken = jwtUtil.createToken(
-        ACCESS_TOKEN, email, role, EXPIRATION_ACCESS_TOKEN);
+        ACCESS_TOKEN, id, role, email, EXPIRATION_ACCESS_TOKEN);
     String refreshToken = jwtUtil.createToken(
-        REFRESH_TOKEN, email, role, EXPIRATION_REFRESH_TOKEN);
+        REFRESH_TOKEN, id, role, email, EXPIRATION_REFRESH_TOKEN);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
     response.addCookie(createCookie(REFRESH_TOKEN.getKey(), refreshToken));

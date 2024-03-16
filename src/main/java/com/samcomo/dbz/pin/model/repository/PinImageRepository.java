@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PinImageRepository extends JpaRepository<PinImage,Long> {
-  List<PinImage> findAllByPinId(Long pinId);
+  List<PinImage> findAllByPin_PinId(Long pinId);
 }

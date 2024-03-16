@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
-public class RegisterPinDto {
+public class UpdatePinDto {
 
   @Getter
   @Builder
@@ -17,26 +17,22 @@ public class RegisterPinDto {
 
     private String description;
 
-    private List<MultipartFile> multipartFileList;
+    private LocalDateTime foundAt;
 
     private String address;
-
-    private LocalDateTime foundAt;
 
     private Double latitude;
 
     private Double longitude;
+
+    private List<MultipartFile> multipartFileList;
   }
 
   @Getter
   @Builder
-  public static class Response{
+  public static class Response {
 
     private Long pinId;
-
-    private Long reportId;
-
-    private Long memberId;
 
     private String description;
 
@@ -49,11 +45,10 @@ public class RegisterPinDto {
     private Double longitude;
 
     private List<PinImageDto> pinImageDtoList;
-    public static Response from(Pin pin, List<PinImage> pinImageList){
+
+    public static UpdatePinDto.Response from(Pin pin, List<PinImage> pinImageList){
       return Response.builder()
           .pinId(pin.getPinId())
-          .reportId(pin.getReport().getId())
-          .memberId(pin.getMember().getId())
           .description(pin.getDescription())
           .foundAt(pin.getFoundAt())
           .address(pin.getAddress())

@@ -4,8 +4,7 @@ import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.pin.dto.RegisterPinDto;
 import com.samcomo.dbz.pin.dto.PinDto;
 import com.samcomo.dbz.pin.dto.PinListDto;
-import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
-import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
+import com.samcomo.dbz.pin.dto.UpdatePinDto;
 import com.samcomo.dbz.pin.service.PinService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,39 +34,21 @@ public class PinController {
       @ModelAttribute RegisterPinDto.Request request,
       @RequestParam Long reportId
   ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    RegisterPinDto.Response createPinResponse = pinService.createPin(memberEmail,reportId,request);
+    RegisterPinDto.Response createPinResponse = pinService.registerPin(
+        memberDetails.getId(),reportId,request);
     return ResponseEntity.ok(createPinResponse);
-  }
-
-  // Pin 주소 업데이트 (프론트엔드 - 카카오 API 사용) : 보류
-  @PutMapping("/{pinId}/address")
-  public ResponseEntity<UpdatePinAddressDto.Response> updatePinAddress(
-      @AuthenticationPrincipal MemberDetails memberDetails,
-      @ModelAttribute UpdatePinAddressDto.Request request,
-      @PathVariable Long pinId
-  ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    UpdatePinAddressDto.Response updatePinAddressDto = pinService.updatePinAddress(memberEmail,pinId,request);
-    return ResponseEntity.ok(updatePinAddressDto);
   }
 
   // Pin 수정
   @PutMapping("/{pinId}")
-  public ResponseEntity<UpdatePinDataDto.Response> updatePinData(
+  public ResponseEntity<PinDto> updatePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
-      @ModelAttribute UpdatePinDataDto.Response updatePinResponseDto,
+      @ModelAttribute UpdatePinDto.Request request,
       @PathVariable Long pinId
   ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    UpdatePinDataDto.Response updatePinDto = pinService.updatePinData(memberEmail,pinId,updatePinResponseDto);
-    return ResponseEntity.ok(updatePinDto);
+    PinDto updatedPinDto =
+        pinService.updatePin(memberDetails.getId(), pinId, request);
+    return ResponseEntity.ok(updatedPinDto);
   }
 
 
@@ -77,11 +58,8 @@ public class PinController {
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId
   ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    pinService.deletePin(memberEmail,pinId);
-    return ResponseEntity.noContent().build();
+    pinService.deletePin(memberDetails.getId(), pinId);
+    return ResponseEntity.ok().build();
   }
 
   // Report 의 Pin List 가져오기
@@ -90,10 +68,7 @@ public class PinController {
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long reportId
   ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    List<PinListDto> pinListDtoList = pinService.getPinList(memberEmail,reportId);
+    List<PinListDto> pinListDtoList = pinService.getPinList(memberDetails.getId(),reportId);
     return ResponseEntity.ok(pinListDtoList);
   }
 
@@ -103,10 +78,7 @@ public class PinController {
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId
   ){
-    // Authentication 검증
-    String memberEmail = memberDetails.getEmail();
-
-    PinDto pinDto = pinService.getPin(memberEmail,pinId);
+    PinDto pinDto = pinService.getPin(memberDetails.getId(),pinId);
     return ResponseEntity.ok(pinDto);
   }
 }
