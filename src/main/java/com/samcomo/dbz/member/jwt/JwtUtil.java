@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class JwtUtil {
 
   private static final String ID_KEY = "id";
+  private static final String EMAIL_KEY = "email";
   private static final String ROLE_KEY = "role";
 
   private final SecretKey secretKey;
@@ -35,6 +36,12 @@ public class JwtUtil {
         .get(ID_KEY, String.class);
   }
 
+  public String getEmail(String token) {
+
+    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
+        .get(EMAIL_KEY, String.class);
+  }
+
   public String getRole(String token) {
 
     return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
@@ -47,12 +54,14 @@ public class JwtUtil {
         .getExpiration().before(new Date());
   }
 
-  public String createToken(TokenType tokenType, String id, String role, Long expiredMs) {
+  public String createToken(
+      TokenType tokenType, String id, String role, String email, Long expiredMs) {
 
     return Jwts.builder()
         .subject(tokenType.getKey())
         .claim(ID_KEY, id)
         .claim(ROLE_KEY, role)
+        .claim(EMAIL_KEY, email)
         .issuedAt(new Date(System.currentTimeMillis()))
         .expiration(new Date(System.currentTimeMillis() + expiredMs))
         .signWith(secretKey)

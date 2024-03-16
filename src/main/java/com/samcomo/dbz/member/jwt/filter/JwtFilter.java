@@ -37,11 +37,13 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
+    String email = jwtUtil.getEmail(accessToken);
     MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
         .orElseThrow(() -> new MemberException(INVALID_SESSION));
 
     Member member = Member.builder()
         .id(memberId)
+        .email(email)
         .role(role)
         .build();
 

@@ -72,15 +72,16 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
     String id = String.valueOf(memberDetails.getId());
+    String email = memberDetails.getEmail();
 
     Iterator<? extends GrantedAuthority> iterator = authResult.getAuthorities().iterator();
     GrantedAuthority auth = iterator.next();
     String role = auth.getAuthority();
 
     String accessToken = jwtUtil.createToken(
-        ACCESS_TOKEN, id, role, EXPIRATION_ACCESS_TOKEN);
+        ACCESS_TOKEN, id, role, email, EXPIRATION_ACCESS_TOKEN);
     String refreshToken = jwtUtil.createToken(
-        REFRESH_TOKEN, id, role, EXPIRATION_REFRESH_TOKEN);
+        REFRESH_TOKEN, id, role, email, EXPIRATION_REFRESH_TOKEN);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
     response.addCookie(createCookie(REFRESH_TOKEN.getKey(), refreshToken));
