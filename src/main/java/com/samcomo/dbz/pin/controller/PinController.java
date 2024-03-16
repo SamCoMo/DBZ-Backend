@@ -2,13 +2,16 @@ package com.samcomo.dbz.pin.controller;
 
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.pin.dto.CreatePinDto;
+import com.samcomo.dbz.pin.dto.PinListDto;
 import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
 import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
 import com.samcomo.dbz.pin.service.PinService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,4 +82,18 @@ public class PinController {
     pinService.deletePin(memberEmail,pinId);
     return ResponseEntity.noContent().build();
   }
+
+  @GetMapping("/{reportId}")
+  public ResponseEntity<List<PinListDto>> getPinList(
+      @AuthenticationPrincipal Member member,
+      @PathVariable Long reportId
+  ){
+    // Authentication 검증
+    String memberEmail = member.getEmail();
+
+    List<PinListDto> pinListDtoList = pinService.getPinList(memberEmail,reportId);
+    return ResponseEntity.ok(pinListDtoList);
+  }
+
+  //TODO 핀 상세정보 가져오기
 }

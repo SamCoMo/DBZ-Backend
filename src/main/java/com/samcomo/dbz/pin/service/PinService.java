@@ -2,8 +2,10 @@ package com.samcomo.dbz.pin.service;
 
 import com.samcomo.dbz.pin.dto.CreatePinDto.Request;
 import com.samcomo.dbz.pin.dto.CreatePinDto.Response;
+import com.samcomo.dbz.pin.dto.PinListDto;
 import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
 import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
+import java.util.List;
 
 public interface PinService {
 
@@ -20,6 +22,7 @@ public interface PinService {
   void deletePin(String memberEmail, Long pinId);
 
   //TODO 게시물 - 핀 리스트 가져오기
+  List<PinListDto> getPinList(String memberEmail, Long reportId);
 
   //TODO 핀 상세정보 가져오기
 }

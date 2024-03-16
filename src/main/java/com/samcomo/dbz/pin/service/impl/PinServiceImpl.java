@@ -5,6 +5,7 @@ import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.pin.dto.CreatePinDto;
 import com.samcomo.dbz.pin.dto.CreatePinDto.Response;
+import com.samcomo.dbz.pin.dto.PinListDto;
 import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
 import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
 import com.samcomo.dbz.pin.model.entity.Pin;
@@ -13,8 +14,10 @@ import com.samcomo.dbz.pin.model.repository.PinImageRepository;
 import com.samcomo.dbz.pin.model.repository.PinRepository;
 import com.samcomo.dbz.pin.service.PinService;
 import com.samcomo.dbz.pin.util.PinUtils;
+import com.samcomo.dbz.report.model.repository.ReportRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ public class PinServiceImpl implements PinService {
 
   private final PinRepository pinRepository;
   private final PinImageRepository pinImageRepository;
+  private final ReportRepository reportRepository;
   private final PinUtils pinUtils;
   private final S3Service s3Service;
 
@@ -96,5 +100,12 @@ public class PinServiceImpl implements PinService {
     // 핀 검증 + 회원 접근 검증 -> 삭제
     pinRepository.delete(
         pinUtils.verifyPinByIdAndMemberEmail(memberEmail,pinId));
+  }
+
+  @Override
+  public List<PinListDto> getPinList(String memberEmail, Long reportId) {
+    // 레포트 검증 후 핀 리스트 반환
+    List<Pin> pinList = pinRepository.findByReport(pinUtils.verifyReportById(reportId));
+    return pinList.stream().map(PinListDto::from).collect(Collectors.toList());
   }
 }
