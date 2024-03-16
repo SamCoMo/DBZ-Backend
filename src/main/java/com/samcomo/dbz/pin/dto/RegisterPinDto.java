@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.web.multipart.MultipartFile;
 
-public class CreatePinDto {
+public class RegisterPinDto {
 
   @Getter
   @Builder
