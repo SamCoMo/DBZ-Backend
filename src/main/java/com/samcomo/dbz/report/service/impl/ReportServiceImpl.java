@@ -12,10 +12,13 @@ import com.samcomo.dbz.report.model.dto.CustomPageable;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportImageDto;
+import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
+import com.samcomo.dbz.report.model.dto.ReportWithUrl;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.entity.ReportImage;
+import com.samcomo.dbz.report.model.repository.ReportBulkRepository;
 import com.samcomo.dbz.report.model.repository.ReportImageRepository;
 import com.samcomo.dbz.report.model.repository.ReportRepository;
 import com.samcomo.dbz.report.service.ReportService;
@@ -27,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Repository
@@ -37,6 +41,7 @@ public class ReportServiceImpl implements ReportService {
   private final ReportRepository reportRepository;
   private final ReportImageRepository reportImageRepository;
   private final S3Service s3Service;
+  private final ReportBulkRepository reportBulkRepository;
 
   @Override
   public ReportDto.Response uploadReport(
@@ -57,23 +62,24 @@ public class ReportServiceImpl implements ReportService {
                 .build()
         )
         .toList();
-    List<ReportImage> savedImageList = reportImageRepository.saveAll(reportImageList);
+
+    List<ReportImage> savedImageList = reportBulkRepository.saveAllWithBulk(reportImageList);
 
     return ReportDto.Response.from(newReport, savedImageList.stream()
-        .map(ReportImageDto.Response::from)
-        .collect(Collectors.toList())
-        ,true
+            .map(ReportImageDto.Response::from)
+            .collect(Collectors.toList())
+        , true
     );
   }
 
   @Override
-  @DistributedLock(lockType = LockType.REPORT ,key = "redisLock", waitTime = 3L, leaseTime = 5L)
+  @DistributedLock(lockType = LockType.REPORT, key = "redisLock", waitTime = 3L, leaseTime = 5L)
   public ReportDto.Response getReport(long reportId, Member member) {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
-    boolean isWriter = report.getMember().equals(member);
+    boolean isWriter = report.getMember().getId().equals(member.getId());
 
     log.info("현재 조회수 : {}", report.getViews());
 
@@ -102,24 +108,24 @@ public class ReportServiceImpl implements ReportService {
   ) {
 
     //TODO: 마지막 데이터에 대한 정보 필요 >> cursorId(마지막 데이터의 절대값)
-
-
-    Slice<Report> reportSlice =
+    log.info("showInProcessOnly : {}", showsInProcessOnly);
+    Slice<ReportWithUrl> reportSlice =
         showsInProcessOnly ?
             reportRepository.findAllInProcessOrderByDistance(
-                lastLatitude, lastLongitude,
+                lastLongitude, lastLongitude,
                 curLatitude, curLongitude,
                 pageable)
             :
-            reportRepository.findAllOrderByDistance(
-                lastLatitude, lastLongitude,
-                curLatitude, curLongitude,
-                pageable);
+                reportRepository.findAllOrderByDistance(
+                    lastLatitude, lastLongitude,
+                    curLatitude, curLongitude,
+                    pageable);
 
     return getCustomSlice(reportSlice, pageable);
   }
 
   @Override
+  @Transactional
   public ReportDto.Response updateReport(
       long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, Member member
   ) {
@@ -144,11 +150,14 @@ public class ReportServiceImpl implements ReportService {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
 
-      // TODO : AWS_SDK_ERROR (테스트용 이미지 파일명 때문인 듯 함.)
       s3Service.deleteFile(url.substring(idx + 1));
     }
 
-    // 변경된 이미지 저장
+    // ReportImage 에서 기존 이미지 저장
+    reportImageRepository.deleteAll(reportImageList);
+
+
+    // 변경된 이미지 S3 저장
     List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
     // 게시글 저장
@@ -161,7 +170,8 @@ public class ReportServiceImpl implements ReportService {
             .report(newReport)
             .build())
         .toList();
-    List<ReportImage> updatedReportImageList = reportImageRepository.saveAll(reportImages);
+
+    List<ReportImage> updatedReportImageList = reportBulkRepository.saveAllWithBulk(reportImages);
 
     return ReportDto.Response.from(
         newReport,
@@ -171,6 +181,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
+  @Transactional
   public ReportStateDto.Response deleteReport(Member member, long reportId) {
 
     Report report = reportRepository.findByIdAndMember(reportId, member)
@@ -195,6 +206,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
+  @Transactional
   public ReportStateDto.Response changeStatusToFound(Member member, long reportId) {
 
     Report report = reportRepository.findByIdAndMember(reportId, member)
@@ -203,48 +215,80 @@ public class ReportServiceImpl implements ReportService {
     report.setReportStatus(ReportStatus.FOUND);
     Report savedReport = reportRepository.save(report);
 
-    return  ReportStateDto.Response.builder()
+    return ReportStateDto.Response.builder()
         .reportId(savedReport.getId())
         .status(ReportStatus.FOUND.toString())
         .build();
   }
 
   @Override
-  public CustomSlice<ReportSummaryDto> searchReport(String object, boolean showsInProgressOnly, Pageable pageable) {
+  public CustomSlice<ReportSearchSummaryDto> searchReport(String object, boolean showsInProgressOnly,
+      Pageable pageable) {
 
     Slice<Report> reportSlice = showsInProgressOnly ?
         reportRepository
-            .findAllByTitleContainsOrPetNameContainsOrSpeciesContainsAndReportStatus(object, object, object, ReportStatus.PUBLISHED ,pageable)
+            .findAllByTitleContainsOrPetNameContainsOrSpeciesContainsAndReportStatus(
+                object, object, object, ReportStatus.PUBLISHED, pageable)
         :
-        reportRepository
-            .findAllByTitleContainsOrPetNameContainsOrSpeciesContains(object, object, object, pageable);
+            reportRepository
+                .findAllByTitleContainsOrPetNameContainsOrSpeciesContains(
+                    object, object, object, pageable);
 
-    return getCustomSlice(reportSlice, pageable);
+    return getCustomSliceForSearch(reportSlice, pageable);
   }
 
-  private CustomSlice<ReportSummaryDto> getCustomSlice(Slice<Report> reportSlice, Pageable pageable) {
+  private CustomSlice<ReportSearchSummaryDto> getCustomSliceForSearch(Slice<Report> reportSlice,
+      Pageable pageable) {
 
     CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(),
         pageable.getPageSize());
 
-    List<ReportSummaryDto> ReportSummaryList = reportSlice.getContent().stream()
+    List<ReportSearchSummaryDto> ReportSummaryList = reportSlice.getContent().stream()
         .map(report -> {
-          ReportSummaryDto reportSummary = ReportSummaryDto.from(report);
+          ReportSearchSummaryDto reportSummary = ReportSearchSummaryDto.from(report);
           reportImageRepository.findFirstByReport(report)
               .ifPresent(reportImage -> reportSummary.setImageUrl(reportImage.getImageUrl()));
           return reportSummary;
         })
         .toList();
 
-    return CustomSlice.<ReportSummaryDto>builder()
+    return CustomSlice.<ReportSearchSummaryDto>builder()
         .content(ReportSummaryList)
         .pageable(customPageable)
         .first(reportSlice.isFirst())
         .last(reportSlice.isLast())
         .number(reportSlice.getNumber())
         .size(reportSlice.getSize())
-        .numberOfElements(reportSlice.getNumberOfElements())
+        .numberOfElements(reportSlice.getContent().size())
         .build();
   }
 
+  private CustomSlice<ReportSummaryDto> getCustomSlice(Slice<ReportWithUrl> reportSlice,
+      Pageable pageable) {
+
+    CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(),
+        pageable.getPageSize());
+
+    List<Long> reportImageMap = new ArrayList<>();
+    List<ReportSummaryDto> reportSummaryDtoList = new ArrayList<>();
+
+    for (ReportWithUrl reportWithUrl : reportSlice) {
+      if (reportImageMap.contains(reportWithUrl.getId())) {
+        continue;
+      }
+
+      reportImageMap.add(reportWithUrl.getId());
+      reportSummaryDtoList.add(ReportSummaryDto.from(reportWithUrl));
+    }
+
+    return CustomSlice.<ReportSummaryDto>builder()
+        .content(reportSummaryDtoList)
+        .pageable(customPageable)
+        .first(reportSlice.isFirst())
+        .last(reportSlice.isLast())
+        .number(reportSlice.getNumber())
+        .size(reportSlice.getSize())
+        .numberOfElements(reportSlice.getContent().size())
+        .build();
+  }
 }
