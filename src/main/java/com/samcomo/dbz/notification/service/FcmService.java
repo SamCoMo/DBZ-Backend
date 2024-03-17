@@ -1,6 +1,6 @@
 package com.samcomo.dbz.notification.service;
 
-import com.samcomo.dbz.notification.model.dto.SendPinDto;
+import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
 import org.springframework.stereotype.Service;
 
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public interface FcmService {
   void sendPinNotification() throws IOException;
 
-  void sendReportNotification();
+  void sendReportNotification(ReportDto.Form reportForm);
 
 //  void sendChatNotification();
 }
