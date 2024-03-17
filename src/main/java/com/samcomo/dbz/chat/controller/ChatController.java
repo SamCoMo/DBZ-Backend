@@ -35,6 +35,7 @@ public class ChatController {
       @AuthenticationPrincipal Member member,
       @RequestParam String recipientId
   ) {
+    // 회원 불러오기
     String memberEmail = member.getEmail();
     ChatRoomDto chatRoomDto
         = chatRoomServiceImpl.createOrGetChatRoom(memberEmail, recipientId);
@@ -46,7 +47,7 @@ public class ChatController {
   public ResponseEntity<List<ChatRoomDto>> getChatRoomsForMember(
       @AuthenticationPrincipal Member sender
   ) {
-
+    // 회원 불러오기
     String memberEmail = sender.getEmail();
 
     List<ChatRoomDto> chatRoomDtoList
@@ -124,6 +125,5 @@ public class ChatController {
     chatRoomServiceImpl.deleteChatRoom(chatRoomId, memberEmail);
 
     return ResponseEntity.noContent().build();
-
   }
 }

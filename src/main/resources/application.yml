@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev, jwt-secret
+    active: dev
   jpa:
     generate-ddl: true
     hibernate:

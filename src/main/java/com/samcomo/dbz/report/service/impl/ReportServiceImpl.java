@@ -1,12 +1,15 @@
 package com.samcomo.dbz.report.service.impl;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.global.redis.LockType;
 import com.samcomo.dbz.global.redis.aop.DistributedLock;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
+import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
-import com.samcomo.dbz.notification.service.FcmService;
+import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
@@ -22,6 +25,7 @@ import com.samcomo.dbz.report.model.repository.ReportRepository;
 import com.samcomo.dbz.report.service.ReportService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +41,17 @@ public class ReportServiceImpl implements ReportService {
 
   private final ReportRepository reportRepository;
   private final ReportImageRepository reportImageRepository;
+  private final MemberRepository memberRepository;
   private final S3Service s3Service;
-  private final FcmService fcmService;
 
   @Override
   public ReportDto.Response uploadReport(
-      Member member, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
+      long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
   ) {
+
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
     // S3 이미지 저장
     List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
 
@@ -61,9 +69,6 @@ public class ReportServiceImpl implements ReportService {
         .toList();
     List<ReportImage> savedImageList = reportImageRepository.saveAll(reportImageList);
 
-    //fcmSend
-    fcmService.sendReportNotification(reportForm);
-
     return ReportDto.Response.from(newReport, savedImageList.stream()
         .map(ReportImageDto.Response::from)
         .collect(Collectors.toList())
@@ -73,12 +78,12 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   @DistributedLock(lockType = LockType.REPORT ,key = "redisLock", waitTime = 3L, leaseTime = 5L)
-  public ReportDto.Response getReport(long reportId, Member member) {
+  public ReportDto.Response getReport(long reportId, long memberId) {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
-    boolean isWriter = report.getMember().equals(member);
+    boolean isWriter = report.getMember().getId() == memberId;
 
     log.info("현재 조회수 : {}", report.getViews());
 
@@ -126,10 +131,10 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   public ReportDto.Response updateReport(
-      long reportId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList, Member member
+      long reportId, long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
   ) {
 
-    Report report = reportRepository.findByIdAndMember(reportId, member)
+    Report report = reportRepository.findByIdAndMember_Id(reportId, memberId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
     report.setTitle(reportForm.getTitle());
@@ -149,7 +154,6 @@ public class ReportServiceImpl implements ReportService {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
 
-      // TODO : AWS_SDK_ERROR (테스트용 이미지 파일명 때문인 듯 함.)
       s3Service.deleteFile(url.substring(idx + 1));
     }
 
@@ -176,9 +180,9 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public ReportStateDto.Response deleteReport(Member member, long reportId) {
+  public ReportStateDto.Response deleteReport(long reportId, long memberId) {
 
-    Report report = reportRepository.findByIdAndMember(reportId, member)
+    Report report = reportRepository.findByIdAndMember_Id(reportId, memberId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
@@ -186,7 +190,6 @@ public class ReportServiceImpl implements ReportService {
       String url = reportImage.getImageUrl();
       int idx = url.lastIndexOf("/");
 
-      // TODO : AWS_SDK_ERROR (테스트용 이미지 파일명 때문인 듯 함.)
       s3Service.deleteFile(url.substring(idx + 1));
     }
 
@@ -200,9 +203,9 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public ReportStateDto.Response changeStatusToFound(Member member, long reportId) {
+  public ReportStateDto.Response changeStatusToFound(long reportId, long memberId) {
 
-    Report report = reportRepository.findByIdAndMember(reportId, member)
+    Report report = reportRepository.findByIdAndMember_Id(reportId, memberId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
 
     report.setReportStatus(ReportStatus.FOUND);
