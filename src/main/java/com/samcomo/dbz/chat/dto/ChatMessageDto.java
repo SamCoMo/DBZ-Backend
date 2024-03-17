@@ -30,7 +30,7 @@ public class ChatMessageDto {
       return Response.builder()
           .chatMessageId(chatMessage.getChatMessageId())
           .chatRoomId(chatMessage.getChatRoomId())
-          .senderId(chatMessage.getSenderEmail())
+          .senderId(chatMessage.getSenderId())
           .content(chatMessage.getContent())
           .imageUrlList(chatMessage.getImageUrlList())
           .createdAt(chatMessage.getCreatedAt())

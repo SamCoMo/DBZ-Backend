@@ -33,7 +33,7 @@ public class ChatServiceImpl implements ChatService {
 
   @Override
   @Transactional
-  public ChatMessageDto.Response sendMessage(String chatRoomId,String senderEmail,ChatMessageDto.Request request) {
+  public ChatMessageDto.Response sendMessage(String chatRoomId,String senderId,ChatMessageDto.Request request) {
     // 채팅방 검증
     chatUtils.verifyChatRoom(chatRoomId);
 
@@ -54,7 +54,7 @@ public class ChatServiceImpl implements ChatService {
     // 채팅 메시지 생성
     ChatMessage chatMessage = ChatMessage.builder()
         .chatRoomId(chatRoomId)
-        .senderEmail(senderEmail)
+        .senderId(senderId)
         .content(request.getContent())
         .imageUrlList(imageUrlList)
         .createdAt(LocalDateTime.now())
@@ -71,9 +71,9 @@ public class ChatServiceImpl implements ChatService {
 
   @Override
   @Transactional(readOnly = true)
-  public Slice<Response> getChatMessageList(String chatRoomId, String senderEmail, int page, int size) {
+  public Slice<Response> getChatMessageList(String chatRoomId, String senderId, int page, int size) {
     // 채팅방과 회원검증
-    chatUtils.verifyChatRoomAndMember(chatRoomId,senderEmail);
+    chatUtils.verifyChatRoomAndMember(chatRoomId,senderId);
 
     // 페이징 설정
     Pageable pageable = PageRequest.of(page, size);
