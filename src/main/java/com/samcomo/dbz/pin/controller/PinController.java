@@ -63,7 +63,7 @@ public class PinController {
   }
 
   // Report 의 Pin List 가져오기
-  @GetMapping("/list/report/{reportId}/")
+  @GetMapping("/report/{reportId}/pin-list")
   public ResponseEntity<List<PinListDto>> getPinList(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long reportId
