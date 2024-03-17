@@ -3,10 +3,9 @@ package com.samcomo.dbz.pin.service.impl;
 
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
-import com.samcomo.dbz.pin.dto.CreatePinDto;
-import com.samcomo.dbz.pin.dto.CreatePinDto.Response;
-import com.samcomo.dbz.pin.dto.UpdatePinAddressDto;
-import com.samcomo.dbz.pin.dto.UpdatePinDataDto;
+import com.samcomo.dbz.pin.dto.RegisterPinDto;
+import com.samcomo.dbz.pin.dto.RegisterPinDto.Response;
+import com.samcomo.dbz.pin.dto.UpdatePinDto;
 import com.samcomo.dbz.pin.model.entity.Pin;
 import com.samcomo.dbz.pin.model.entity.PinImage;
 import com.samcomo.dbz.pin.model.repository.PinImageRepository;
@@ -30,73 +29,57 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
-  public Response createPin(String memberEmail, Long reportId, CreatePinDto.Request request) {
+  public Response registerPin(Long memberId, Long reportId, RegisterPinDto.Request request) {
 
     // 핀 생성 검증 및 저장
     Pin newPin = pinRepository.save(
         Pin.builder()
         .report(pinUtils.verifyReportById(reportId)) // report 검증
-        .member(pinUtils.verifyMemberByEmail(memberEmail)) // member 검증
+        .member(pinUtils.verifyMemberById(memberId)) // member 검증
         .description(request.getDescription())
         .foundAt(request.getFoundAt())
-        .streetAddress(null)
-        .roadAddress(null)
+        .address(request.getAddress())
         .latitude(request.getLatitude())
         .longitude(request.getLongitude())
         .build());
 
     // MultipartFile 리스트 S3 업로드
-    List<String> imageUrlList = s3Service.uploadImageList(request.getMultipartFileList(), ImageCategory.PIN);
+    List<String> imageUrlList =
+        s3Service.uploadImageList(request.getMultipartFileList(), ImageCategory.PIN);
 
     // PinImage 객체 생성
     List<PinImage> tempPinImageList = new ArrayList<>();
 
     for (String imageUrl : imageUrlList) {
-      tempPinImageList.add(PinImage.builder()
-          .imageUrl(imageUrl)
-          .pin(newPin)
-          .build());
+      tempPinImageList.add(new PinImage(imageUrl, newPin));
     }
 
     // PinImage 객체 리스트 저장 후 반환
-    return CreatePinDto.Response.from(
+    return RegisterPinDto.Response.from(
         newPin,
         pinImageRepository.saveAll(tempPinImageList));
   }
 
   @Override
-  @Transactional
-  public UpdatePinAddressDto.Response updatePinAddress(String memberEmail, Long pinId, UpdatePinAddressDto.Request request) {
+  public UpdatePinDto.Response updatePin(
+      Long memberId, Long pinId, UpdatePinDto.Request request) {
+
     // 핀 검증 + 회원 접근 검증
-    Pin pin = pinUtils.verifyPinByIdAndMemberEmail(memberEmail,pinId);
-
-    // 핀 주소 업데이트
-    pin.setStreetAddress(request.getStreetAddress());
-    pin.setRoadAddress(request.getRoadAddress());
-
-    // 핀 저장
-    return UpdatePinAddressDto.Response.from(pinRepository.save(pin));
-  }
-
-  @Override
-  @Transactional
-  public UpdatePinDataDto.Response updatePinData(String memberEmail, Long pinId, UpdatePinDataDto.Response updatePinResponseDto) {
-    // 핀 검증 + 회원 접근 검증
-    Pin pin = pinUtils.verifyPinByIdAndMemberEmail(memberEmail,pinId);
+    Pin pin = pinUtils.verifyPinByIdAndMemberId(pinId, memberId);
 
     // 핀 Data 업데이트 ( 발견시각, 내용 )
-    pin.setDescription(updatePinResponseDto.getDescription());
-    pin.setFoundAt(updatePinResponseDto.getFoundAt());
+    pin.setDescription(request.getDescription());
+    pin.setFoundAt(request.getFoundAt());
 
     // 핀 저장
-    return UpdatePinDataDto.Response.from(pinRepository.save(pin));
+    return UpdatePinDto.Response.from(pinRepository.save(pin));
   }
 
   @Override
   @Transactional
-  public void deletePin(String memberEmail, Long pinId) {
+  public void deletePin(Long memberId, Long pinId) {
     // 핀 검증 + 회원 접근 검증 -> 삭제
-    pinRepository.delete(
-        pinUtils.verifyPinByIdAndMemberEmail(memberEmail,pinId));
+    // TODO : 테스트 필요
+    pinRepository.delete(pinUtils.verifyPinByIdAndMemberId(pinId, memberId));
   }
 }

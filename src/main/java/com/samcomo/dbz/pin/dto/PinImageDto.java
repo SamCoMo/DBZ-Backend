@@ -7,7 +7,9 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PinImageDto {
+
   private Long pinImageId;
+
   private String url;
 
   public static PinImageDto from(PinImage pinImage){

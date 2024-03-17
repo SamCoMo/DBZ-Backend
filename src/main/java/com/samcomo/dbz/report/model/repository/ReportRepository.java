@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-  Optional<Report> findByIdAndMember(Long id, Member member);
+  Optional<Report> findByIdAndMember_Id(Long id, Long memberId);
 
   @Query(value = "select "
       + "new com.samcomo.dbz.report.model.dto.ReportWithUrl("
