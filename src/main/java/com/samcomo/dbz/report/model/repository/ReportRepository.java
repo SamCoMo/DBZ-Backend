@@ -1,6 +1,5 @@
 package com.samcomo.dbz.report.model.repository;
 
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.ReportWithUrl;
 import com.samcomo.dbz.report.model.entity.Report;

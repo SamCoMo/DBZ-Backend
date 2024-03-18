@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -27,15 +28,12 @@ public class PinImage extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long pinImageId;
 
+  @Setter
   @Column(nullable = false)
   private String imageUrl;
+
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn
   private Pin pin;
-
-  public PinImage(String imageUrl, Pin pin){
-    this.imageUrl = imageUrl;
-    this.pin = pin;
-  }
 }

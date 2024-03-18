@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.repository.Query;
 
 public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
 
-  @Query(value = "{ 'memberEmailList': ?0 }", sort = "{ 'lastChatMessageAt': -1 }")
-  List<ChatRoom> findByMemberEmailSortedByLastChatMessageAtDesc(String memberEmail);
+  @Query(value = "{ 'memberIdList': ?0 }", sort = "{ 'lastChatMessageAt': -1 }")
+  List<ChatRoom> findByMemberIdSortedByLastChatMessageAtDesc(String memberId);
 }

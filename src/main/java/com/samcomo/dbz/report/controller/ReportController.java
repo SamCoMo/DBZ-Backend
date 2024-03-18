@@ -34,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReportController {
 
   private final ReportService reportService;
-  private final MemberServiceImpl memberService;
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글을 이미지와 함께 작성")

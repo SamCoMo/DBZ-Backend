@@ -1,6 +1,5 @@
 package com.samcomo.dbz.report.service;
 
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto.Response;
