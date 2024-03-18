@@ -4,7 +4,6 @@ import static lombok.AccessLevel.PROTECTED;
 
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
-import com.samcomo.dbz.report.model.entity.Report;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,8 +18,9 @@ import lombok.Setter;
 @AllArgsConstructor(access = PROTECTED)
 public class ReportSummaryDto {
 
-  private long reportId;
-  private long memberId;
+
+  private Long reportId;
+  private Long memberId;
   private String title;
   private String petName;
   private PetType petType;
@@ -32,16 +32,17 @@ public class ReportSummaryDto {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public static ReportSummaryDto from(Report report) {
+  public static ReportSummaryDto from(ReportWithUrl report) {
     return ReportSummaryDto.builder()
         .reportId(report.getId())
-        .memberId(report.getMember().getId())
+        .memberId(report.getMemberId())
         .title(report.getTitle())
         .petName(report.getPetName())
         .petType(report.getPetType())
         .species(report.getSpecies())
         .streetAddress(report.getStreetAddress())
         .roadAddress(report.getRoadAddress())
+        .imageUrl(report.getImageUrl())
         .reportStatus(report.getReportStatus())
         .createdAt(report.getCreatedAt())
         .updatedAt(report.getUpdatedAt())

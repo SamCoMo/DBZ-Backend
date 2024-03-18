@@ -47,7 +47,10 @@ public class Member extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private MemberStatus status;
 
-  private String fcmKey;
+  private String fcmToken;
+
+  private Double latitude;
+  private Double longitude;
 
   public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
 

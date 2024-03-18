@@ -18,7 +18,7 @@ public class CustomSlice<T> {
   private CustomPageable pageable;
   private boolean first;
   private boolean last;
-  private int number;
-  private int size;
-  private int numberOfElements;
+  private Integer number;
+  private Integer size;
+  private Integer numberOfElements;
 }

@@ -1,8 +1,8 @@
 spring:
   data:
     redis:
-      port: 6389
-      host: localhost
+      port: 6379
+      host: 220.85.169.165
 
     mongodb:
       username: ${MONGO_USERNAME} #root
@@ -13,7 +13,7 @@ spring:
       authentication-database: admin
 
   datasource:
-    url: ${MARIA_URL} #jdbc:mariadb://localhost:3308/samcomo
+    url: ${MARIA_URL}?rewriteBatchedStatements=true&profileSQL=true&logger=Slf4JLogger #jdbc:mariadb://localhost:3308/samcomo
     username: ${MARIA_USERNAME} #samcomo
     password: ${MARIA_PASSWORD} #samcomo
     driver-class-name: org.mariadb.jdbc.Driver
@@ -47,6 +47,13 @@ logging:
         transaction:
           interceptor: trace
 
+fcm:
+  key:
+    path: firebase/firebase-adminsdk.json
+    scope: https://www.googleapis.com/auth/cloud-platform
+  api:
+    url: https://fcm.googleapis.com/v1/projects/${FCM-PROJECT-ID}/messages:send
+
 
 # 환경변수 설정
-# JWT_SECRET=NulVADBtpXoUKTkzWFr+rCc5ckITa+A6uaLcZ9btLgg=;MONGO_USERNAME=root;MONGO_PASSWORD=root;MONGO_HOST=220.85.169.165;MONGO_PORT=27017;MONGO_DATABASE=chat;MARIA_PASSWORD=samcomo;MARIA_USERNAME=samcomo;MARIA_URL=jdbc:mariadb://localhost:3308/samcomo;AWS_SECRET_KEY=노션참고;AWS_ACCESS_KEY=노션참고;AWS_BUCKET=samcomo
+# JWT_SECRET=NulVADBtpXoUKTkzWFr+rCc5ckITa+A6uaLcZ9btLgg=;MONGO_USERNAME=root;MONGO_PASSWORD=root;MONGO_HOST=220.85.169.165;MONGO_PORT=27017;MONGO_DATABASE=chat;MARIA_PASSWORD=samcomo;MARIA_USERNAME=samcomo;MARIA_URL=jdbc:mariadb://localhost:3308/samcomo;AWS_SECRET_KEY=노션참고;AWS_ACCESS_KEY=노션참고;AWS_BUCKET=samcomo;FCM-PROJECT-ID=dbz24-d8690

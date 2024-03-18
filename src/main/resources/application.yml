@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev, jwt-secret
+    active: dev
   jpa:
     generate-ddl: true
     hibernate:
@@ -20,3 +20,9 @@ springdoc:
   default-produces-media-type: application/json;charset=UTF-8
   swagger-ui:
     path: /docs/swagger
+
+logging:
+  level:
+    org:
+      springframework:
+        jdbc: debug
