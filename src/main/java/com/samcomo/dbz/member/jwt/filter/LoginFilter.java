@@ -5,12 +5,15 @@ import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
+import com.samcomo.dbz.member.model.entity.RefreshToken;
+import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,19 +27,20 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
   private final JwtUtil jwtUtil;
+  private final RefreshTokenRepository refreshTokenRepository;
+
   private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
       new AntPathRequestMatcher("/member/login", "POST");
 
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
 
-  private static final Long EXPIRATION_ACCESS_TOKEN = 6000L * 10 * 1000; // 10분
-  private static final Long EXPIRATION_REFRESH_TOKEN = 6000L * 10 * 60 * 24; // 24시간
-
-  public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+  public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
+      RefreshTokenRepository refreshTokenRepository) {
 
     super(LOGIN_REQUEST_MATCHER, authenticationManager);
     this.jwtUtil = jwtUtil;
+    this.refreshTokenRepository = refreshTokenRepository;
   }
 
   @Override
@@ -71,17 +75,16 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
       throws IOException, ServletException {
 
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
-    String id = String.valueOf(memberDetails.getId());
-    String email = memberDetails.getEmail();
+    String memberId = String.valueOf(memberDetails.getId());
 
     Iterator<? extends GrantedAuthority> iterator = authResult.getAuthorities().iterator();
     GrantedAuthority auth = iterator.next();
     String role = auth.getAuthority();
 
-    String accessToken = jwtUtil.createToken(
-        ACCESS_TOKEN, id, role, email, EXPIRATION_ACCESS_TOKEN);
-    String refreshToken = jwtUtil.createToken(
-        REFRESH_TOKEN, id, role, email, EXPIRATION_REFRESH_TOKEN);
+    String accessToken = jwtUtil.createToken(ACCESS_TOKEN, memberId, role);
+    String refreshToken = jwtUtil.createToken(REFRESH_TOKEN, memberId, role);
+
+    addRefreshToken(memberId, refreshToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
     response.addCookie(createCookie(REFRESH_TOKEN.getKey(), refreshToken));
@@ -105,5 +108,16 @@ public class LoginFilter extends AbstractAuthenticationProcessingFilter {
     cookie.setHttpOnly(true); // xss 공격 방지 (js 접근 불가)
 
     return cookie;
+  }
+
+  private void addRefreshToken(String memberId, String refreshToken) {
+
+    Date expiration = new Date(System.currentTimeMillis() + REFRESH_TOKEN.getExpiredMs());
+
+    refreshTokenRepository.save(RefreshToken.builder()
+        .memberId(Long.valueOf(memberId))
+        .refreshToken(refreshToken)
+        .expiration(String.valueOf(expiration))
+        .build());
   }
 }
