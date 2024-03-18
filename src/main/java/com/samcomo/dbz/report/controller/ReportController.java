@@ -1,10 +1,12 @@
 package com.samcomo.dbz.report.controller;
 
+
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
+import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +35,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReportController {
 
   private final ReportService reportService;
-  private final MemberServiceImpl memberService;
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Operation(summary = "게시글을 이미지와 함께 작성")
@@ -122,15 +123,16 @@ public class ReportController {
 
   @GetMapping("/search")
   @Operation(summary = "게시글 검색")
-  public ResponseEntity<CustomSlice<ReportSummaryDto>> searchReport(
+  public ResponseEntity<CustomSlice<ReportSearchSummaryDto>> searchReport(
       @RequestParam boolean showsInProgressOnly,
       @RequestParam String object,
       Pageable pageable
   ) {
 
-    CustomSlice<ReportSummaryDto> result = reportService.searchReport(object, showsInProgressOnly,
+    CustomSlice<ReportSearchSummaryDto> result = reportService.searchReport(object, showsInProgressOnly,
         pageable);
 
     return ResponseEntity.ok(result);
   }
+
 }
