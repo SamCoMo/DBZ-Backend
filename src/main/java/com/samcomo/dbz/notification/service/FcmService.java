@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public interface FcmService {
   void sendPinNotification() throws IOException;
 
-  void sendReportNotification(ReportDto.Form reportForm);
+  void sendReportNotification(Long memberId, ReportDto.Form reportForm);
 
 //  void sendChatNotification();
 }

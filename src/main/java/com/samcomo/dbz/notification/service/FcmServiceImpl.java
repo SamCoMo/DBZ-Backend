@@ -42,7 +42,7 @@ public class FcmServiceImpl implements FcmService {
   @Override
   public void sendPinNotification() {
 
-    try{
+    try {
 
       //TODO: 유저 토큰값 서치
       String token = "토큰";
@@ -52,7 +52,8 @@ public class FcmServiceImpl implements FcmService {
 
       OkHttpClient client = new OkHttpClient();
 
-      RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
+      RequestBody requestBody = RequestBody.create(message,
+          MediaType.get("application/json; charset=utf-8"));
       Request httpRequest = new Request.Builder()
           .url(FCM_API_URL)
           .post(requestBody)
@@ -63,27 +64,26 @@ public class FcmServiceImpl implements FcmService {
       Response response = client.newCall(httpRequest).execute();
 
       log.info("핀 알림 전송 성공: {}", Objects.requireNonNull(response.body()).string());
-    }catch(IOException e){
+    } catch (IOException e) {
       throw new NotiException(ErrorCode.PIN_NOTIFICATION_FAILED);
     }
   }
 
   @Override
-  public void sendReportNotification(ReportDto.Form reportForm){
+  public void sendReportNotification(Long memberId, ReportDto.Form reportForm) {
 
-    String token = "토큰";
-
-    SendReportDto sendReportDto = new SendReportDto(token, reportForm.getDescriptions().substring(0,20));
+    String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
 
     //게시글 주변 회원 검색 & token get
 //    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), DISTANCE);
+    List<String> tokenList = List.of(token, token, token);
 
-    List<String> tokenList = List.of("e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
-        "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
-        "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP");
+    SendReportDto sendReportDto = new SendReportDto(token,
+        reportForm.getDescriptions().substring(0, 20));
+
     MulticastMessage message = makeMultipleMessage(sendReportDto, tokenList);
 
-    try{
+    try {
       BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
       log.info("게시글 알림 성공 successCount: " + response.getSuccessCount());
     } catch (FirebaseMessagingException e) {
@@ -91,7 +91,6 @@ public class FcmServiceImpl implements FcmService {
       throw new NotiException(ErrorCode.REPORT_NOTIFICATION_FAILED);
     }
     //TODO: notiDB 저장
-
 
   }
 
@@ -123,7 +122,8 @@ public class FcmServiceImpl implements FcmService {
     return objectMapper.writeValueAsString(fcmMessageDto);
   }
 
-  private static MulticastMessage makeMultipleMessage(SendReportDto request,  List<String> tokenList) {
+  private static MulticastMessage makeMultipleMessage(SendReportDto request,
+      List<String> tokenList) {
     MulticastMessage message = MulticastMessage.builder()
         .setNotification(Notification.builder()
             .setTitle(request.getTitle())
