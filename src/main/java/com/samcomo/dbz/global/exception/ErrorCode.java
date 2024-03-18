@@ -44,6 +44,8 @@ public enum ErrorCode {
 
   INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "refresh 토큰 정보가 유효하지 않습니다."),
 
+  REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "refresh 토큰이 존재하지 않습니다. 다시 로그인해주세요."),
+
   // Pin
 
   PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),

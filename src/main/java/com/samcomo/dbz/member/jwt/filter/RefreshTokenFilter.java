@@ -1,10 +1,11 @@
 package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
+import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_EXPIRED;
+import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_NOT_FOUND;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
-import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.entity.RefreshToken;
@@ -12,6 +13,7 @@ import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -39,10 +41,12 @@ public class RefreshTokenFilter {
     response.addCookie(createCookie(REFRESH_TOKEN.getKey(), newRefreshToken));
   }
 
-  private void rotateRefreshToken(
+  @Transactional
+  public void rotateRefreshToken(
       Long memberId, String oldRefreshToken, String newRefreshToken) {
 
-    refreshTokenRepository.deleteByMemberIdAndRefreshToken(memberId, oldRefreshToken);
+    // 기존 access, refresh 토큰은 삭제한다.
+    refreshTokenRepository.deleteByRefreshTokenAndMemberId(oldRefreshToken, memberId);
 
     Date expiration = new Date(System.currentTimeMillis() + REFRESH_TOKEN.getExpiredMs());
 
@@ -55,19 +59,25 @@ public class RefreshTokenFilter {
 
   private void validateRefreshToken(String refreshToken) {
 
-    if (refreshToken == null || !jwtUtil.getTokenType(refreshToken).equals("Refresh-Token")) {
+    if (refreshToken == null || !jwtUtil.getTokenType(refreshToken).equals(REFRESH_TOKEN.getKey())) {
       throw new MemberException(INVALID_REFRESH_TOKEN);
     }
 
-    if (!refreshTokenRepository.existsByRefreshToken(refreshToken)) {
-      throw new MemberException(INVALID_REFRESH_TOKEN);
+    Long memberId = Long.valueOf(jwtUtil.getId(refreshToken));
+    // 탈취한 refresh1 로 새로운 refresh2 가 생성된 경우 기존 유저의 refresh1 은 DB 에 존재하지 않는다.
+    if (!refreshTokenRepository.existsByRefreshTokenAndMemberId(refreshToken, memberId)) {
+
+      // 탈취 가능성을 고려하여 토큰을 전부 삭제한 후 재로그인을 요청한다.
+      refreshTokenRepository.deleteAllByMemberId(memberId);
+
+      throw new MemberException(REFRESH_TOKEN_NOT_FOUND);
     }
 
     try {
       jwtUtil.isExpired(refreshToken);
 
     } catch (ExpiredJwtException e) {
-      throw new MemberException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+      throw new MemberException(REFRESH_TOKEN_EXPIRED);
     }
   }
 
