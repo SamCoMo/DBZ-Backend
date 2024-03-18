@@ -1,6 +1,5 @@
 package com.samcomo.dbz.global.exception;
 
-import com.google.api.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -51,6 +50,10 @@ public enum ErrorCode {
 
   NOT_SAME_MEMBER(HttpStatus.BAD_REQUEST, "작성자와 회원의 정보가 일치하지 않습니다."),
 
+  // BulkRepository
+
+  REPORT_IMAGE_ID_NOT_CHECKED(HttpStatus.INTERNAL_SERVER_ERROR, "Bulk 연산 후 ID 값을 가져오지 못했습니다."),
+
   // Redis-Lock
 
   LOCK_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "Lock 획득에 실패하였습니다."),
@@ -66,7 +69,9 @@ public enum ErrorCode {
   // Notification
 
   PIN_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "핀 알림 전송을 실패했습니다."),
+
   REPORT_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 알림 전송을 실패했습니다."),
+
   ACCESS_TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Access Token을 획득하는데 실패했습니다.");
 
   private final HttpStatus status;

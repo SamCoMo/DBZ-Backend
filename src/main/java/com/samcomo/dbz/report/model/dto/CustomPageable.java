@@ -15,6 +15,6 @@ public class CustomPageable {
     this.pageSize = pageSize;
   }
 
-  private int pageNumber;
-  private int pageSize;
+  private Integer pageNumber;
+  private Integer pageSize;
 }

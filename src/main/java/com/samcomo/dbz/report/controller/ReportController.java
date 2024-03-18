@@ -5,6 +5,7 @@ import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
+import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -122,13 +123,13 @@ public class ReportController {
 
   @GetMapping("/search")
   @Operation(summary = "게시글 검색")
-  public ResponseEntity<CustomSlice<ReportSummaryDto>> searchReport(
+  public ResponseEntity<CustomSlice<ReportSearchSummaryDto>> searchReport(
       @RequestParam boolean showsInProgressOnly,
       @RequestParam String object,
       Pageable pageable
   ) {
 
-    CustomSlice<ReportSummaryDto> result = reportService.searchReport(object, showsInProgressOnly,
+    CustomSlice<ReportSearchSummaryDto> result = reportService.searchReport(object, showsInProgressOnly,
         pageable);
 
     return ResponseEntity.ok(result);
