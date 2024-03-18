@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 public class ReportDto {
 
@@ -52,7 +53,7 @@ public class ReportDto {
     private String phone;
     private boolean showsPhone;
     private boolean isWriter;
-    private long views;
+    private Long views;
     private ReportStatus reportStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

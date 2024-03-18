@@ -1,9 +1,9 @@
 package com.samcomo.dbz.report.service;
 
-import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto.Response;
+import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
@@ -24,5 +24,5 @@ public interface ReportService {
 
   Response changeStatusToFound(long reportId, long memberId);
 
-  CustomSlice<ReportSummaryDto> searchReport(String object, boolean showsInProgressOnly, Pageable pageable);
+  CustomSlice<ReportSearchSummaryDto> searchReport(String object, boolean showsInProgressOnly, Pageable pageable);
 }

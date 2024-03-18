@@ -44,9 +44,12 @@ public class Pin extends BaseEntity {
   @Setter
   private LocalDateTime foundAt;
 
+  @Setter
   private String address;
 
+  @Setter
   private Double latitude;
 
+  @Setter
   private Double longitude;
 }

@@ -13,13 +13,13 @@ public class ChatUtils {
   private final ChatRoomRepository chatRoomRepository;
 
   // 채팅방 검증 + 회원이 채팅방에 존재하는지 검증
-  public ChatRoom verifyChatRoomAndMember(String chatRoomId, String memberEmail) {
+  public ChatRoom verifyChatRoomAndMember(String chatRoomId, String memberId) {
     // 채팅방 조회
     ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
         .orElseThrow(() -> new ChatException(ErrorCode.CHATROOM_NOT_FOUND));
 
     // 채팅방에 내가 존재하는지 확인
-    if (!chatRoom.getMemberEmailList().contains(memberEmail)) {
+    if (!chatRoom.getMemberIdList().contains(memberId)) {
       throw new ChatException(ErrorCode.ACCESS_DENIED_CHATROOM);
     }
     return chatRoom;

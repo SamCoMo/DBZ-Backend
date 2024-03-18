@@ -1,8 +1,8 @@
 spring:
   data:
     redis:
-      port: 6389
-      host: localhost
+      port: 6379
+      host: 220.85.169.165
 
     mongodb:
       username: ${MONGO_USERNAME} #root
@@ -13,7 +13,7 @@ spring:
       authentication-database: admin
 
   datasource:
-    url: ${MARIA_URL} #jdbc:mariadb://localhost:3308/samcomo
+    url: ${MARIA_URL}?rewriteBatchedStatements=true&profileSQL=true&logger=Slf4JLogger #jdbc:mariadb://localhost:3308/samcomo
     username: ${MARIA_USERNAME} #samcomo
     password: ${MARIA_PASSWORD} #samcomo
     driver-class-name: org.mariadb.jdbc.Driver

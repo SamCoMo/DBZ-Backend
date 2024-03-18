@@ -47,7 +47,12 @@ public class SecurityConfig {
     // mapping
     http
         .authorizeHttpRequests((auth) -> auth
-            .requestMatchers("/member/register", "/member/login").permitAll()
+            .requestMatchers(
+                "/member/register",
+                "/member/login",
+                "/docs/**",
+                "/v3/api-docs/**"
+            ).permitAll()
             .requestMatchers("/report/**").hasRole("MEMBER")
             .requestMatchers("/aop/").permitAll()
             .anyRequest().authenticated());
