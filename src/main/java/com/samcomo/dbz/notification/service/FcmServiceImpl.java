@@ -1,5 +1,7 @@
 package com.samcomo.dbz.notification.service;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -9,10 +11,16 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.model.entity.Member;
+import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.notification.exception.NotiException;
+import com.samcomo.dbz.notification.model.constants.NotificationType;
 import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import com.samcomo.dbz.notification.model.dto.SendReportDto;
+import com.samcomo.dbz.notification.model.entity.Noti;
+import com.samcomo.dbz.notification.model.repository.NotificationRepository;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
 import java.util.List;
@@ -39,13 +47,20 @@ public class FcmServiceImpl implements FcmService {
   @Value("${fcm.api.url}")
   private String FCM_API_URL;
 
+  private final NotificationRepository notificationRepository;
+  private final MemberRepository memberRepository;
+
   @Override
-  public void sendPinNotification() {
+  public void sendPinNotification(Long memberId) {
 
     try {
 
       //TODO: 유저 토큰값 서치
-      String token = "토큰";
+//      Member member = memberRepository.findById(memberId)
+//          .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+//      String token = member.getFcmToken();
+
+      String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
 
       SendPinDto sendPinDto = new SendPinDto(token);
       String message = makeSingleMessage(sendPinDto);
@@ -63,6 +78,12 @@ public class FcmServiceImpl implements FcmService {
 
       Response response = client.newCall(httpRequest).execute();
 
+//      notificationRepository.save(Noti.builder()
+//          .member(member)
+//          .type(NotificationType.REPORT)
+//          .message(sendPinDto.getBody())
+//          .build());
+
       log.info("핀 알림 전송 성공: {}", Objects.requireNonNull(response.body()).string());
     } catch (IOException e) {
       throw new NotiException(ErrorCode.PIN_NOTIFICATION_FAILED);
@@ -72,6 +93,9 @@ public class FcmServiceImpl implements FcmService {
   @Override
   public void sendReportNotification(Long memberId, ReportDto.Form reportForm) {
 
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
     String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
 
     //게시글 주변 회원 검색 & token get
@@ -79,7 +103,7 @@ public class FcmServiceImpl implements FcmService {
     List<String> tokenList = List.of(token, token, token);
 
     SendReportDto sendReportDto = new SendReportDto(token,
-        reportForm.getDescriptions().substring(0, 20));
+        reportForm.getDescriptions());
 
     MulticastMessage message = makeMultipleMessage(sendReportDto, tokenList);
 
@@ -90,7 +114,12 @@ public class FcmServiceImpl implements FcmService {
       log.error("알림 전송 실패 : " + e.getMessage());
       throw new NotiException(ErrorCode.REPORT_NOTIFICATION_FAILED);
     }
-    //TODO: notiDB 저장
+
+    notificationRepository.save(Noti.builder()
+        .member(member)
+        .type(NotificationType.REPORT)
+        .message(sendReportDto.getBody())
+        .build());
 
   }
 
@@ -122,8 +151,7 @@ public class FcmServiceImpl implements FcmService {
     return objectMapper.writeValueAsString(fcmMessageDto);
   }
 
-  private static MulticastMessage makeMultipleMessage(SendReportDto request,
-      List<String> tokenList) {
+  private static MulticastMessage makeMultipleMessage(SendReportDto request, List<String> tokenList) {
     MulticastMessage message = MulticastMessage.builder()
         .setNotification(Notification.builder()
             .setTitle(request.getTitle())
