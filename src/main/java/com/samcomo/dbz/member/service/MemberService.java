@@ -1,7 +1,9 @@
 package com.samcomo.dbz.member.service;
 
-import com.samcomo.dbz.member.model.dto.MemberMyInfo;
+import com.samcomo.dbz.member.model.dto.LocationInfo;
+import com.samcomo.dbz.member.model.dto.MyInfo;
 import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
+import com.samcomo.dbz.member.model.entity.Member;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,5 +13,9 @@ public interface MemberService {
 
   void validateDuplicateMember(String email, String nickname);
 
-  MemberMyInfo getMyInfo(Long memberId);
+  MyInfo getMyInfo(long memberId);
+
+  LocationInfo.Response updateLocation(long memberId, LocationInfo.Request request);
+
+  Member getMember(long memberId);
 }

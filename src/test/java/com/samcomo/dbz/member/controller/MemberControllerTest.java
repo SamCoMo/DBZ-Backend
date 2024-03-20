@@ -1,10 +1,12 @@
 package com.samcomo.dbz.member.controller;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,7 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
-import com.samcomo.dbz.member.model.dto.MemberMyInfo;
+import com.samcomo.dbz.member.model.dto.LocationInfo;
+import com.samcomo.dbz.member.model.dto.MyInfo;
 import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.service.MemberService;
@@ -48,7 +51,7 @@ class MemberControllerTest {
   private String validPhone;
   private String validPassword;
   private String validProfileImageUrl;
-  private MemberMyInfo myInfo;
+  private MyInfo myInfo;
   private Member member;
   private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
 
@@ -76,7 +79,7 @@ class MemberControllerTest {
         .password(validPassword)
         .build();
 
-    myInfo = MemberMyInfo.from(member);
+    myInfo = MyInfo.from(member);
   }
 
   @Test
@@ -283,5 +286,123 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[성공]")
+  void successUpdateLocation() throws Exception {
+    LocationInfo.Request locationRequest = LocationInfo.Request.builder()
+        .address("새로운 주소")
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    LocationInfo.Response locationInfo = LocationInfo.Response.builder()
+        .memberId(1L)
+        .address(locationRequest.getAddress())
+        .latitude(locationRequest.getLatitude())
+        .longitude(locationRequest.getLongitude())
+        .build();
+
+    given(memberService.updateLocation(anyLong(), any()))
+        .willReturn(locationInfo);
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.memberId").value(1L))
+        .andExpect(jsonPath("$.address").value(locationRequest.getAddress()))
+        .andExpect(jsonPath("$.latitude").value(locationRequest.getLatitude()))
+        .andExpect(jsonPath("$.longitude").value(locationRequest.getLongitude()));
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - address null")
+  void failUpdateLocation() throws Exception {
+    LocationInfo.Request locationRequest = LocationInfo.Request.builder()
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - address blank/whiteSpace")
+  void failUpdateLocation2() throws Exception {
+    LocationInfo.Request locationRequest = LocationInfo.Request.builder()
+        .address(" ")
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - latitude null")
+  void failUpdateLocation3() throws Exception {
+    LocationInfo.Request locationRequest = LocationInfo.Request.builder()
+        .address("새로운 주소")
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").value("위도는 필수 항목입니다."))
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - longitude null")
+  void failUpdateLocation4() throws Exception {
+    LocationInfo.Request locationRequest = LocationInfo.Request.builder()
+        .address("새로운 주소")
+        .latitude(37.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").value("경도는 필수 항목입니다."));
   }
 }

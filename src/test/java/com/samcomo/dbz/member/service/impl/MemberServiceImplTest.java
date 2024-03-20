@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.service.impl;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.EMAIL_ALREADY_EXISTS;
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static com.samcomo.dbz.global.exception.ErrorCode.NICKNAME_ALREADY_EXISTS;
 import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
 import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
@@ -13,6 +14,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.model.dto.LocationInfo;
+import com.samcomo.dbz.member.model.dto.MyInfo;
 import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
@@ -122,5 +125,82 @@ class MemberServiceImplTest {
 
     // then
     assertEquals(NICKNAME_ALREADY_EXISTS, memberException.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("마이페이지[성공]")
+  void successGetMyInfo() {
+    // given
+    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.of(savedMember));
+
+    // when
+    MyInfo myInfo = memberService.getMyInfo(savedMember.getId());
+
+    // then
+    assertEquals(myInfo.getEmail(), savedMember.getEmail());
+    assertEquals(myInfo.getNickname(), savedMember.getNickname());
+    assertEquals(myInfo.getPhone(), savedMember.getPhone());
+    assertEquals(myInfo.getProfileImageUrl(), savedMember.getProfileImageUrl());
+  }
+
+  @Test
+  @DisplayName("마이페이지[실패] - DB 조회 실패")
+  void failGetMyInfo() {
+    // given
+    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.empty());
+
+    // when
+    MemberException e = assertThrows(MemberException.class,
+        () -> memberService.getMyInfo(savedMember.getId()));
+
+    // then
+    assertEquals(MEMBER_NOT_FOUND, e.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("위치업데이트[성공]")
+  void successUpdateLocation() {
+    // given
+    LocationInfo.Request locationUpdateRequest = LocationInfo.Request.builder()
+        .address("새로운 주소지")
+        .longitude(37.12345)
+        .latitude(127.12345)
+        .build();
+    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.of(savedMember));
+
+    Member updatedMember = savedMember;
+    updatedMember.setAddress(locationUpdateRequest.getAddress());
+    updatedMember.setLatitude(locationUpdateRequest.getLatitude());
+    updatedMember.setLongitude(locationUpdateRequest.getLongitude());
+    given(memberRepository.save(updatedMember)).willReturn(updatedMember);
+
+    // when
+    LocationInfo.Response locationInfo =
+        memberService.updateLocation(savedMember.getId(), locationUpdateRequest);
+
+    // then
+    assertEquals(savedMember.getId(), locationInfo.getMemberId());
+    assertEquals(locationUpdateRequest.getAddress(), locationInfo.getAddress());
+    assertEquals(locationUpdateRequest.getLatitude(), locationInfo.getLatitude());
+    assertEquals(locationUpdateRequest.getLongitude(), locationInfo.getLongitude());
+  }
+
+  @Test
+  @DisplayName("위치업데이트[실패] - DB 조회 실패")
+  void failUpdateLocation() {
+    // given
+    LocationInfo.Request locationUpdateRequest = LocationInfo.Request.builder()
+        .address("새로운 주소")
+        .longitude(37.12345)
+        .latitude(127.12345)
+        .build();
+    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.empty());
+
+    // when
+    MemberException e = assertThrows(MemberException.class,
+        () -> memberService.updateLocation(savedMember.getId(), locationUpdateRequest));
+
+    // then
+    assertEquals(MEMBER_NOT_FOUND, e.getErrorCode());
   }
 }

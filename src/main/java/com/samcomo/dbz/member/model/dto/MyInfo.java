@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MemberMyInfo {
+public class MyInfo {
 
   private String email;
 
@@ -16,8 +16,8 @@ public class MemberMyInfo {
 
   private String phone;
 
-  public static MemberMyInfo from(Member member) {
-    return MemberMyInfo.builder()
+  public static MyInfo from(Member member) {
+    return MyInfo.builder()
         .email(member.getEmail())
         .nickname(member.getNickname())
         .profileImageUrl(member.getProfileImageUrl())
