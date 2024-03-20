@@ -1,5 +1,6 @@
 package com.samcomo.dbz.report.controller;
 
+
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
@@ -133,4 +134,5 @@ public class ReportController {
 
     return ResponseEntity.ok(result);
   }
+
 }
