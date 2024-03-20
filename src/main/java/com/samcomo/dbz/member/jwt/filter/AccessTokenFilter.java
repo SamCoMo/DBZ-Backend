@@ -23,7 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
-public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter {
+public class AccessTokenFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
 
@@ -60,14 +60,14 @@ public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter
       throw new MemberException(ACCESS_TOKEN_EXPIRED);
     }
 
-    if (!isTokenTypeCorrect(accessToken)) {
+    if (isTokenTypeCorrect(accessToken)) {
       throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
     }
   }
 
-  private MemberDetails getMemberDetails(String token) {
-    Long memberId = getMemberId(token);
-    MemberRole role = getMemberRole(token);
+  private MemberDetails getMemberDetails(String accessToken) {
+    Long memberId = getMemberId(accessToken);
+    MemberRole role = getMemberRole(accessToken);
 
     return new MemberDetails(Member.builder()
         .id(memberId)
@@ -75,27 +75,25 @@ public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter
         .build());
   }
 
-  @Override
-  public boolean isNull(String token) {
-    return token == null;
+  public boolean isNull(String accessToken) {
+    return accessToken == null;
   }
 
-  @Override
-  public void checkExpiration(String token) throws ExpiredJwtException {
-    jwtUtil.isExpired(token);
+  public void checkExpiration(String accessToken) throws ExpiredJwtException {
+    jwtUtil.isExpired(accessToken);
   }
 
-  @Override
-  public boolean isTokenTypeCorrect(String token) {
-    return jwtUtil.getTokenType(token).equals(ACCESS_TOKEN.getKey());
+
+  public boolean isTokenTypeCorrect(String accessToken) {
+    return !jwtUtil.getTokenType(accessToken).equals(ACCESS_TOKEN.getKey());
   }
 
-  private Long getMemberId(String token) {
-    return Long.valueOf(jwtUtil.getId(token));
+  private Long getMemberId(String accessToken) {
+    return Long.valueOf(jwtUtil.getId(accessToken));
   }
 
-  private MemberRole getMemberRole(String token) {
-    return MemberRole.get(jwtUtil.getRole(token))
+  private MemberRole getMemberRole(String accessToken) {
+    return MemberRole.get(jwtUtil.getRole(accessToken))
         .orElseThrow(() -> new MemberException(INVALID_SESSION));
   }
 }

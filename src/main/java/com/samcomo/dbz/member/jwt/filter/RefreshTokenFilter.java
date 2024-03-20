@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RefreshTokenFilter implements JwtFilter {
+public class RefreshTokenFilter {
 
   private final JwtUtil jwtUtil;
   private final RefreshTokenRepository refreshTokenRepository;
@@ -45,9 +45,8 @@ public class RefreshTokenFilter implements JwtFilter {
     saveNewRefreshTokenToDataBase(newRefreshToken);
   }
 
-  public void validateRefreshToken(String oldRefreshToken) {
-
-    if (isNull(oldRefreshToken) || !isTokenTypeCorrect(oldRefreshToken)) {
+  private void validateRefreshToken(String oldRefreshToken) {
+    if (isNull(oldRefreshToken) || isTokenTypeCorrect(oldRefreshToken)) {
       throw new MemberException(INVALID_REFRESH_TOKEN);
     }
 
@@ -98,27 +97,24 @@ public class RefreshTokenFilter implements JwtFilter {
     refreshTokenRepository.deleteAllByMemberId(memberId);
   }
 
-  @Override
-  public boolean isNull(String token) {
-    return token == null;
+  public boolean isNull(String refreshToken) {
+    return refreshToken == null;
   }
 
-  @Override
-  public void checkExpiration(String token) throws ExpiredJwtException {
-    jwtUtil.isExpired(token);
+  public void checkExpiration(String refreshToken) throws ExpiredJwtException {
+    jwtUtil.isExpired(refreshToken);
   }
 
-  @Override
-  public boolean isTokenTypeCorrect(String token) {
-    return jwtUtil.getTokenType(token).equals(REFRESH_TOKEN.getKey());
+  public boolean isTokenTypeCorrect(String refreshToken) {
+    return !jwtUtil.getTokenType(refreshToken).equals(REFRESH_TOKEN.getKey());
   }
 
-  public boolean isTokenInDataBase(String token) {
-    Long memberId = getMemberId(token);
-    return refreshTokenRepository.existsByRefreshTokenAndMemberId(token, memberId);
+  public boolean isTokenInDataBase(String refreshToken) {
+    Long memberId = getMemberId(refreshToken);
+    return refreshTokenRepository.existsByRefreshTokenAndMemberId(refreshToken, memberId);
   }
 
-  private Long getMemberId(String token) {
-    return Long.valueOf(jwtUtil.getId(token));
+  private Long getMemberId(String refreshToken) {
+    return Long.valueOf(jwtUtil.getId(refreshToken));
   }
 }
