@@ -1,5 +1,6 @@
 package com.samcomo.dbz.member.jwt.filter;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
@@ -31,7 +32,13 @@ public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter
       FilterChain filterChain) throws ServletException, IOException {
 
     String accessToken = getAccessToken(request);
-    validateAccessToken(request, response, filterChain, accessToken);
+    // 아직 로그인하지 않은 경우
+    if (isNull(accessToken)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    validateAccessToken(accessToken);
 
     MemberDetails memberDetails = getMemberDetails(accessToken);
     Authentication authToken = new UsernamePasswordAuthenticationToken(
@@ -46,17 +53,14 @@ public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter
     return request.getHeader(ACCESS_TOKEN.getKey());
   }
 
-  private void validateAccessToken(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain, String accessToken) throws IOException, ServletException {
-
-    if (isNull(accessToken)) {
-      filterChain.doFilter(request, response);
-      return;
+  private void validateAccessToken(String accessToken) {
+    try {
+      checkExpiration(accessToken);
+    } catch (ExpiredJwtException e) {
+      throw new MemberException(ACCESS_TOKEN_EXPIRED);
     }
 
-    checkExpiration(accessToken);
-
-    if (isTokenTypeCorrect(accessToken)) {
+    if (!isTokenTypeCorrect(accessToken)) {
       throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
     }
   }
@@ -77,12 +81,8 @@ public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter
   }
 
   @Override
-  public void checkExpiration(String token) {
-    try {
-      jwtUtil.isExpired(token);
-    } catch (ExpiredJwtException e) {
-      throw new MemberException(ErrorCode.ACCESS_TOKEN_EXPIRED);
-    }
+  public void checkExpiration(String token) throws ExpiredJwtException {
+    jwtUtil.isExpired(token);
   }
 
   @Override
