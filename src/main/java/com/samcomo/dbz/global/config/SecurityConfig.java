@@ -1,8 +1,9 @@
 package com.samcomo.dbz.global.config;
 
 import com.samcomo.dbz.member.jwt.JwtUtil;
-import com.samcomo.dbz.member.jwt.filter.JwtFilter;
+import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.LoginFilter;
+import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationConfiguration configuration;
+  private final RefreshTokenRepository refreshTokenRepository;
 
   @Bean
   public AuthenticationManager authenticationManager(
@@ -50,11 +52,12 @@ public class SecurityConfig {
             .requestMatchers(
                 "/member/register",
                 "/member/login",
+                "/member/reissue",
                 "/docs/**",
-                "/v3/api-docs/**"
+                "/v3/api-docs/**",
+                "/aop/"
             ).permitAll()
-            .requestMatchers("/report/**").hasRole("MEMBER")
-            .requestMatchers("/aop/").permitAll()
+            .requestMatchers("/report/**", "/member/**").hasRole("MEMBER")
             .anyRequest().authenticated());
 
     // session : stateless
@@ -65,9 +68,9 @@ public class SecurityConfig {
     // filter
     http
         .addFilterBefore(
-            new LoginFilter(authenticationManager(configuration), jwtUtil),
+            new LoginFilter(authenticationManager(configuration), jwtUtil, refreshTokenRepository),
             UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(new JwtFilter(jwtUtil), LoginFilter.class);
+        .addFilterBefore(new AccessTokenFilter(jwtUtil), LoginFilter.class);
 
     return http.build();
   }
