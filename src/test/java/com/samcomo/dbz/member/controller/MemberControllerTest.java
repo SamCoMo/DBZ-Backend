@@ -6,12 +6,12 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
 import com.samcomo.dbz.member.model.dto.MemberMyInfo;
 import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -34,6 +34,8 @@ class MemberControllerTest {
 
   @MockBean
   private MemberService memberService;
+  @MockBean
+  private RefreshTokenFilter refreshTokenFilter;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -88,8 +90,7 @@ class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated())
-        .andDo(print());
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -114,8 +115,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -140,8 +140,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -166,8 +165,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -192,8 +190,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
   }
 
   @Test
@@ -218,8 +215,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
   }
 
   @Test
@@ -240,8 +236,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("이메일" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.nickname").value("닉네임" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.phone").value("전화번호" + REQUIRED_FIELD_MESSAGE))
-        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE));
   }
 
   @Test
@@ -287,7 +282,6 @@ class MemberControllerTest {
             get("/member/my")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isNotFound())
-        .andDo(print());
+        .andExpect(status().isNotFound());
   }
 }
