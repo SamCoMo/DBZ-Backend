@@ -2,7 +2,6 @@ package com.samcomo.dbz.report.controller;
 
 
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
