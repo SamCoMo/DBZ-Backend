@@ -22,7 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
-public class AccessTokenFilter extends OncePerRequestFilter {
+public class AccessTokenFilter extends OncePerRequestFilter implements JwtFilter {
 
   private final JwtUtil jwtUtil;
 
@@ -30,23 +30,10 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
-    String accessToken = request.getHeader(ACCESS_TOKEN.getKey());
+    String accessToken = getAccessToken(request);
+    validateAccessToken(request, response, filterChain, accessToken);
 
-    if (!validateAccessToken(request, response, filterChain, accessToken)) {
-      return;
-    }
-
-    Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
-    MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
-        .orElseThrow(() -> new MemberException(INVALID_SESSION));
-
-    Member member = Member.builder()
-        .id(memberId)
-        .role(role)
-        .build();
-
-    MemberDetails memberDetails = new MemberDetails(member);
-
+    MemberDetails memberDetails = getMemberDetails(accessToken);
     Authentication authToken = new UsernamePasswordAuthenticationToken(
         memberDetails, null, memberDetails.getAuthorities());
 
@@ -55,27 +42,60 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private boolean validateAccessToken(HttpServletRequest request, HttpServletResponse response,
+  private String getAccessToken(HttpServletRequest request) {
+    return request.getHeader(ACCESS_TOKEN.getKey());
+  }
+
+  private void validateAccessToken(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain, String accessToken) throws IOException, ServletException {
 
-    if (accessToken == null) {
+    if (isNull(accessToken)) {
       filterChain.doFilter(request, response);
-      return false;
+      return;
     }
 
-    // 유효기간 검증
-    try {
-      jwtUtil.isExpired(accessToken);
+    checkExpiration(accessToken);
 
+    if (isTokenTypeCorrect(accessToken)) {
+      throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
+    }
+  }
+
+  private MemberDetails getMemberDetails(String token) {
+    Long memberId = getMemberId(token);
+    MemberRole role = getMemberRole(token);
+
+    return new MemberDetails(Member.builder()
+        .id(memberId)
+        .role(role)
+        .build());
+  }
+
+  @Override
+  public boolean isNull(String token) {
+    return token == null;
+  }
+
+  @Override
+  public void checkExpiration(String token) {
+    try {
+      jwtUtil.isExpired(token);
     } catch (ExpiredJwtException e) {
       throw new MemberException(ErrorCode.ACCESS_TOKEN_EXPIRED);
     }
+  }
 
-    // refresh 토큰 접근 방지
-    if (!jwtUtil.getTokenType(accessToken).equals(ACCESS_TOKEN.getKey())) {
-      throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
-    }
+  @Override
+  public boolean isTokenTypeCorrect(String token) {
+    return jwtUtil.getTokenType(token).equals(ACCESS_TOKEN.getKey());
+  }
 
-    return true;
+  private Long getMemberId(String token) {
+    return Long.valueOf(jwtUtil.getId(token));
+  }
+
+  private MemberRole getMemberRole(String token) {
+    return MemberRole.get(jwtUtil.getRole(token))
+        .orElseThrow(() -> new MemberException(INVALID_SESSION));
   }
 }
