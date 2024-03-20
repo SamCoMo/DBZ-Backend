@@ -8,16 +8,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samcomo.dbz.member.model.entity.Member;
-import com.samcomo.dbz.member.service.MemberService;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportDto.Form;
 import com.samcomo.dbz.report.model.dto.ReportDto.Response;
+import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.service.ReportService;
+import com.samcomo.dbz.utils.annotation.WithMockMember;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +33,6 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -49,9 +49,6 @@ public class ReportControllerTest {
   @MockBean
   private ReportService reportService;
 
-  @MockBean
-  private MemberService memberService;
-
   @Autowired
   private ObjectMapper objectMapper;
 
@@ -65,6 +62,7 @@ public class ReportControllerTest {
   @BeforeEach
   void setUp() throws JsonProcessingException {
     member = Member.builder()
+        .id(1L)
         .email("test@gmail.com")
         .build();
 
@@ -104,15 +102,13 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 등록 성공")
   void registerReportSuccess() throws Exception {
     //given
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
 
     Mockito
-        .when(reportService.uploadReport(Mockito.any(Member.class), Mockito.any(ReportDto.Form.class), Mockito.any()))
+        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any()))
         .thenReturn(response);
 
     //when
@@ -126,12 +122,13 @@ public class ReportControllerTest {
 
     //then
     result
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.reportId").value(1));
+        .andDo(print())
+        .andExpect(jsonPath("$.reportId").value(1))
+        .andExpect(jsonPath("$.title").value("test title"));
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("특정 게시글 가져오기 성공 ")
   void getReportSuccess() throws Exception {
     // given
@@ -144,9 +141,7 @@ public class ReportControllerTest {
         .longitude(127.12345)
         .build();
 
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
-    Mockito.when(reportService.getReport(reportId, member))
+    Mockito.when(reportService.getReport(reportId, member.getId()))
         .thenReturn(response);
     // when
     ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/report/" + reportId)
@@ -159,7 +154,7 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 목록 가져오기 성공 - \"PUBLISHED\" 상태")
   void getReportListSuccess() throws Exception {
 
@@ -216,15 +211,13 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 목록 가져오기 성공 - \"PUBLISHED\" 상태")
   void updateReportSuccess() throws Exception {
     // given
     Long reportId = 1L;
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
     Mockito.when(
-        reportService.updateReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any(), Mockito.any()))
+        reportService.updateReport(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any()))
         .thenReturn(response);
 
     // when
@@ -243,7 +236,7 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 삭제 성공")
   void deleteReportSuccess() throws Exception {
     // given
@@ -254,10 +247,7 @@ public class ReportControllerTest {
         .status(ReportStatus.DELETED.toString())
         .build();
 
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
-
-    Mockito.when(reportService.deleteReport(member, reportId))
+    Mockito.when(reportService.deleteReport(member.getId(), reportId))
         .thenReturn(deleteResponse);
 
     // when
@@ -273,7 +263,7 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 상태 \"PUBLISHED\"로 변경 성공")
   void completeProcessSuccess() throws Exception {
     // given
@@ -284,10 +274,7 @@ public class ReportControllerTest {
         .status(ReportStatus.FOUND.toString())
         .build();
 
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
-
-    Mockito.when(reportService.changeStatusToFound(member, reportId))
+    Mockito.when(reportService.changeStatusToFound(reportId, member.getId()))
         .thenReturn(foundResponse);
     // when
     ResultActions result = mockMvc.perform(
@@ -301,7 +288,7 @@ public class ReportControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "test@gmail.com", roles = {"MEMBER"})
+  @WithMockMember
   @DisplayName("게시글 검색 성공")
   void searchReport() throws Exception {
     // given
@@ -309,14 +296,14 @@ public class ReportControllerTest {
     boolean showsInProgressOnly = true;
     Pageable pageable = PageRequest.of(1, 10);
 
-    ReportSummaryDto reportSummaryDto = ReportSummaryDto.builder()
+    ReportSearchSummaryDto reportSearchSummaryDto = ReportSearchSummaryDto.builder()
         .reportId(1L)
         .title("test title")
         .build();
 
     CustomPageable customPageable = new CustomPageable(pageable.getPageNumber(), pageable.getPageSize());
-    CustomSlice<ReportSummaryDto> reportListSlice = CustomSlice.<ReportSummaryDto>builder()
-        .content(List.of(reportSummaryDto))
+    CustomSlice<ReportSearchSummaryDto> reportListSlice = CustomSlice.<ReportSearchSummaryDto>builder()
+        .content(List.of(reportSearchSummaryDto))
         .pageable(customPageable)
         .first(true)
         .last(false)
@@ -330,9 +317,6 @@ public class ReportControllerTest {
     params.add("object", object);
     params.add("page", String.valueOf(pageable.getPageNumber()));
     params.add("size", String.valueOf(pageable.getPageSize()));
-
-    Mockito.when(memberService.getMemberByAuthentication(Mockito.any()))
-        .thenReturn(member);
 
     Mockito.when(reportService.searchReport(object, showsInProgressOnly, pageable))
         .thenReturn(reportListSlice);
@@ -348,6 +332,5 @@ public class ReportControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].reportId").value(1L))
         .andExpect(jsonPath("$.content[0].title").value("test title"));
-
   }
 }
