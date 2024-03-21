@@ -1,7 +1,5 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
-import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_EXPIRED;
 import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_NOT_FOUND;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
@@ -11,7 +9,6 @@ import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.TokenType;
 import com.samcomo.dbz.member.model.entity.RefreshToken;
 import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -30,8 +27,8 @@ public class RefreshTokenFilter {
 
     validateRefreshToken(oldRefreshToken);
 
-    String newAccessToken = getNewToken(ACCESS_TOKEN, oldRefreshToken);
-    String newRefreshToken = getNewToken(REFRESH_TOKEN, oldRefreshToken);
+    String newAccessToken = createNewToken(ACCESS_TOKEN, oldRefreshToken);
+    String newRefreshToken = createNewToken(REFRESH_TOKEN, oldRefreshToken);
 
     rotateRefreshToken(oldRefreshToken, newRefreshToken);
 
@@ -46,9 +43,8 @@ public class RefreshTokenFilter {
   }
 
   private void validateRefreshToken(String oldRefreshToken) {
-    if (isNull(oldRefreshToken) || !isTokenTypeCorrect(oldRefreshToken)) {
-      throw new MemberException(INVALID_REFRESH_TOKEN);
-    }
+
+    jwtUtil.validateToken(oldRefreshToken, REFRESH_TOKEN);
 
     // 탈취한 refresh1 로 새로운 refresh2 가 생성된 경우 기존 유저의 refresh1 은 DB 에 존재하지 않는다.
     if (!isTokenInDataBase(oldRefreshToken)) {
@@ -56,15 +52,9 @@ public class RefreshTokenFilter {
       deleteAllRefreshTokenFromDataBase(oldRefreshToken);
       throw new MemberException(REFRESH_TOKEN_NOT_FOUND);
     }
-
-    try {
-      checkExpiration(oldRefreshToken);
-    } catch (ExpiredJwtException e) {
-      throw new MemberException(REFRESH_TOKEN_EXPIRED);
-    }
   }
 
-  private String getNewToken(TokenType tokenType, String oldRefreshToken) {
+  private String createNewToken(TokenType tokenType, String oldRefreshToken) {
     String memberId = jwtUtil.getId(oldRefreshToken);
     String role = jwtUtil.getRole(oldRefreshToken);
     return jwtUtil.createToken(tokenType, memberId, role);
@@ -97,19 +87,7 @@ public class RefreshTokenFilter {
     refreshTokenRepository.deleteAllByMemberId(memberId);
   }
 
-  public boolean isNull(String refreshToken) {
-    return refreshToken == null;
-  }
-
-  public void checkExpiration(String refreshToken) throws ExpiredJwtException {
-    jwtUtil.isExpired(refreshToken);
-  }
-
-  public boolean isTokenTypeCorrect(String refreshToken) {
-    return jwtUtil.getTokenType(refreshToken).equals(REFRESH_TOKEN.getKey());
-  }
-
-  public boolean isTokenInDataBase(String refreshToken) {
+  private boolean isTokenInDataBase(String refreshToken) {
     Long memberId = getMemberId(refreshToken);
     return refreshTokenRepository.existsByRefreshTokenAndMemberId(refreshToken, memberId);
   }
