@@ -13,8 +13,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,7 +52,8 @@ public class MemberController {
   @PostMapping("/reissue")
   @Operation(summary = "access 토큰 재발급")
   public ResponseEntity<Void> reissue(
-      @CookieValue("Refresh-Token") String refreshToken, HttpServletResponse response) {
+      @CookieValue(value = "Refresh-Token", required = false) String refreshToken,
+      HttpServletResponse response) {
 
     refreshTokenFilter.reissue(refreshToken, response);
 

@@ -2,6 +2,7 @@ package com.samcomo.dbz.global.config;
 
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
+import com.samcomo.dbz.member.jwt.filter.FilterMemberExceptionHandler;
 import com.samcomo.dbz.member.jwt.filter.LoginFilter;
 import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -67,6 +69,7 @@ public class SecurityConfig {
 
     // filter
     http
+        .addFilterBefore(new FilterMemberExceptionHandler(), LogoutFilter.class) // TODO : 커스텀 로그아웃 필터로 변경
         .addFilterBefore(
             new LoginFilter(authenticationManager(configuration), jwtUtil, refreshTokenRepository),
             UsernamePasswordAuthenticationFilter.class)
