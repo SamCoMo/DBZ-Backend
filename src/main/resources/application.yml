@@ -26,3 +26,9 @@ logging:
     org:
       springframework:
         jdbc: debug
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

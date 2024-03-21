@@ -55,7 +55,8 @@ public class SecurityConfig {
                 "/member/reissue",
                 "/docs/**",
                 "/v3/api-docs/**",
-                "/aop/"
+                "/aop/",
+                "/actuator/**"
             ).permitAll()
             .requestMatchers("/report/**", "/member/**").hasRole("MEMBER")
             .anyRequest().authenticated());

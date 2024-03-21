@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 public class ReportDto {
 
@@ -52,7 +51,7 @@ public class ReportDto {
     private Double longitude;
     private String phone;
     private boolean showsPhone;
-    private boolean isWriter;
+    private Long writerId;
     private Long views;
     private ReportStatus reportStatus;
     private LocalDateTime createdAt;
@@ -60,7 +59,7 @@ public class ReportDto {
     private List<ReportImageDto.Response> imageList;
 
     public static Response from(Report report,
-        List<ReportImageDto.Response> reportImageResponseList, boolean isWriter) {
+        List<ReportImageDto.Response> reportImageResponseList, Long writerId) {
       return Response.builder()
           .reportId(report.getId())
           .memberId(report.getMember().getId())
@@ -76,7 +75,7 @@ public class ReportDto {
           .phone(report.getShowsPhone() ? report.getMember().getPhone() : "X")
           .showsPhone(report.getShowsPhone())
           .views(report.getViews())
-          .isWriter(isWriter)
+          .writerId(writerId)
           .reportStatus(report.getReportStatus())
           .createdAt(report.getCreatedAt())
           .updatedAt(report.getUpdatedAt())
