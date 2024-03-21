@@ -1,15 +1,12 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
-import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.entity.Member;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,27 +23,22 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
 
+  private final static String REISSUE_URI = "/member/reissue";
+
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
-    String accessToken = request.getHeader(ACCESS_TOKEN.getKey());
+    String accessToken = getAccessToken(request);
 
-    if (!validateAccessToken(request, response, filterChain, accessToken)) {
+    if (!isAuthenticationRequired(accessToken) || isReIssueURI(request)) {
+      filterChain.doFilter(request, response);
       return;
     }
 
-    Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
-    MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
-        .orElseThrow(() -> new MemberException(INVALID_SESSION));
+    validateAccessToken(accessToken);
 
-    Member member = Member.builder()
-        .id(memberId)
-        .role(role)
-        .build();
-
-    MemberDetails memberDetails = new MemberDetails(member);
-
+    MemberDetails memberDetails = getMemberDetails(accessToken);
     Authentication authToken = new UsernamePasswordAuthenticationToken(
         memberDetails, null, memberDetails.getAuthorities());
 
@@ -55,27 +47,34 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private boolean validateAccessToken(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain, String accessToken) throws IOException, ServletException {
+  private boolean isReIssueURI(HttpServletRequest request) {
+    return REISSUE_URI.equals(request.getRequestURI());
+  }
 
-    if (accessToken == null) {
-      filterChain.doFilter(request, response);
-      return false;
-    }
+  private String getAccessToken(HttpServletRequest request) {
+    return request.getHeader(ACCESS_TOKEN.getKey());
+  }
 
-    // 유효기간 검증
-    try {
-      jwtUtil.isExpired(accessToken);
+  private void validateAccessToken(String accessToken) {
+    jwtUtil.validateTokenAndTokenType(accessToken, ACCESS_TOKEN);
+  }
 
-    } catch (ExpiredJwtException e) {
-      throw new MemberException(ErrorCode.ACCESS_TOKEN_EXPIRED);
-    }
+  private MemberDetails getMemberDetails(String accessToken) {
+    Long memberId = getMemberId(accessToken);
+    MemberRole role = getMemberRole(accessToken);
+    return MemberDetails.of(memberId, role);
+  }
 
-    // refresh 토큰 접근 방지
-    if (!jwtUtil.getTokenType(accessToken).equals(ACCESS_TOKEN.getKey())) {
-      throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
-    }
+  private boolean isAuthenticationRequired(String accessToken) {
+    return (accessToken != null && accessToken.trim().length() > 0);
+  }
 
-    return true;
+  private Long getMemberId(String accessToken) {
+    return jwtUtil.getId(accessToken);
+  }
+
+  private MemberRole getMemberRole(String accessToken) {
+    return MemberRole.get(jwtUtil.getRole(accessToken))
+        .orElseThrow(() -> new MemberException(INVALID_ACCESS_TOKEN));
   }
 }

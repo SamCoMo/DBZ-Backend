@@ -55,7 +55,8 @@ public class MemberController {
   @PostMapping("/reissue")
   @Operation(summary = "access 토큰 재발급")
   public ResponseEntity<Void> reissue(
-      @CookieValue("Refresh-Token") String refreshToken, HttpServletResponse response) {
+      @CookieValue(value = "Refresh-Token", required = false) String refreshToken,
+      HttpServletResponse response) {
 
     refreshTokenFilter.reissue(refreshToken, response);
 
