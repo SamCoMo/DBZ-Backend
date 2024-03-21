@@ -3,12 +3,14 @@ package com.samcomo.dbz.member.jwt;
 import static com.samcomo.dbz.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_TOKEN_TYPE;
 import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_EXPIRED;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.constants.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -30,9 +32,9 @@ public class JwtUtil {
         secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
   }
 
-  public String getId(String token) {
-    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
-        .get(ID_KEY, String.class);
+  public Long getId(String token) {
+    return Long.valueOf(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
+        .get(ID_KEY, String.class));
   }
 
   public String getRole(String token) {
@@ -45,11 +47,7 @@ public class JwtUtil {
         .getSubject();
   }
 
-  private boolean isValidJwtTokenFormat(String token) {
-    return Jwts.parser().verifyWith(secretKey).build().isSigned(token);
-  }
-
-  private boolean isAccessTokenString(TokenType tokenType) {
+  private boolean isAccessTokenType(TokenType tokenType) {
     return tokenType == ACCESS_TOKEN;
   }
 
@@ -57,18 +55,18 @@ public class JwtUtil {
     return getTokenType(token).equals(tokenType.getKey());
   }
 
-  public void validateToken(String token, TokenType tokenType) {
-    boolean isAccessToken = isAccessTokenString(tokenType);
+  public void validateTokenAndTokenType(String token, TokenType requiredTokenType) {
+    boolean isRequiredAccessType = isAccessTokenType(requiredTokenType);
 
-    if (!isValidJwtTokenFormat(token)) {
-      throw new MemberException(isAccessToken ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
-    }
     try {
-      if (!isTokenTypeCorrect(token, tokenType)) {
-        throw new MemberException(isAccessToken ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
+      if (!isTokenTypeCorrect(token, requiredTokenType)) {
+        throw new MemberException(INVALID_TOKEN_TYPE);
       }
     } catch (ExpiredJwtException e) {
-      throw new MemberException(isAccessToken ? ACCESS_TOKEN_EXPIRED : REFRESH_TOKEN_EXPIRED);
+      throw new MemberException(
+          isRequiredAccessType ? ACCESS_TOKEN_EXPIRED : REFRESH_TOKEN_EXPIRED);
+    } catch (JwtException | IllegalArgumentException e) {
+      throw new MemberException(isRequiredAccessType ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
     }
   }
 

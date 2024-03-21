@@ -1,13 +1,12 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.entity.Member;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,17 +56,13 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   }
 
   private void validateAccessToken(String accessToken) {
-    jwtUtil.validateToken(accessToken, ACCESS_TOKEN);
+    jwtUtil.validateTokenAndTokenType(accessToken, ACCESS_TOKEN);
   }
 
   private MemberDetails getMemberDetails(String accessToken) {
     Long memberId = getMemberId(accessToken);
     MemberRole role = getMemberRole(accessToken);
-
-    return new MemberDetails(Member.builder()
-        .id(memberId)
-        .role(role)
-        .build());
+    return MemberDetails.of(memberId, role);
   }
 
   private boolean isAuthenticationRequired(String accessToken) {
@@ -75,11 +70,11 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   }
 
   private Long getMemberId(String accessToken) {
-    return Long.valueOf(jwtUtil.getId(accessToken));
+    return jwtUtil.getId(accessToken);
   }
 
   private MemberRole getMemberRole(String accessToken) {
     return MemberRole.get(jwtUtil.getRole(accessToken))
-        .orElseThrow(() -> new MemberException(INVALID_SESSION));
+        .orElseThrow(() -> new MemberException(INVALID_ACCESS_TOKEN));
   }
 }

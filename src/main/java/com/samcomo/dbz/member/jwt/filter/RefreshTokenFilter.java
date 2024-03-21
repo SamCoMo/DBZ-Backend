@@ -44,7 +44,7 @@ public class RefreshTokenFilter {
 
   private void validateRefreshToken(String oldRefreshToken) {
 
-    jwtUtil.validateToken(oldRefreshToken, REFRESH_TOKEN);
+    jwtUtil.validateTokenAndTokenType(oldRefreshToken, REFRESH_TOKEN);
 
     // 탈취한 refresh1 로 새로운 refresh2 가 생성된 경우 기존 유저의 refresh1 은 DB 에 존재하지 않는다.
     if (!isTokenInDataBase(oldRefreshToken)) {
@@ -55,7 +55,7 @@ public class RefreshTokenFilter {
   }
 
   private String createNewToken(TokenType tokenType, String oldRefreshToken) {
-    String memberId = jwtUtil.getId(oldRefreshToken);
+    String memberId = String.valueOf(jwtUtil.getId(oldRefreshToken));
     String role = jwtUtil.getRole(oldRefreshToken);
     return jwtUtil.createToken(tokenType, memberId, role);
   }
@@ -93,6 +93,6 @@ public class RefreshTokenFilter {
   }
 
   private Long getMemberId(String refreshToken) {
-    return Long.valueOf(jwtUtil.getId(refreshToken));
+    return jwtUtil.getId(refreshToken);
   }
 }
