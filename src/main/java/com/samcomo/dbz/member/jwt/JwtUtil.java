@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.jwt;
 
 import com.samcomo.dbz.member.model.constants.TokenType;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -58,5 +59,13 @@ public class JwtUtil {
         .expiration(new Date(System.currentTimeMillis() + tokenType.getExpiredMs()))
         .signWith(secretKey)
         .compact();
+  }
+  public boolean validateToken(String token){
+    try{
+      Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+      return true;
+    } catch (JwtException | IllegalArgumentException e){
+      return false;
+    }
   }
 }
