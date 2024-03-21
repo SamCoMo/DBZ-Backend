@@ -28,6 +28,8 @@ public class ReportSummaryDto {
   private String streetAddress;
   private String roadAddress;
   private String imageUrl;
+  private Double latitude;
+  private Double longitude;
   private ReportStatus reportStatus;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
@@ -43,6 +45,8 @@ public class ReportSummaryDto {
         .streetAddress(report.getStreetAddress())
         .roadAddress(report.getRoadAddress())
         .imageUrl(report.getImageUrl())
+        .latitude(report.getLatitude())
+        .longitude(report.getLongitude())
         .reportStatus(report.getReportStatus())
         .createdAt(report.getCreatedAt())
         .updatedAt(report.getUpdatedAt())
