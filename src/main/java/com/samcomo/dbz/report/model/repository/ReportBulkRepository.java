@@ -25,7 +25,7 @@ public class ReportBulkRepository {
     jdbcTemplate.batchUpdate(
         sql,
         reportImageList,
-        reportImageList.size(),
+        10,
         (PreparedStatement ps, ReportImage reportImage)-> {
           ps.setString(1, reportImage.getImageUrl());
           ps.setLong(2, reportImage.getReport().getId());
