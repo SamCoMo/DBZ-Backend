@@ -46,7 +46,7 @@ public class RefreshTokenFilter {
   }
 
   private void validateRefreshToken(String oldRefreshToken) {
-    if (isNull(oldRefreshToken) || isTokenTypeCorrect(oldRefreshToken)) {
+    if (isNull(oldRefreshToken) || !isTokenTypeCorrect(oldRefreshToken)) {
       throw new MemberException(INVALID_REFRESH_TOKEN);
     }
 
@@ -106,7 +106,7 @@ public class RefreshTokenFilter {
   }
 
   public boolean isTokenTypeCorrect(String refreshToken) {
-    return !jwtUtil.getTokenType(refreshToken).equals(REFRESH_TOKEN.getKey());
+    return jwtUtil.getTokenType(refreshToken).equals(REFRESH_TOKEN.getKey());
   }
 
   public boolean isTokenInDataBase(String refreshToken) {

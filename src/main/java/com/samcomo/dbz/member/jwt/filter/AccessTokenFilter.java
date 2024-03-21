@@ -60,7 +60,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
       throw new MemberException(ACCESS_TOKEN_EXPIRED);
     }
 
-    if (isTokenTypeCorrect(accessToken)) {
+    if (!isTokenTypeCorrect(accessToken)) {
       throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
     }
   }
@@ -85,7 +85,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
 
 
   public boolean isTokenTypeCorrect(String accessToken) {
-    return !jwtUtil.getTokenType(accessToken).equals(ACCESS_TOKEN.getKey());
+    return jwtUtil.getTokenType(accessToken).equals(ACCESS_TOKEN.getKey());
   }
 
   private Long getMemberId(String accessToken) {
