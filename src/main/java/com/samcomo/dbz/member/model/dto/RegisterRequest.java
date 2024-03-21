@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = PRIVATE)
 @AllArgsConstructor(access = PRIVATE)
-public class RegisterRequestDto {
+public class RegisterRequest {
 
   private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
 

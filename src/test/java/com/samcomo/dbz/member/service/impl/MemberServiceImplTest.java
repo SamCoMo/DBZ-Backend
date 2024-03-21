@@ -14,9 +14,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.dto.LocationInfo;
-import com.samcomo.dbz.member.model.dto.MyInfo;
-import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
+import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
+import com.samcomo.dbz.member.model.dto.MyPageResponse;
+import com.samcomo.dbz.member.model.dto.RegisterRequest;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import java.util.Optional;
@@ -44,7 +44,7 @@ class MemberServiceImplTest {
   @Spy
   private PasswordEncoder passwordEncoder;
 
-  private RegisterRequestDto request;
+  private RegisterRequest request;
   private Member savedMember;
   private String rawEmail;
   private String rawNickname;
@@ -59,9 +59,9 @@ class MemberServiceImplTest {
     rawEmail = "samcomo@gmail.com";
     rawPhone = "010-1234-5678";
     rawNickname = "삼코모";
-    rawPassword = "123";
+    rawPassword = "abcd123!";
 
-    request = RegisterRequestDto.builder()
+    request = RegisterRequest.builder()
         .email(rawEmail)
         .nickname(rawNickname)
         .phone(rawPhone)
@@ -83,8 +83,8 @@ class MemberServiceImplTest {
   @DisplayName(value = "회원가입[성공]")
   void successRegister() {
     // given
-    given(memberRepository.findByEmail(any())).willReturn(Optional.empty());
-    given(memberRepository.findByNickname(any())).willReturn(Optional.empty());
+    given(memberRepository.existsByEmail(any())).willReturn(false);
+    given(memberRepository.existsByNickname(any())).willReturn(false);
 
     ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
 
@@ -92,9 +92,13 @@ class MemberServiceImplTest {
     memberService.register(request);
 
     // then
-    verify(memberRepository, times(1)).findByEmail(request.getEmail());
-    verify(memberRepository, times(1)).findByNickname(request.getNickname());
+    verify(memberRepository, times(1)).existsByEmail(request.getEmail());
+    verify(memberRepository, times(1)).existsByNickname(request.getNickname());
     verify(memberRepository, times(1)).save(captor.capture());
+
+    assertEquals(request.getEmail(), captor.getValue().getEmail());
+    assertEquals(request.getNickname(), captor.getValue().getNickname());
+    assertEquals(request.getPhone(), captor.getValue().getPhone());
 
     assertTrue(passwordEncoder.matches(rawPassword, savedMember.getPassword()));
   }
@@ -103,7 +107,7 @@ class MemberServiceImplTest {
   @DisplayName(value = "회원가입[실패] : 이메일 중복")
   void failValidateDuplicateMember_EmailException() {
     // given
-    given(memberRepository.findByEmail(request.getEmail())).willReturn(Optional.of(savedMember));
+    given(memberRepository.existsByEmail(any())).willReturn(true);
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
@@ -117,7 +121,8 @@ class MemberServiceImplTest {
   @DisplayName(value = "회원가입[실패] : 닉네임 중복")
   void failValidateDuplicateMember_NicknameException() {
     // given
-    given(memberRepository.findByNickname(request.getNickname())).willReturn(Optional.of(savedMember));
+    given(memberRepository.existsByEmail(any())).willReturn(false);
+    given(memberRepository.existsByNickname(any())).willReturn(true);
 
     // when
     MemberException memberException = assertThrows(MemberException.class,
@@ -131,23 +136,22 @@ class MemberServiceImplTest {
   @DisplayName("마이페이지[성공]")
   void successGetMyInfo() {
     // given
-    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.of(savedMember));
+    given(memberRepository.findById(any())).willReturn(Optional.of(savedMember));
 
     // when
-    MyInfo myInfo = memberService.getMyInfo(savedMember.getId());
+    MyPageResponse myPageResponse = memberService.getMyInfo(savedMember.getId());
 
     // then
-    assertEquals(myInfo.getEmail(), savedMember.getEmail());
-    assertEquals(myInfo.getNickname(), savedMember.getNickname());
-    assertEquals(myInfo.getPhone(), savedMember.getPhone());
-    assertEquals(myInfo.getProfileImageUrl(), savedMember.getProfileImageUrl());
+    assertEquals(savedMember.getEmail(), myPageResponse.getEmail());
+    assertEquals(savedMember.getNickname(), myPageResponse.getNickname());
+    assertEquals(savedMember.getPhone(), myPageResponse.getPhone());
   }
 
   @Test
   @DisplayName("마이페이지[실패] - DB 조회 실패")
   void failGetMyInfo() {
     // given
-    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.empty());
+    given(memberRepository.findById(any())).willReturn(Optional.empty());
 
     // when
     MemberException e = assertThrows(MemberException.class,
@@ -161,35 +165,33 @@ class MemberServiceImplTest {
   @DisplayName("위치업데이트[성공]")
   void successUpdateLocation() {
     // given
-    LocationInfo.Request locationUpdateRequest = LocationInfo.Request.builder()
+    LocationUpdateRequest updateRequest = LocationUpdateRequest.builder()
         .address("새로운 주소지")
         .longitude(37.12345)
         .latitude(127.12345)
         .build();
-    given(memberRepository.findById(savedMember.getId())).willReturn(Optional.of(savedMember));
+    given(memberRepository.findById(any())).willReturn(Optional.of(savedMember));
 
     Member updatedMember = savedMember;
-    updatedMember.setAddress(locationUpdateRequest.getAddress());
-    updatedMember.setLatitude(locationUpdateRequest.getLatitude());
-    updatedMember.setLongitude(locationUpdateRequest.getLongitude());
-    given(memberRepository.save(updatedMember)).willReturn(updatedMember);
+    updatedMember.setAddress(updateRequest.getAddress());
+    updatedMember.setLatitude(updateRequest.getLatitude());
+    updatedMember.setLongitude(updateRequest.getLongitude());
+    given(memberRepository.save(any())).willReturn(updatedMember);
+
+    ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
 
     // when
-    LocationInfo.Response locationInfo =
-        memberService.updateLocation(savedMember.getId(), locationUpdateRequest);
+    memberService.updateLocation(savedMember.getId(), updateRequest);
 
     // then
-    assertEquals(savedMember.getId(), locationInfo.getMemberId());
-    assertEquals(locationUpdateRequest.getAddress(), locationInfo.getAddress());
-    assertEquals(locationUpdateRequest.getLatitude(), locationInfo.getLatitude());
-    assertEquals(locationUpdateRequest.getLongitude(), locationInfo.getLongitude());
+    System.out.println(captor.getAllValues());
   }
 
   @Test
   @DisplayName("위치업데이트[실패] - DB 조회 실패")
   void failUpdateLocation() {
     // given
-    LocationInfo.Request locationUpdateRequest = LocationInfo.Request.builder()
+    LocationUpdateRequest updateRequest = LocationUpdateRequest.builder()
         .address("새로운 주소")
         .longitude(37.12345)
         .latitude(127.12345)
@@ -198,7 +200,7 @@ class MemberServiceImplTest {
 
     // when
     MemberException e = assertThrows(MemberException.class,
-        () -> memberService.updateLocation(savedMember.getId(), locationUpdateRequest));
+        () -> memberService.updateLocation(savedMember.getId(), updateRequest));
 
     // then
     assertEquals(MEMBER_NOT_FOUND, e.getErrorCode());

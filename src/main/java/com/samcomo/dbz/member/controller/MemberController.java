@@ -1,12 +1,13 @@
 package com.samcomo.dbz.member.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
-import com.samcomo.dbz.member.model.dto.LocationInfo;
+import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.dto.MyInfo;
-import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
+import com.samcomo.dbz.member.model.dto.MyPageResponse;
+import com.samcomo.dbz.member.model.dto.RegisterRequest;
 import com.samcomo.dbz.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,7 +35,7 @@ public class MemberController {
 
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
-  public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequestDto request) {
+  public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
 
     memberService.register(request);
 
@@ -43,12 +44,12 @@ public class MemberController {
 
   @GetMapping("/my")
   @Operation(summary = "회원 마이페이지")
-  public ResponseEntity<MyInfo> getMyInfo(
+  public ResponseEntity<MyPageResponse> getMyInfo(
       @AuthenticationPrincipal MemberDetails details) {
 
-    MyInfo myInfo = memberService.getMyInfo(details.getId());
+    MyPageResponse myPageResponse = memberService.getMyInfo(details.getId());
 
-    return ResponseEntity.ok(myInfo);
+    return ResponseEntity.ok(myPageResponse);
   }
 
   @PostMapping("/reissue")
@@ -63,12 +64,12 @@ public class MemberController {
 
   @PatchMapping("/location")
   @Operation(summary = "회원 위치 업데이트")
-  public ResponseEntity<LocationInfo.Response> updateLocation(
+  public ResponseEntity<Void> updateLocation(
       @AuthenticationPrincipal MemberDetails details,
-      @Valid @RequestBody LocationInfo.Request request) {
+      @Valid @RequestBody LocationUpdateRequest request) {
 
-    LocationInfo.Response location = memberService.updateLocation(details.getId(), request);
+    memberService.updateLocation(details.getId(), request);
 
-    return ResponseEntity.ok(location);
+    return ResponseEntity.status(OK).build();
   }
 }
