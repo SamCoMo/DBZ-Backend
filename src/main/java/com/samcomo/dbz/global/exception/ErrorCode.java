@@ -34,6 +34,10 @@ public enum ErrorCode {
 
   NICKNAME_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
 
+  INVALID_SESSION(HttpStatus.UNAUTHORIZED, "세션 정보가 유효하지 않습니다."),
+
+  TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰을 찾을 수 없습니다."),
+  
   ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "access 토큰이 만료되었습니다."),
 
   INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "access 토큰 정보가 유효하지 않습니다."),

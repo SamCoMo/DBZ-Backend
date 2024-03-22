@@ -1,14 +1,18 @@
 package com.samcomo.dbz.member.jwt;
 
+
+import static com.samcomo.dbz.global.exception.ErrorCode.TOKEN_NOT_FOUND;
+
+import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.model.constants.TokenType;
+import static com.samcomo.dbz.global.exception.ErrorCode.TOKEN_NOT_FOUND;
 import static com.samcomo.dbz.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_TOKEN_TYPE;
 import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_EXPIRED;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
-
-import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.constants.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -79,5 +83,15 @@ public class JwtUtil {
         .expiration(new Date(System.currentTimeMillis() + tokenType.getExpiredMs()))
         .signWith(secretKey)
         .compact();
+  }
+  public void validateAccessToken(String token){
+    if(token != null && !token.isEmpty()){
+      throw new MemberException(TOKEN_NOT_FOUND);
+    }
+    try{
+      Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+    } catch (JwtException | IllegalArgumentException e){
+      throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
+    }
   }
 }

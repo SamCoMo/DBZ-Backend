@@ -8,6 +8,7 @@ import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -60,7 +61,21 @@ public class SecurityConfig {
                 "/aop/",
                 "/actuator/**"
             ).permitAll()
-            .requestMatchers("/report/**", "/member/**").hasRole("MEMBER")
+            // member
+            .requestMatchers("/report/**").hasRole("MEMBER")
+            // report
+            .requestMatchers("/report/**").hasRole("MEMBER")
+            // pin
+            .requestMatchers(HttpMethod.POST, "/pin").hasRole("MEMBER") // Pin 생성
+            .requestMatchers(HttpMethod.PUT, "/pin/{pinId}").hasRole("MEMBER") // Pin 수정
+            .requestMatchers(HttpMethod.DELETE, "/pin/{pinId}").hasRole("MEMBER") // Pin 삭제
+            .requestMatchers(HttpMethod.GET, "/pin/report/{reportId}/pin-list").hasRole("MEMBER") // Report 의 Pin List 가져오기
+            .requestMatchers(HttpMethod.GET, "/pin/{pinId}").hasRole("MEMBER") // Pin 상세정보 가져오기
+            // chat
+            .requestMatchers(HttpMethod.POST, "/chat/room").hasRole("MEMBER") // 채팅방 생성
+            .requestMatchers(HttpMethod.GET, "/chat/member/room-list").hasRole("MEMBER") // 회원 채팅방 목록 조회
+            .requestMatchers(HttpMethod.GET, "/chat/room/{chatRoomId}/message-list").hasRole("MEMBER") // 채팅방 메시지 목록 조회
+            .requestMatchers(HttpMethod.DELETE, "/chat/room/{chatRoomId}").hasRole("MEMBER") // 채팅방 삭제
             .anyRequest().authenticated());
 
     // session : stateless
