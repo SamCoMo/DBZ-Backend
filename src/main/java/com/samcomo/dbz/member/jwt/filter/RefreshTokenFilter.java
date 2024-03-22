@@ -7,12 +7,9 @@ import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.TokenType;
-import com.samcomo.dbz.member.model.entity.RefreshToken;
-import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Component;
 public class RefreshTokenFilter {
 
   private final JwtUtil jwtUtil;
-  private final RefreshTokenRepository refreshTokenRepository;
 
   public void reissue(String oldRefreshToken, HttpServletResponse response) {
 
@@ -38,8 +34,8 @@ public class RefreshTokenFilter {
 
   @Transactional
   public void rotateRefreshToken(String oldRefreshToken, String newRefreshToken) {
-    deleteOldRefreshTokenFromDataBase(oldRefreshToken);
-    saveNewRefreshTokenToDataBase(newRefreshToken);
+    jwtUtil.deleteRefreshTokenFromDataBase(oldRefreshToken);
+    jwtUtil.saveRefreshTokenToDataBase(getMemberId(newRefreshToken), newRefreshToken);
   }
 
   private void validateRefreshToken(String oldRefreshToken) {
@@ -49,7 +45,7 @@ public class RefreshTokenFilter {
     // 탈취한 refresh1 로 새로운 refresh2 가 생성된 경우 기존 유저의 refresh1 은 DB 에 존재하지 않는다.
     if (!isTokenInDataBase(oldRefreshToken)) {
       // 탈취 가능성을 고려하여 토큰을 전부 삭제한 후 재로그인을 요청한다.
-      deleteAllRefreshTokenFromDataBase(oldRefreshToken);
+      jwtUtil.deleteAllRefreshTokenFromDataBase(oldRefreshToken);
       throw new MemberException(REFRESH_TOKEN_NOT_FOUND);
     }
   }
@@ -60,20 +56,6 @@ public class RefreshTokenFilter {
     return jwtUtil.createToken(tokenType, memberId, role);
   }
 
-  private void deleteOldRefreshTokenFromDataBase(String oldRefreshToken) {
-    Long memberId = getMemberId(oldRefreshToken);
-    refreshTokenRepository.deleteByRefreshTokenAndMemberId(oldRefreshToken, memberId);
-  }
-
-  private void saveNewRefreshTokenToDataBase(String newRefreshToken) {
-    Date expiration = new Date(System.currentTimeMillis() + REFRESH_TOKEN.getExpiredMs());
-    refreshTokenRepository.save(RefreshToken.builder()
-        .memberId(getMemberId(newRefreshToken))
-        .refreshToken(newRefreshToken)
-        .expiration(String.valueOf(expiration))
-        .build());
-  }
-
   private Cookie createCookie(String newRefreshToken) {
     Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), newRefreshToken);
     cookie.setMaxAge(24 * 60 * 60);
@@ -82,14 +64,8 @@ public class RefreshTokenFilter {
     return cookie;
   }
 
-  private void deleteAllRefreshTokenFromDataBase(String oldRefreshToken) {
-    Long memberId = getMemberId(oldRefreshToken);
-    refreshTokenRepository.deleteAllByMemberId(memberId);
-  }
-
   private boolean isTokenInDataBase(String refreshToken) {
-    Long memberId = getMemberId(refreshToken);
-    return refreshTokenRepository.existsByRefreshTokenAndMemberId(refreshToken, memberId);
+    return jwtUtil.isRefreshTokenInDataBase(refreshToken);
   }
 
   private Long getMemberId(String refreshToken) {

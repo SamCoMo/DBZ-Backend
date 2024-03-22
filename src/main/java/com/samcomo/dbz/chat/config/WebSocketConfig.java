@@ -1,15 +1,11 @@
 package com.samcomo.dbz.chat.config;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
-import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.entity.Member;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -84,27 +80,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
             message, StompHeaderAccessor.class);
 
-        // 클라이언트가 연결 시도
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-
-          // ACCESS TOKEN 가져오기
-          String accessToken = accessor.getFirstNativeHeader(
-              ACCESS_TOKEN.getKey());
-
-          // ACCESS TOKEN 유효성 검사
-          jwtUtil.validateAccessToken(accessToken);
-
-          // 커스텀 MemberDetails 객체 생성
-          Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
-          MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
-              .orElseThrow(() -> new MemberException(INVALID_SESSION));
-
-          Member member = Member.builder()
-              .id(memberId)
-              .role(role)
-              .build();
-
-          MemberDetails memberDetails = new MemberDetails(member);
+        if (isConnected(accessor)) {
+          String accessToken = getAccessTokenFrom(accessor);
+          MemberDetails memberDetails = jwtUtil.extractMemberDetailsFrom(accessToken);
 
           // Authentication 생성 후 Security Context 에 저장
           Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -115,5 +93,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return message;
       }
     });
+  }
+
+  private boolean isConnected(StompHeaderAccessor accessor) {
+    if (accessor == null) {
+      return false;
+    }
+    // 클라이언트가 연결 시도
+    return StompCommand.CONNECT.equals(accessor.getCommand());
+  }
+
+  private String getAccessTokenFrom(StompHeaderAccessor accessor) {
+    return accessor.getFirstNativeHeader(ACCESS_TOKEN.getKey());
   }
 }

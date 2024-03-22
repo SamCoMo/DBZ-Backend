@@ -1,19 +1,17 @@
 package com.samcomo.dbz.member.jwt.filter;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.AUTHENTICATION_FAILED;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
+import static org.springframework.http.HttpMethod.POST;
 
-import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.entity.RefreshToken;
-import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Date;
 import java.util.Iterator;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,19 +24,18 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
   private final JwtUtil jwtUtil;
-  private final RefreshTokenRepository refreshTokenRepository;
 
-  private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
-      new AntPathRequestMatcher("/member/login", "POST");
-
+  private static final String LOGIN_URI = "/member/login";
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
 
+  private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
+      new AntPathRequestMatcher(LOGIN_URI, POST.name());
+
   public CustomLoginFilter(
-      AuthenticationManager authenticationManager, JwtUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
+      AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
     super(LOGIN_REQUEST_MATCHER, authenticationManager);
     this.jwtUtil = jwtUtil;
-    this.refreshTokenRepository = refreshTokenRepository;
   }
 
   @Override
@@ -73,14 +70,22 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     String memberId = getMemberId(authResult);
     String role = getMemberRole(authResult);
 
+    jwtUtil.checkAlreadyLoggedIn(Long.valueOf(memberId));
+
     String accessToken = jwtUtil.createToken(ACCESS_TOKEN, memberId, role);
     String refreshToken = jwtUtil.createToken(REFRESH_TOKEN, memberId, role);
 
-    saveRefreshTokenToDataBase(memberId, refreshToken);
+    jwtUtil.saveRefreshTokenToDataBase(Long.valueOf(memberId), refreshToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
     response.addCookie(createCookie(refreshToken));
     response.setStatus(HttpServletResponse.SC_OK);
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(HttpServletRequest request,
+      HttpServletResponse response, AuthenticationException failed) {
+    throw new MemberException(AUTHENTICATION_FAILED);
   }
 
   private String getMemberId(Authentication authResult) {
@@ -94,28 +99,11 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     return auth.getAuthority();
   }
 
-  // 로그인 실패 응답 간이 구현
-  @Override
-  protected void unsuccessfulAuthentication(HttpServletRequest request,
-      HttpServletResponse response, AuthenticationException failed) {
-    throw new MemberException(ErrorCode.AUTHENTICATION_FAILED);
-  }
-
   private Cookie createCookie(String refreshToken) {
     Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), refreshToken);
     cookie.setMaxAge(24 * 60 * 60);
-    // cookie.setSecure(true); csrf 공격 방지
-    cookie.setHttpOnly(true); // xss 공격 방지 (js 접근 불가)
+    cookie.setHttpOnly(true);
+    // cookie.setSecure(true);
     return cookie;
-  }
-
-  private void saveRefreshTokenToDataBase(String memberId, String refreshToken) {
-    Date expiration = new Date(System.currentTimeMillis() + REFRESH_TOKEN.getExpiredMs());
-
-    refreshTokenRepository.save(RefreshToken.builder()
-        .memberId(Long.valueOf(memberId))
-        .refreshToken(refreshToken)
-        .expiration(String.valueOf(expiration))
-        .build());
   }
 }
