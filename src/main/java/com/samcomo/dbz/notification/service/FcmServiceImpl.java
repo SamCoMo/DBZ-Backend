@@ -3,10 +3,17 @@ package com.samcomo.dbz.notification.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.messaging.BatchResponse;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.MulticastMessage;
+import com.google.firebase.messaging.Notification;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.notification.exception.NotiException;
 import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
+import com.samcomo.dbz.notification.model.dto.SendReportDto;
+import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -62,7 +69,29 @@ public class FcmServiceImpl implements FcmService {
   }
 
   @Override
-  public void sendReportNotification(){
+  public void sendReportNotification(ReportDto.Form reportForm){
+
+    String token = "토큰";
+
+    SendReportDto sendReportDto = new SendReportDto(token, reportForm.getDescriptions().substring(0,20));
+
+    //게시글 주변 회원 검색 & token get
+//    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), DISTANCE);
+
+    List<String> tokenList = List.of("e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
+        "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP",
+        "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP");
+    MulticastMessage message = makeMultipleMessage(sendReportDto, tokenList);
+
+    try{
+      BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
+      log.info("게시글 알림 성공 successCount: " + response.getSuccessCount());
+    } catch (FirebaseMessagingException e) {
+      log.error("알림 전송 실패 : " + e.getMessage());
+      throw new NotiException(ErrorCode.REPORT_NOTIFICATION_FAILED);
+    }
+    //TODO: notiDB 저장
+
 
   }
 
@@ -92,6 +121,19 @@ public class FcmServiceImpl implements FcmService {
             ).build()).build();
 
     return objectMapper.writeValueAsString(fcmMessageDto);
+  }
+
+  private static MulticastMessage makeMultipleMessage(SendReportDto request,  List<String> tokenList) {
+    MulticastMessage message = MulticastMessage.builder()
+        .setNotification(Notification.builder()
+            .setTitle(request.getTitle())
+            .setBody(request.getBody())
+            .build())
+        .addAllTokens(tokenList)
+        .build();
+
+    log.info("message: {}", request.getBody());
+    return message;
   }
 
 }

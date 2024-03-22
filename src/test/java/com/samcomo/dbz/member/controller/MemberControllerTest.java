@@ -1,14 +1,24 @@
 package com.samcomo.dbz.member.controller;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
-import com.samcomo.dbz.member.service.impl.MemberServiceImpl;
+import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
+import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
+import com.samcomo.dbz.member.model.dto.MyPageResponse;
+import com.samcomo.dbz.member.model.dto.RegisterRequest;
+import com.samcomo.dbz.member.model.entity.Member;
+import com.samcomo.dbz.member.service.MemberService;
+import com.samcomo.dbz.utils.annotation.WithMockMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,19 +35,23 @@ import org.springframework.test.web.servlet.MockMvc;
 class MemberControllerTest {
 
   @MockBean
-  private MemberServiceImpl memberService;
+  private MemberService memberService;
+  @MockBean
+  private RefreshTokenFilter refreshTokenFilter;
 
   @Autowired
   private ObjectMapper objectMapper;
-
   @Autowired
   private MockMvc mockMvc;
 
-  private RegisterRequestDto request;
+  private RegisterRequest request;
   private String validEmail;
   private String validNickname;
   private String validPhone;
   private String validPassword;
+  private String validProfileImageUrl;
+  private MyPageResponse myPageResponse;
+  private Member member;
   private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
 
   @BeforeEach
@@ -47,13 +61,24 @@ class MemberControllerTest {
     validPhone = "010-1234-5678";
     validNickname = "삼코모";
     validPassword = "abcd1234!";
+    validProfileImageUrl = "image.jpg";
 
-    request = RegisterRequestDto.builder()
+    member = Member.builder()
+        .id(1L)
+        .email(validEmail)
+        .nickname(validNickname)
+        .profileImageUrl(validProfileImageUrl)
+        .phone(validPhone)
+        .build();
+
+    request = RegisterRequest.builder()
         .email(validEmail)
         .nickname(validNickname)
         .phone(validPhone)
         .password(validPassword)
         .build();
+
+    myPageResponse = MyPageResponse.from(member);
   }
 
   @Test
@@ -67,8 +92,7 @@ class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objectMapper.writeValueAsString(request)))
-        .andExpect(status().isCreated())
-        .andDo(print());
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -76,7 +100,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - 유효성검증(이메일)")
   void failRegisterEmail() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .email("x")
         .nickname(validNickname)
         .phone(validPhone)
@@ -93,8 +117,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -102,7 +125,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - 유효성검증(닉네임)")
   void failRegisterNickname() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .email(validEmail)
         .nickname("x")
         .phone(validPhone)
@@ -119,8 +142,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -128,7 +150,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - 유효성검증(전화번호)")
   void failRegisterPhone() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .email(validEmail)
         .nickname(validNickname)
         .phone("x")
@@ -145,8 +167,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").doesNotExist())
-        .andDo(print());
+        .andExpect(jsonPath("$.password").doesNotExist());
   }
 
   @Test
@@ -154,7 +175,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - 유효성검증(비밀번호)")
   void failRegisterPassword() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .email(validEmail)
         .nickname(validNickname)
         .phone(validPhone)
@@ -171,8 +192,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
   }
 
   @Test
@@ -180,7 +200,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - 유효성검증(all)")
   void failRegisterAll() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .email("x")
         .nickname("x")
         .phone("x")
@@ -197,8 +217,7 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
   }
 
   @Test
@@ -206,7 +225,7 @@ class MemberControllerTest {
   @DisplayName(value = "회원가입[실패] - null체크(all)")
   void failRegisterNull() throws Exception {
 
-    RegisterRequestDto request = RegisterRequestDto.builder()
+    RegisterRequest request = RegisterRequest.builder()
         .build();
 
     mockMvc.perform(
@@ -219,7 +238,156 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("이메일" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.nickname").value("닉네임" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.phone").value("전화번호" + REQUIRED_FIELD_MESSAGE))
-        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE))
-        .andDo(print());
+        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE));
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "마이페이지[성공]")
+  void successGetMyPage() throws Exception {
+
+    given(memberService.getMyInfo(anyLong()))
+        .willReturn(myPageResponse);
+
+    mockMvc.perform(
+            get("/member/my")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.email").value(validEmail))
+        .andExpect(jsonPath("$.nickname").value(validNickname))
+        .andExpect(jsonPath("$.profileImageUrl").value(validProfileImageUrl))
+        .andExpect(jsonPath("$.phone").value(validPhone));
+  }
+
+  @Test
+//  @WithMockMember
+  @DisplayName(value = "마이페이지[실패] - 인가 실패")
+  void failGetMyPage1() throws Exception {
+
+    mockMvc.perform(
+            get("/member/my")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "마이페이지[실패] - DB 조회 실패")
+  void failGetMyPage2() throws Exception {
+
+    given(memberService.getMyInfo(member.getId()))
+        .willThrow(new MemberException(MEMBER_NOT_FOUND));
+
+    mockMvc.perform(
+            get("/member/my")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[성공]")
+  void successUpdateLocation() throws Exception {
+    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+        .address("새로운 주소")
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationUpdateRequest)))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - address null")
+  void failUpdateLocation() throws Exception {
+    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationUpdateRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - address blank/whiteSpace")
+  void failUpdateLocation2() throws Exception {
+    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+        .address(" ")
+        .latitude(37.12345)
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationUpdateRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - latitude null")
+  void failUpdateLocation3() throws Exception {
+    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+        .address("새로운 주소")
+        .longitude(127.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationUpdateRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").value("위도는 필수 항목입니다."))
+        .andExpect(jsonPath("$.longitude").doesNotExist());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName(value = "위치업데이트[실패] - longitude null")
+  void failUpdateLocation4() throws Exception {
+    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+        .address("새로운 주소")
+        .latitude(37.12345)
+        .build();
+
+    mockMvc.perform(
+            patch("/member/location")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objectMapper.writeValueAsString(locationUpdateRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").value("경도는 필수 항목입니다."));
   }
 }

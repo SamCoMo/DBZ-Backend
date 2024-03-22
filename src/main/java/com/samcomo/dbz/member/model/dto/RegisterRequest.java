@@ -1,14 +1,20 @@
 package com.samcomo.dbz.member.model.dto;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import com.samcomo.dbz.global.utils.annotation.EmailCheck;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-public class RegisterRequestDto {
+@NoArgsConstructor(access = PRIVATE)
+@AllArgsConstructor(access = PRIVATE)
+public class RegisterRequest {
 
   private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
 

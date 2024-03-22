@@ -27,6 +27,8 @@ jobs:
       - name: Set application.yml
         run: |
           echo "${{secrets.APPLICATION_YML}}" | base64 --decode > src/main/resources/application.yml
+          mkdir -p src/main/resources/firebase
+          echo "${{secrets.FIREBASE_KEY_FILE}}" | base64 --decode > src/main/resources/firebase/firebase-adminsdk.json
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build -x test
@@ -42,7 +44,7 @@ jobs:
           docker build -t ${{secrets.DOCKER_USER}}/samcomo . 
           docker push ${{secrets.DOCKER_USER}}/samcomo:latest
 
-      - name: excuting remote ssh commands
+      - name: Excuting remote ssh commands & Run container
         uses: appleboy/ssh-action@v0.1.6 # ssh 접속하는 오픈소스
         with:
           host: ${{ secrets.EC2_HOST }} # 인스턴스 IP

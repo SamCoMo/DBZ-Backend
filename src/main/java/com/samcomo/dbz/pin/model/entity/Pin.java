@@ -1,5 +1,7 @@
 package com.samcomo.dbz.pin.model.entity;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.report.model.entity.Report;
@@ -17,13 +19,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
+@Getter
+@Builder
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 public class Pin extends BaseEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long pinId;
@@ -36,16 +38,18 @@ public class Pin extends BaseEntity {
   @JoinColumn
   private Member member;
 
+  @Setter
   private String description;
 
+  @Setter
   private LocalDateTime foundAt;
 
-  private String streetAddress;
+  @Setter
+  private String address;
 
-  private String roadAddress;
-
+  @Setter
   private Double latitude;
 
+  @Setter
   private Double longitude;
-
 }
