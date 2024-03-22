@@ -1,11 +1,8 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 
-import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
-import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,19 +26,16 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
-    String accessToken = getAccessToken(request);
-
-    if (!isAuthenticationRequired(accessToken) || isReIssueURI(request)) {
+    if (!isAuthenticationRequired(request)) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    validateAccessToken(accessToken);
+    String accessToken = getAccessToken(request);
+    MemberDetails memberDetails = jwtUtil.extractMemberDetailsFrom(accessToken);
 
-    MemberDetails memberDetails = getMemberDetails(accessToken);
     Authentication authToken = new UsernamePasswordAuthenticationToken(
         memberDetails, null, memberDetails.getAuthorities());
-
     SecurityContextHolder.getContext().setAuthentication(authToken);
 
     filterChain.doFilter(request, response);
@@ -55,26 +49,14 @@ public class AccessTokenFilter extends OncePerRequestFilter {
     return request.getHeader(ACCESS_TOKEN.getKey());
   }
 
-  private void validateAccessToken(String accessToken) {
-    jwtUtil.validateTokenAndTokenType(accessToken, ACCESS_TOKEN);
+  private boolean isAuthenticationRequired(HttpServletRequest request) {
+    if (isReIssueURI(request)) {
+      return false;
+    }
+    return isAccessTokenPresent(getAccessToken(request));
   }
 
-  private MemberDetails getMemberDetails(String accessToken) {
-    Long memberId = getMemberId(accessToken);
-    MemberRole role = getMemberRole(accessToken);
-    return MemberDetails.of(memberId, role);
-  }
-
-  private boolean isAuthenticationRequired(String accessToken) {
-    return (accessToken != null && accessToken.trim().length() > 0);
-  }
-
-  private Long getMemberId(String accessToken) {
-    return jwtUtil.getId(accessToken);
-  }
-
-  private MemberRole getMemberRole(String accessToken) {
-    return MemberRole.get(jwtUtil.getRole(accessToken))
-        .orElseThrow(() -> new MemberException(INVALID_ACCESS_TOKEN));
+  private boolean isAccessTokenPresent(String accessToken) {
+    return accessToken != null && accessToken.trim().length() > 0;
   }
 }

@@ -50,6 +50,12 @@ public enum ErrorCode {
 
   REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "사용할 수 없는 refresh 토큰입니다. 다시 로그인해주세요."),
 
+  ALREADY_LOGGED_OUT(HttpStatus.BAD_REQUEST, "이미 로그아웃 되어있는 사용자입니다."),
+
+  ALREADY_LOGGED_IN(HttpStatus.BAD_REQUEST, "이미 로그인 되어있는 사용자입니다."),
+
+  AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인 인증에 실패했습니다."),
+
   // Pin
 
   PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),
