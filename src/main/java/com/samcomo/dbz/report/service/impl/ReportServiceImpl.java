@@ -77,7 +77,7 @@ public class ReportServiceImpl implements ReportService {
     return ReportDto.Response.from(newReport, savedImageList.stream()
             .map(ReportImageDto.Response::from)
             .collect(Collectors.toList())
-        , true
+        , memberId
     );
   }
 
@@ -87,8 +87,6 @@ public class ReportServiceImpl implements ReportService {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
-
-    boolean isWriter = report.getMember().getId() == memberId;
 
     log.info("현재 조회수 : {}", report.getViews());
 
@@ -103,7 +101,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     log.info("================Finish 조회수 : {}===================", newReport.getViews());
-    return ReportDto.Response.from(newReport, reportImageResponseList, isWriter);
+    return ReportDto.Response.from(newReport, reportImageResponseList, report.getMember().getId());
   }
 
   @Override
@@ -185,7 +183,7 @@ public class ReportServiceImpl implements ReportService {
         newReport,
         updatedReportImageList.stream()
             .map(ReportImageDto.Response::from)
-            .collect(Collectors.toList()), true);
+            .collect(Collectors.toList()), memberId);
   }
 
   @Override

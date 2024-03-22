@@ -3,6 +3,7 @@ spring:
     redis:
       port: 6379
       host: 220.85.169.165
+      timeout: 0
 
     mongodb:
       username: ${MONGO_USERNAME} #root

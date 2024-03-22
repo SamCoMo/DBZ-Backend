@@ -61,6 +61,7 @@ public class ReportControllerTest {
 
   @BeforeEach
   void setUp() throws JsonProcessingException {
+
     member = Member.builder()
         .id(1L)
         .email("test@gmail.com")
@@ -108,7 +109,8 @@ public class ReportControllerTest {
     //given
 
     Mockito
-        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any()))
+        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class
+        ), Mockito.any()))
         .thenReturn(response);
 
     //when
@@ -122,7 +124,6 @@ public class ReportControllerTest {
 
     //then
     result
-        .andDo(print())
         .andExpect(jsonPath("$.reportId").value(1))
         .andExpect(jsonPath("$.title").value("test title"));
   }
