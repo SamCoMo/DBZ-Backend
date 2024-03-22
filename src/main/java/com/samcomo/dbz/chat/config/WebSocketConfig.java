@@ -92,10 +92,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
               ACCESS_TOKEN.getKey());
 
           // ACCESS TOKEN 유효성 검사
-          jwtUtil.validateAccessToken(accessToken);
+          jwtUtil.validateTokenAndTokenType(accessToken, ACCESS_TOKEN);
 
           // 커스텀 MemberDetails 객체 생성
-          Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
+          Long memberId = jwtUtil.getId(accessToken);
           MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
               .orElseThrow(() -> new MemberException(INVALID_SESSION));
 
