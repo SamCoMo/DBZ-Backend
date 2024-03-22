@@ -1,7 +1,7 @@
 package com.samcomo.dbz.chat.config;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_SESSION;
+import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   // 메시지 브로커 구성 ( 메시지 보낼때 사용하는 경로 설정 )
   @Override
-  public void configureMessageBroker (MessageBrokerRegistry registry){
+  public void configureMessageBroker(MessageBrokerRegistry registry) {
     // "/chatapp 경로로 통해 들어오는 메시지 -> 애플레케이션 내부로 라우팅되어서 처리
     registry.setApplicationDestinationPrefixes("/chatapp")
         // "/chatrooms" 메시지 브로커 활성화
@@ -52,7 +52,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   // STOMP 프로토콜 사용시 WebSocket 엔드포인트 : "/ws"
   @Override
-  public void registerStompEndpoints(StompEndpointRegistry registry){
+  public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/ws")
         .setAllowedOriginPatterns("*")
         .withSockJS();
@@ -76,37 +76,41 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   // client -> 들어오는 메시지 처리 인터셉터 구성
   @Override
-  public void configureClientInboundChannel(ChannelRegistration registration){
+  public void configureClientInboundChannel(ChannelRegistration registration) {
     registration.interceptors(new ChannelInterceptor() {
       // 메시지가 전송되기 전에 호출 -> 사용자 인증처리
       @Override
       public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
+            message, StompHeaderAccessor.class);
 
         // 클라이언트가 연결 시도
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-          String jwtToken = accessor.getFirstNativeHeader("Authorization");
-          if (jwtToken != null && !jwtToken.isEmpty() && jwtUtil.validateToken(jwtToken)) {
-            // 토큰이 유효한 경우 -> Authentication 정보 Security Context 에 저장
-            Long memberId = Long.valueOf(jwtUtil.getId(jwtToken));
-            MemberRole role = MemberRole.get(jwtUtil.getRole(jwtToken))
-                .orElseThrow(() -> new MemberException(INVALID_SESSION));
 
-            Member member = Member.builder()
-                .id(memberId)
-                .role(role)
-                .build();
+          // ACCESS TOKEN 가져오기
+          String accessToken = accessor.getFirstNativeHeader(
+              ACCESS_TOKEN.getKey());
 
-            MemberDetails memberDetails = new MemberDetails(member);
+          // ACCESS TOKEN 유효성 검사
+          jwtUtil.validateAccessToken(accessToken);
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                memberDetails, null, memberDetails.getAuthorities());
+          // 커스텀 MemberDetails 객체 생성
+          Long memberId = Long.valueOf(jwtUtil.getId(accessToken));
+          MemberRole role = MemberRole.get(jwtUtil.getRole(accessToken))
+              .orElseThrow(() -> new MemberException(INVALID_SESSION));
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+          Member member = Member.builder()
+              .id(memberId)
+              .role(role)
+              .build();
 
-          } else {
-            throw new MemberException(INVALID_ACCESS_TOKEN);
-          }
+          MemberDetails memberDetails = new MemberDetails(member);
+
+          // Authentication 생성 후 Security Context 에 저장
+          Authentication authentication = new UsernamePasswordAuthenticationToken(
+              memberDetails, null, memberDetails.getAuthorities());
+
+          SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         return message;
       }

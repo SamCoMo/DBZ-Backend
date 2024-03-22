@@ -1,5 +1,9 @@
 package com.samcomo.dbz.member.jwt;
 
+import static com.samcomo.dbz.global.exception.ErrorCode.TOKEN_NOT_FOUND;
+
+import com.samcomo.dbz.global.exception.ErrorCode;
+import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.constants.TokenType;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -60,12 +64,14 @@ public class JwtUtil {
         .signWith(secretKey)
         .compact();
   }
-  public boolean validateToken(String token){
+  public void validateAccessToken(String token){
+    if(token != null && !token.isEmpty()){
+      throw new MemberException(TOKEN_NOT_FOUND);
+    }
     try{
       Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-      return true;
     } catch (JwtException | IllegalArgumentException e){
-      return false;
+      throw new MemberException(ErrorCode.INVALID_ACCESS_TOKEN);
     }
   }
 }
