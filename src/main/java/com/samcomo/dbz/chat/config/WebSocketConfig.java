@@ -77,8 +77,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
       // 메시지가 전송되기 전에 호출 -> 사용자 인증처리
       @Override
       public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
-            message, StompHeaderAccessor.class);
+
+        StompHeaderAccessor accessor =
+            MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (isConnected(accessor)) {
           String accessToken = getAccessTokenFrom(accessor);

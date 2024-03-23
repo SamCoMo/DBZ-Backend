@@ -1,14 +1,15 @@
 package com.samcomo.dbz.chat.service.impl;
 
-import com.samcomo.dbz.chat.dto.ChatRoomDto;
+import static com.samcomo.dbz.global.exception.ErrorCode.CHAT_MESSAGE_NOT_FOUND;
+
 import com.samcomo.dbz.chat.exception.ChatException;
+import com.samcomo.dbz.chat.model.dto.ChatRoomDto;
 import com.samcomo.dbz.chat.model.entity.ChatMessage;
 import com.samcomo.dbz.chat.model.entity.ChatRoom;
 import com.samcomo.dbz.chat.model.repository.ChatMessageRepository;
 import com.samcomo.dbz.chat.model.repository.ChatRoomRepository;
 import com.samcomo.dbz.chat.service.ChatRoomService;
 import com.samcomo.dbz.chat.util.ChatUtils;
-import com.samcomo.dbz.global.exception.ErrorCode;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -28,11 +29,10 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   private final ChatMessageRepository chatMessageRepository;
   private final ChatUtils chatUtils;
 
-
   @Override
   @Transactional
   public ChatRoomDto createOrGetChatRoom(String memberId, String recipientId) {
-    // 채팅방 ID 생성
+
     String chatRoomId = generateRoomId(memberId, recipientId);
     Set<String> memberEmailList = new HashSet<>(Arrays.asList(memberId, recipientId));
 
@@ -42,8 +42,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
           ChatRoom chatRoom = ChatRoom.builder()
               .chatRoomId(chatRoomId)
               .memberIdList(memberEmailList)
-              .lastChatMessageContent(null)
-              .lastChatMessageAt(null)
+              .lastMessageContent(null)
+              .lastMessageSentAt(null)
               .build();
           return chatRoomRepository.save(chatRoom);
         }));
@@ -59,17 +59,16 @@ public class ChatRoomServiceImpl implements ChatRoomService {
 
   @Override
   public ChatRoomDto updateLastChatInfo(String chatRoomId, String memberId) {
-    // 회원, 채팅방 검증
+
     ChatRoom chatRoom = chatUtils.verifyChatRoomAndMember(chatRoomId, memberId);
 
     // 마지막 채팅 조회
-    ChatMessage chatMessage
-        = chatMessageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoomId)
-        .orElseThrow(() -> new ChatException(ErrorCode.CHAT_MESSAGE_NOT_FOUND));
+    ChatMessage chatMessage =
+        chatMessageRepository.findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoomId)
+            .orElseThrow(() -> new ChatException(CHAT_MESSAGE_NOT_FOUND));
 
-    // 마지막 채팅내역, 채팅시간 업데이트
-    chatRoom.setLastChatMessageContent(chatMessage.getContent());
-    chatRoom.setLastChatMessageAt(chatMessage.getCreatedAt());
+    chatRoom.setLastMessageContent(chatMessage.getContent());
+    chatRoom.setLastMessageSentAt(chatMessage.getCreatedAt());
 
     return ChatRoomDto.from(chatRoomRepository.save(chatRoom));
   }
@@ -77,28 +76,24 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   @Override
   @Transactional
   public void deleteChatRoom(String chatRoomId, String memberId) {
-    // 회원, 채팅방 검증
+
     ChatRoom chatRoom = chatUtils.verifyChatRoomAndMember(chatRoomId, memberId);
 
-    // 채팅방 삭제
     chatRoomRepository.delete(chatRoom);
     log.info("Deleted chatRoom : {}", chatRoomId);
   }
 
   @Override
   public void deleteChatRoomIfEmptyMessage(String chatRoomId, String memberId) {
-    // 회원, 채팅방 검증
+
     ChatRoom chatRoom = chatUtils.verifyChatRoomAndMember(chatRoomId, memberId);
 
-    // 메시지 조회
     List<ChatMessage> chatMessageList = chatMessageRepository.findByChatRoomId(chatRoomId);
 
-    // 채팅방에 메시지 없으면 삭제
     if (chatMessageList.isEmpty()) {
       chatRoomRepository.delete(chatRoom);
       log.info("Deleted Empty chatRoom : {}", chatRoomId);
     }
-
     log.info("deleteChatRoomIfEmptyMessage : chatRoom : {} : is not Empty", chatRoomId);
   }
 

@@ -1,5 +1,7 @@
 package com.samcomo.dbz.chat.model.entity;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -12,11 +14,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 @Document
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 public class ChatMessage {
+
   @Id
   private String chatMessageId;
   private String chatRoomId;
