@@ -18,6 +18,7 @@ import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportWithUrl;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.entity.ReportImage;
+import com.samcomo.dbz.report.model.repository.ReportBulkRepository;
 import com.samcomo.dbz.report.model.repository.ReportImageRepository;
 import com.samcomo.dbz.report.model.repository.ReportRepository;
 import com.samcomo.dbz.report.service.impl.ReportServiceImpl;
@@ -30,7 +31,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -46,30 +46,10 @@ import org.springframework.web.multipart.MultipartFile;
 @ExtendWith(MockitoExtension.class)
 public class ReportServiceTest {
 
-  static class DoubleMatcher implements ArgumentMatcher<Double>{
-
-    private Double doubleNum;
-    public DoubleMatcher(double doubleNum) {
-      this.doubleNum = doubleNum;
-    }
-
-    @Override
-    public boolean matches(Double argument) {
-      return true;
-    }
-  }
-
-  static class PageableMatcher implements ArgumentMatcher<Pageable>{
-
-    @Override
-    public boolean matches(Pageable argument) {
-
-      return true;
-    }
-  }
-
   @Mock
   private ReportRepository reportRepository;
+  @Mock
+  private ReportBulkRepository reportBulkRepository;
   @Mock
   private MemberRepository memberRepository;
   @Mock
@@ -132,7 +112,7 @@ public class ReportServiceTest {
     newReport.setId(1L);
     Mockito.when(reportRepository.save(Mockito.any(Report.class)))
         .thenReturn(newReport);
-    Mockito.when(reportImageRepository.saveAll(Mockito.any(List.class)))
+    Mockito.when(reportBulkRepository.saveAllWithBulk(Mockito.any()))
         .thenReturn(List.of(reportImage, reportImage));
 
     //when
@@ -316,7 +296,7 @@ public class ReportServiceTest {
 
     Mockito.when(reportRepository.save(report))
         .thenReturn(report);
-    Mockito.when(reportImageRepository.saveAll(Mockito.any(List.class)))
+    Mockito.when(reportBulkRepository.saveAllWithBulk(Mockito.any()))
         .thenReturn(List.of(reportImage1, reportImage2));
 
     ArgumentCaptor<String> fileNameCaptor = ArgumentCaptor.forClass(String.class);

@@ -6,7 +6,7 @@ import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
 import com.samcomo.dbz.global.entity.BaseEntity;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.MemberStatus;
-import com.samcomo.dbz.member.model.dto.RegisterRequestDto;
+import com.samcomo.dbz.member.model.dto.RegisterRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
@@ -49,15 +50,18 @@ public class Member extends BaseEntity {
 
   private String fcmToken;
 
+  @Setter
+  private String address;
+  @Setter
   private Double latitude;
+  @Setter
   private Double longitude;
 
   public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
-
     this.password = passwordEncoder.encode(rawPassword);
   }
 
-  public static Member from(RegisterRequestDto request) {
+  public static Member from(RegisterRequest request) {
     return Member.builder()
         .email(request.getEmail())
         .nickname(request.getNickname())

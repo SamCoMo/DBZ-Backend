@@ -36,6 +36,26 @@ public enum ErrorCode {
 
   INVALID_SESSION(HttpStatus.UNAUTHORIZED, "세션 정보가 유효하지 않습니다."),
 
+  TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "토큰을 찾을 수 없습니다."),
+  
+  ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "access 토큰이 만료되었습니다."),
+
+  INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "access 토큰 정보가 유효하지 않습니다."),
+
+  REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "refresh 토큰이 만료되었습니다."),
+
+  INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "refresh 토큰 정보가 유효하지 않습니다."),
+
+  INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "토큰 타입이 올바르지 않습니다."),
+
+  REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "사용할 수 없는 refresh 토큰입니다. 다시 로그인해주세요."),
+
+  ALREADY_LOGGED_OUT(HttpStatus.BAD_REQUEST, "이미 로그아웃 되어있는 사용자입니다."),
+
+  ALREADY_LOGGED_IN(HttpStatus.BAD_REQUEST, "이미 로그인 되어있는 사용자입니다."),
+
+  AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인 인증에 실패했습니다."),
+
   // Pin
 
   PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),
