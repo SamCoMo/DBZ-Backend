@@ -20,10 +20,12 @@ import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.NotificationDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import com.samcomo.dbz.notification.model.dto.SendReportDto;
-import com.samcomo.dbz.notification.model.entity.Noti;
-import com.samcomo.dbz.notification.model.repository.NotificationRepository;
+import com.samcomo.dbz.notification.model.entity.Notifi;
+import com.samcomo.dbz.notification.model.repository.NotifiRepository;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,8 +51,10 @@ public class NotificationServiceImpl implements NotificationService {
   @Value("${fcm.api.url}")
   private String FCM_API_URL;
 
-  private final NotificationRepository notificationRepository;
   private final MemberRepository memberRepository;
+  private final NotifiRepository notifiRepository;
+
+  private final static int DISTANCE = 3;
 
   @Override
   public void sendPinNotification(Long memberId) {
@@ -80,11 +84,12 @@ public class NotificationServiceImpl implements NotificationService {
 
       Response response = client.newCall(httpRequest).execute();
 
-//      notificationRepository.save(Noti.builder()
-//          .member(member)
-//          .type(NotificationType.REPORT)
-//          .message(sendPinDto.getBody())
-//          .build());
+      notifiRepository.save(Notifi.builder()
+          .memberId(memberId.toString())
+          .type(NotificationType.REPORT)
+          .message(sendPinDto.getBody())
+          .createdAt(LocalDateTime.now())
+          .build());
 
       log.info("핀 알림 전송 성공: {}", Objects.requireNonNull(response.body()).string());
     } catch (IOException e) {
@@ -95,13 +100,16 @@ public class NotificationServiceImpl implements NotificationService {
   @Override
   public void sendReportNotification(Long memberId, ReportDto.Form reportForm) {
 
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+//    Member member = memberRepository.findById(memberId)
+//        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
 
     String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
 
     //게시글 주변 회원 검색 & token get
 //    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), DISTANCE);
+//    List<Member> memberList = memberRepository.findAllInActive(reportForm.getLatitude(),
+//        reportForm.getLongitude(), DISTANCE);
+
     List<String> tokenList = List.of(token, token, token);
 
     SendReportDto sendReportDto = new SendReportDto(token,
@@ -117,21 +125,39 @@ public class NotificationServiceImpl implements NotificationService {
       throw new NotiException(ErrorCode.REPORT_NOTIFICATION_FAILED);
     }
 
-    notificationRepository.save(Noti.builder()
-        .member(member)
-        .type(NotificationType.REPORT)
-        .message(sendReportDto.getBody())
-        .build());
+    List<Notifi> notifiList = new ArrayList<>();
 
+//    for ( Member member : memberList) {
+//      notifiList.add(
+//          Notifi.builder()
+//              .memberId(member.getId().toString())
+//              .type(NotificationType.REPORT)
+//              .message(sendReportDto.getBody())
+//              .createdAt(LocalDateTime.now())
+//              .build()
+//      );
+//    }
+
+    for ( String t : tokenList) {
+      notifiList.add(
+          Notifi.builder()
+              .memberId(memberId.toString())
+              .type(NotificationType.REPORT)
+              .message(sendReportDto.getBody())
+              .createdAt(LocalDateTime.now())
+              .build()
+      );
+    }
+    notifiRepository.saveAll(notifiList);
   }
 
   @Override
-  public List<NotificationDto> getNotificationList(Long memberId){
+  public List<NotificationDto> getNotificationList(Long memberId) {
 
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
 
-    return notificationRepository.findAllByMemberId(memberId)
+    return notifiRepository.findAllByMemberId(memberId)
         .stream()
         .map(NotificationDto::fromEntity)
         .collect(Collectors.toList());
@@ -165,7 +191,8 @@ public class NotificationServiceImpl implements NotificationService {
     return objectMapper.writeValueAsString(fcmMessageDto);
   }
 
-  private static MulticastMessage makeMultipleMessage(SendReportDto request, List<String> tokenList) {
+  private static MulticastMessage makeMultipleMessage(SendReportDto request,
+      List<String> tokenList) {
     MulticastMessage message = MulticastMessage.builder()
         .setNotification(Notification.builder()
             .setTitle(request.getTitle())

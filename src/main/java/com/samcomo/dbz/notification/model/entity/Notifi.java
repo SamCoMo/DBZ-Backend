@@ -12,27 +12,25 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity
-public class Noti extends BaseEntity {
+@Document
+public class Notifi {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private String id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn
-  private Member member;
-
-  @Enumerated(EnumType.STRING)
+  private String memberId;
   private NotificationType type;
   private String message;
+  private LocalDateTime createdAt;
 }
