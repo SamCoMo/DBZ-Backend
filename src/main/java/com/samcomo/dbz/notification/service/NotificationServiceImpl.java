@@ -9,7 +9,6 @@ import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.Notification;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -20,7 +19,7 @@ import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.NotificationDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import com.samcomo.dbz.notification.model.dto.SendReportDto;
-import com.samcomo.dbz.notification.model.entity.Notifi;
+import com.samcomo.dbz.notification.model.entity.Notification;
 import com.samcomo.dbz.notification.model.repository.NotifiRepository;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
@@ -84,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
 
       Response response = client.newCall(httpRequest).execute();
 
-      notifiRepository.save(Notifi.builder()
+      notifiRepository.save(Notification.builder()
           .memberId(memberId.toString())
           .type(NotificationType.REPORT)
           .message(sendPinDto.getBody())
@@ -125,7 +124,7 @@ public class NotificationServiceImpl implements NotificationService {
       throw new NotiException(ErrorCode.REPORT_NOTIFICATION_FAILED);
     }
 
-    List<Notifi> notifiList = new ArrayList<>();
+    List<Notification> notificationList = new ArrayList<>();
 
 //    for ( Member member : memberList) {
 //      notifiList.add(
@@ -139,8 +138,8 @@ public class NotificationServiceImpl implements NotificationService {
 //    }
 
     for ( String t : tokenList) {
-      notifiList.add(
-          Notifi.builder()
+      notificationList.add(
+          Notification.builder()
               .memberId(memberId.toString())
               .type(NotificationType.REPORT)
               .message(sendReportDto.getBody())
@@ -148,7 +147,7 @@ public class NotificationServiceImpl implements NotificationService {
               .build()
       );
     }
-    notifiRepository.saveAll(notifiList);
+    notifiRepository.saveAll(notificationList);
   }
 
   @Override
@@ -157,7 +156,7 @@ public class NotificationServiceImpl implements NotificationService {
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
 
-    return notifiRepository.findAllByMemberId(memberId)
+    return notifiRepository.findAllByMemberId(memberId.toString())
         .stream()
         .map(NotificationDto::fromEntity)
         .collect(Collectors.toList());
@@ -194,7 +193,7 @@ public class NotificationServiceImpl implements NotificationService {
   private static MulticastMessage makeMultipleMessage(SendReportDto request,
       List<String> tokenList) {
     MulticastMessage message = MulticastMessage.builder()
-        .setNotification(Notification.builder()
+        .setNotification(com.google.firebase.messaging.Notification.builder()
             .setTitle(request.getTitle())
             .setBody(request.getBody())
             .build())

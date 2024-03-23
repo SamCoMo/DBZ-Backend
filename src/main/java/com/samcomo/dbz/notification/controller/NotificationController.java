@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
   private final NotificationService notificationService;
 
-  @Operation(summary = "알림 내역 조회")
+  @Operation(summary = "알림 목록 조회")
   @GetMapping("/list")
   public ResponseEntity<List<NotificationDto>> getNotificationList( @AuthenticationPrincipal
       MemberDetails memberDetails) {
