@@ -48,6 +48,7 @@ public class Member extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private MemberStatus status;
 
+  @Setter
   private String fcmToken;
 
   @Setter
