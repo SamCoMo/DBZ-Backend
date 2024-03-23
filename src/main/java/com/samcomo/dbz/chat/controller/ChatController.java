@@ -1,8 +1,8 @@
 package com.samcomo.dbz.chat.controller;
 
-import com.samcomo.dbz.chat.dto.ChatMessageDto;
-import com.samcomo.dbz.chat.dto.ChatMessageDto.Response;
-import com.samcomo.dbz.chat.dto.ChatRoomDto;
+import com.samcomo.dbz.chat.model.dto.ChatMessageDto;
+import com.samcomo.dbz.chat.model.dto.ChatMessageDto.Response;
+import com.samcomo.dbz.chat.model.dto.ChatRoomDto;
 import com.samcomo.dbz.chat.service.impl.ChatRoomServiceImpl;
 import com.samcomo.dbz.chat.service.impl.ChatServiceImpl;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
@@ -29,84 +29,79 @@ public class ChatController {
   private final ChatRoomServiceImpl chatRoomServiceImpl;
   private final ChatServiceImpl chatServiceImpl;
 
-  // 채팅방 생성, 채팅방 정보 가져오기
   @PostMapping("/room")
   public ResponseEntity<ChatRoomDto> createChatRoom(
-      @AuthenticationPrincipal MemberDetails memberDetails,
+      @AuthenticationPrincipal MemberDetails details,
       @RequestParam String recipientId
   ) {
     ChatRoomDto chatRoomDto
-        = chatRoomServiceImpl.createOrGetChatRoom(String.valueOf(memberDetails.getId()), recipientId);
+        = chatRoomServiceImpl.createOrGetChatRoom(details.getIdAsString(), recipientId);
+
     return ResponseEntity.ok(chatRoomDto);
   }
 
-  // 회원 -> 채팅방 목록 조회
   @GetMapping("/member/room-list")
   public ResponseEntity<List<ChatRoomDto>> getChatRoomsForMember(
-      @AuthenticationPrincipal MemberDetails memberDetails
+      @AuthenticationPrincipal MemberDetails details
   ) {
-    List<ChatRoomDto> chatRoomDtoList
-        = chatRoomServiceImpl.getChatRoomsFromMember(String.valueOf(memberDetails.getId()));
+    List<ChatRoomDto> chatRoomDtoList =
+        chatRoomServiceImpl.getChatRoomsFromMember(details.getIdAsString());
 
     return ResponseEntity.ok(chatRoomDtoList);
   }
 
-  // 채팅방 -> 채팅내역 조회
   @GetMapping("/room/{chatRoomId}/message-list")
   public ResponseEntity<Slice<ChatMessageDto.Response>> getChatMessageList(
-      @AuthenticationPrincipal MemberDetails memberDetails,
+      @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size
   ) {
-    Slice<Response> chatMessageDtoSlice
-        = chatServiceImpl.getChatMessageList(
-        chatRoomId, String.valueOf(memberDetails.getId()), page, size);
+    Slice<Response> chatMessageDtoSlice =
+        chatServiceImpl.getChatMessageList(chatRoomId, details.getIdAsString(), page, size);
 
     return ResponseEntity.ok(chatMessageDtoSlice);
   }
 
-  // 웹소켓 : 메시지 전송
   @MessageMapping("/room/{chatRoomId}/message")
   public ResponseEntity<ChatMessageDto.Response> sendMessage(
-      @AuthenticationPrincipal MemberDetails memberDetails,
+      @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
-      ChatMessageDto.Request request) {
-    ChatMessageDto.Response response
-        = chatServiceImpl.sendMessage(chatRoomId,
-        String.valueOf(memberDetails.getId()), request);
+      ChatMessageDto.Request request
+  ) {
+    ChatMessageDto.Response response =
+        chatServiceImpl.sendMessage(chatRoomId, details.getIdAsString(), request);
 
     return ResponseEntity.ok(response);
   }
 
-  // 채팅방 업데이트
   @PutMapping("/room-list/{chatRoomId}")
   public ResponseEntity<ChatRoomDto> updateLastChatMessageInfo(
-      @AuthenticationPrincipal MemberDetails memberDetails,
-      @PathVariable String chatRoomId) {
-    ChatRoomDto chatRoomDto = chatRoomServiceImpl.updateLastChatInfo(
-        chatRoomId, String.valueOf(memberDetails.getId()));
+      @AuthenticationPrincipal MemberDetails details,
+      @PathVariable String chatRoomId
+  ) {
+    ChatRoomDto chatRoomDto =
+        chatRoomServiceImpl.updateLastChatInfo(chatRoomId, details.getIdAsString());
+
     return ResponseEntity.ok(chatRoomDto);
   }
 
-  // 채팅방 나올때 ChatMessage 존재하지 않을시 삭제
   @DeleteMapping("/room/check-empty/{chatRoomId}")
   public ResponseEntity<Void> deleteChatRoomIfEmptyMessage(
-      @AuthenticationPrincipal MemberDetails memberDetails,
-      @PathVariable String chatRoomId) {
-    chatRoomServiceImpl.deleteChatRoomIfEmptyMessage(chatRoomId,
-        String.valueOf(memberDetails.getId()));
+      @AuthenticationPrincipal MemberDetails details,
+      @PathVariable String chatRoomId
+  ) {
+    chatRoomServiceImpl.deleteChatRoomIfEmptyMessage(chatRoomId, details.getIdAsString());
 
     return ResponseEntity.noContent().build();
   }
 
-  // 채팅방 삭제
   @DeleteMapping("/room/{chatRoomId}")
   public ResponseEntity<Void> deleteChatRoom(
-      @AuthenticationPrincipal MemberDetails memberDetails,
-      @PathVariable String chatRoomId) {
-    chatRoomServiceImpl.deleteChatRoom(chatRoomId,
-        String.valueOf(memberDetails.getId()));
+      @AuthenticationPrincipal MemberDetails details,
+      @PathVariable String chatRoomId
+  ) {
+    chatRoomServiceImpl.deleteChatRoom(chatRoomId, details.getIdAsString());
 
     return ResponseEntity.noContent().build();
   }

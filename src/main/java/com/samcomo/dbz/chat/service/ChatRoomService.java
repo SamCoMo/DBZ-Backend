@@ -1,9 +1,10 @@
 package com.samcomo.dbz.chat.service;
 
-import com.samcomo.dbz.chat.dto.ChatRoomDto;
+import com.samcomo.dbz.chat.model.dto.ChatRoomDto;
 import java.util.List;
 
 public interface ChatRoomService {
+
   // 채팅방 가져오기 (채팅방 없을시 생성)
   ChatRoomDto createOrGetChatRoom(String senderId, String recipientId);
 
