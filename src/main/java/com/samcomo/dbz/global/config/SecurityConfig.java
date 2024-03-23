@@ -80,6 +80,8 @@ public class SecurityConfig {
             .requestMatchers(GET, "/chat/member/room-list").hasRole("MEMBER") // 회원 채팅방 목록 조회
             .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole("MEMBER") // 채팅방 메시지 목록 조회
             .requestMatchers(DELETE, "/chat/room/{chatRoomId}").hasRole("MEMBER") // 채팅방 삭제
+            // notificaiton
+            .requestMatchers(GET, "/notification/list").hasRole("MEMBER") // 알림 목록 조회
             .anyRequest().authenticated());
 
     // session : stateless

@@ -11,6 +11,7 @@ import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.global.s3.exception.S3Exception;
+import com.samcomo.dbz.notification.service.NotificationService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class ChatServiceImpl implements ChatService {
   private final SimpMessagingTemplate messagingTemplate;
   private final ChatUtils chatUtils;
   private final S3Service s3Service;
+  private final NotificationService notificationService;
 
   @Override
   @Transactional
@@ -65,6 +67,9 @@ public class ChatServiceImpl implements ChatService {
 
     // 웹소켓 -> 메시지 전송
     messagingTemplate.convertAndSend("/chatrooms/" + chatRoomId, chatMessageDto);
+
+    // 채팅 알림 전송
+    notificationService.sendChatNotification(chatRoomId, senderId, request);
 
     return chatMessageDto;
   }

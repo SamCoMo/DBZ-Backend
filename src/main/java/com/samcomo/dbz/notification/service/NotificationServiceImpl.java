@@ -9,6 +9,7 @@ import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.MulticastMessage;
+import com.samcomo.dbz.chat.dto.ChatMessageDto;
 import com.samcomo.dbz.global.exception.ErrorCode;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -17,8 +18,10 @@ import com.samcomo.dbz.notification.exception.NotiException;
 import com.samcomo.dbz.notification.model.constants.NotificationType;
 import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
 import com.samcomo.dbz.notification.model.dto.NotificationDto;
+import com.samcomo.dbz.notification.model.dto.SendChatDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import com.samcomo.dbz.notification.model.dto.SendReportDto;
+import com.samcomo.dbz.notification.model.dto.SendSingleDto;
 import com.samcomo.dbz.notification.model.entity.Notification;
 import com.samcomo.dbz.notification.model.repository.NotifiRepository;
 import com.samcomo.dbz.report.model.dto.ReportDto;
@@ -39,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -56,19 +60,23 @@ public class NotificationServiceImpl implements NotificationService {
   private final static int DISTANCE = 3;
 
   @Override
+  @Transactional
   public void sendPinNotification(Long memberId) {
 
     try {
 
-      //TODO: 유저 토큰값 서치
-//      Member member = memberRepository.findById(memberId)
-//          .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
-//      String token = member.getFcmToken();
-
-      String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
+      Member member = memberRepository.findById(memberId)
+          .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+      String token = member.getFcmToken();
 
       SendPinDto sendPinDto = new SendPinDto(token);
-      String message = makeSingleMessage(sendPinDto);
+      SendSingleDto sendsingleDto = SendSingleDto.builder()
+          .body(sendPinDto.getBody())
+          .title(sendPinDto.getTitle())
+          .token(sendPinDto.getToken())
+          .build();
+
+      String message = makeSingleMessage(sendsingleDto);
 
       OkHttpClient client = new OkHttpClient();
 
@@ -85,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
 
       notifiRepository.save(Notification.builder()
           .memberId(memberId.toString())
-          .type(NotificationType.REPORT)
+          .type(NotificationType.PIN)
           .message(sendPinDto.getBody())
           .createdAt(LocalDateTime.now())
           .build());
@@ -97,22 +105,14 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
+  @Transactional
   public void sendReportNotification(Long memberId, ReportDto.Form reportForm) {
 
-//    Member member = memberRepository.findById(memberId)
-//        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+    List<Member> memberList = memberRepository.findAllInActive(reportForm.getLatitude(),
+        reportForm.getLongitude(), DISTANCE);
+    List<String> tokenList = memberList.stream().map(Member::getFcmToken).collect(Collectors.toList());
 
-    String token = "e-HB1jbPIPQvJ0-taOAJB7:APA91bGoJAUyLMgEEHlieBOArqLSp-6RNySt5JSWdvMHoKq3xAu1TsE2FZeVJl1X6P3ElT11D9w8Ar36TO69jvOrV6fgi0FSGfqvdDBNBkJ9PwkGZbCWSdyZ8zd7W76ybkVyuEvtoVgP";
-
-    //게시글 주변 회원 검색 & token get
-//    List<String> tokenList = memberRepository.findAllInActive(reportForm.getLatitude(), reportForm.getLongitude(), DISTANCE);
-//    List<Member> memberList = memberRepository.findAllInActive(reportForm.getLatitude(),
-//        reportForm.getLongitude(), DISTANCE);
-
-    List<String> tokenList = List.of(token, token, token);
-
-    SendReportDto sendReportDto = new SendReportDto(token,
-        reportForm.getDescriptions());
+    SendReportDto sendReportDto = new SendReportDto(reportForm.getDescriptions());
 
     MulticastMessage message = makeMultipleMessage(sendReportDto, tokenList);
 
@@ -126,28 +126,70 @@ public class NotificationServiceImpl implements NotificationService {
 
     List<Notification> notificationList = new ArrayList<>();
 
-//    for ( Member member : memberList) {
-//      notifiList.add(
-//          Notifi.builder()
-//              .memberId(member.getId().toString())
-//              .type(NotificationType.REPORT)
-//              .message(sendReportDto.getBody())
-//              .createdAt(LocalDateTime.now())
-//              .build()
-//      );
-//    }
-
-    for ( String t : tokenList) {
+    for (Member member : memberList) {
       notificationList.add(
           Notification.builder()
-              .memberId(memberId.toString())
+              .memberId(member.getId().toString())
               .type(NotificationType.REPORT)
               .message(sendReportDto.getBody())
               .createdAt(LocalDateTime.now())
               .build()
       );
     }
+
     notifiRepository.saveAll(notificationList);
+  }
+
+  @Override
+  @Transactional
+  public void sendChatNotification(String chatRoomId, String senderId,
+      ChatMessageDto.Request request) {
+    try {
+
+      String[] memberIdList = chatRoomId.split("_");
+      Long memberId = memberIdList[0].equals(senderId) ? Long.parseLong(memberIdList[0])
+          : Long.parseLong(memberIdList[2]);
+
+      Member member = memberRepository.findById(memberId)
+          .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+      String token = member.getFcmToken();
+
+      String memberNickname = member.getNickname();
+      String body = request.getContent();
+
+      SendChatDto sendChatDto = new SendChatDto(memberNickname, body, token);
+      SendSingleDto sendSingleDto = SendSingleDto.builder()
+          .title(sendChatDto.getTitle())
+          .body(sendChatDto.getBody())
+          .token(sendChatDto.getToken())
+          .build();
+
+      String message = makeSingleMessage(sendSingleDto);
+
+      OkHttpClient client = new OkHttpClient();
+
+      RequestBody requestBody = RequestBody.create(message,
+          MediaType.get("application/json; charset=utf-8"));
+      Request httpRequest = new Request.Builder()
+          .url(FCM_API_URL)
+          .post(requestBody)
+          .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+          .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
+          .build();
+
+      Response response = client.newCall(httpRequest).execute();
+
+      notifiRepository.save(Notification.builder()
+          .memberId(Long.toString(memberId))
+          .type(NotificationType.CHAT)
+          .message(sendSingleDto.getBody())
+          .createdAt(LocalDateTime.now())
+          .build());
+
+      log.info( " 채팅 알림 전송 성공: {}", Objects.requireNonNull(response.body()).string());
+    } catch (IOException e) {
+      throw new NotiException(ErrorCode.PIN_NOTIFICATION_FAILED);
+    }
   }
 
   @Override
@@ -176,14 +218,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
   }
 
-  private String makeSingleMessage(SendPinDto sendPinDto) throws JsonProcessingException {
+  private String makeSingleMessage(SendSingleDto send) throws JsonProcessingException {
     ObjectMapper objectMapper = new ObjectMapper();
     FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
         .message(FcmMessageDto.Message.builder()
-            .token(sendPinDto.getToken())
+            .token(send.getToken())
             .notification(FcmMessageDto.Notification.builder()
-                .title(sendPinDto.getTitle())
-                .body(sendPinDto.getBody())
+                .title(send.getTitle())
+                .body(send.getBody())
                 .build()
             ).build()).build();
 
