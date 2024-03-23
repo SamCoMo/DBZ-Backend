@@ -1,4 +1,4 @@
-package com.samcomo.dbz.chat.dto;
+package com.samcomo.dbz.chat.model.dto;
 
 import com.samcomo.dbz.chat.model.entity.ChatMessage;
 import java.time.LocalDateTime;
@@ -10,14 +10,16 @@ public class ChatMessageDto {
 
   @Getter
   @Builder
-  public static class Request{
+  public static class Request {
+
     private String content;
     private List<String> imageBase64List;
   }
 
   @Getter
   @Builder
-  public static class Response{
+  public static class Response {
+
     private String chatMessageId;
     private String chatRoomId;
     private String senderId;
@@ -26,7 +28,7 @@ public class ChatMessageDto {
     private List<String> imageUrlList;
     private LocalDateTime createdAt;
 
-    public static Response from(ChatMessage chatMessage){
+    public static Response from(ChatMessage chatMessage) {
       return Response.builder()
           .chatMessageId(chatMessage.getChatMessageId())
           .chatRoomId(chatMessage.getChatRoomId())

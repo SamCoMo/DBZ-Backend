@@ -1,4 +1,4 @@
-package com.samcomo.dbz.chat.dto;
+package com.samcomo.dbz.chat.model.dto;
 
 import com.samcomo.dbz.chat.model.entity.ChatRoom;
 import java.time.LocalDateTime;
@@ -11,17 +11,18 @@ import lombok.Setter;
 @Setter
 @Builder
 public class ChatRoomDto {
+
   private String chatRoomId;
   private Set<String> memberIdList;
-  private String lastChatMessageContent;
-  private LocalDateTime lastChatMessageAt;
+  private String lastMessageContent;
+  private LocalDateTime lastMessageSentAt;
 
-  public static ChatRoomDto from(ChatRoom chatRoom){
+  public static ChatRoomDto from(ChatRoom chatRoom) {
     return ChatRoomDto.builder()
         .chatRoomId(chatRoom.getChatRoomId())
         .memberIdList(chatRoom.getMemberIdList())
-        .lastChatMessageContent(chatRoom.getLastChatMessageContent())
-        .lastChatMessageAt(chatRoom.getLastChatMessageAt())
+        .lastMessageContent(chatRoom.getLastMessageContent())
+        .lastMessageSentAt(chatRoom.getLastMessageSentAt())
         .build();
   }
 }

@@ -3,6 +3,7 @@ package com.samcomo.dbz.pin.service.impl;
 
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
+import com.samcomo.dbz.notification.service.NotificationService;
 import com.samcomo.dbz.pin.dto.RegisterPinDto;
 import com.samcomo.dbz.pin.dto.RegisterPinDto.Response;
 import com.samcomo.dbz.pin.dto.PinDto;
@@ -28,6 +29,7 @@ public class PinServiceImpl implements PinService {
   private final PinImageRepository pinImageRepository;
   private final PinUtils pinUtils;
   private final S3Service s3Service;
+  private final NotificationService notificationService;
 
   @Override
   @Transactional
@@ -59,6 +61,8 @@ public class PinServiceImpl implements PinService {
                     .pin(newPin)
                     .build())
                 .toList());
+
+    notificationService.sendPinNotification(memberId);
 
     return RegisterPinDto.Response.from(
         newPin,
