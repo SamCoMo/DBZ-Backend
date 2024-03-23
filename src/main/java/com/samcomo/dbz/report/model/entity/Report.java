@@ -68,7 +68,7 @@ public class Report extends BaseEntity {
         .latitude(reportForm.getLatitude())
         .longitude(reportForm.getLongitude())
         .views(0L)
-        .showsPhone(reportForm.isShowsPhone())
+        .showsPhone(reportForm.getShowsPhone())
         .build();
   }
 }
