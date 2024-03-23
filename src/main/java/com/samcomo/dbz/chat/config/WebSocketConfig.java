@@ -8,6 +8,7 @@ import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -30,9 +31,9 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
-// WebSocket 기반 MessageBroker 활성화
-@EnableWebSocketMessageBroker
+@EnableWebSocketMessageBroker // WebSocket 기반 MessageBroker 활성화
 @RequiredArgsConstructor
+@Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private final JwtUtil jwtUtil;
@@ -79,23 +80,27 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
       public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
             message, StompHeaderAccessor.class);
+        try{
+          if (isConnectionRequest(accessor)) {
+            String accessToken = getAccessToken(accessor);
+            MemberDetails memberDetails = jwtUtil.extractMemberDetailsFrom(accessToken);
 
-        if (isConnected(accessor)) {
-          String accessToken = getAccessTokenFrom(accessor);
-          MemberDetails memberDetails = jwtUtil.extractMemberDetailsFrom(accessToken);
+            // Authentication 생성 후 Security Context 에 저장
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                memberDetails, null, memberDetails.getAuthorities());
 
-          // Authentication 생성 후 Security Context 에 저장
-          Authentication authentication = new UsernamePasswordAuthenticationToken(
-              memberDetails, null, memberDetails.getAuthorities());
-
-          SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+          }
+        } catch (Exception e){
+          log.error("WebSocket Auth Failed: {}", e.getMessage());
+          return null;
         }
         return message;
       }
     });
   }
 
-  private boolean isConnected(StompHeaderAccessor accessor) {
+  private boolean isConnectionRequest(StompHeaderAccessor accessor) {
     if (accessor == null) {
       return false;
     }
@@ -103,7 +108,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     return StompCommand.CONNECT.equals(accessor.getCommand());
   }
 
-  private String getAccessTokenFrom(StompHeaderAccessor accessor) {
+  private String getAccessToken(StompHeaderAccessor accessor) {
     return accessor.getFirstNativeHeader(ACCESS_TOKEN.getKey());
   }
 }
