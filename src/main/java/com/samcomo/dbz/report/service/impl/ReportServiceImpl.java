@@ -154,7 +154,7 @@ public class ReportServiceImpl implements ReportService {
     report.setRoadAddress(reportForm.getRoadAddress());
     report.setLatitude(reportForm.getLatitude());
     report.setLongitude(report.getLongitude());
-    report.setShowsPhone(reportForm.isShowsPhone());
+    report.setShowsPhone(reportForm.getShowsPhone());
 
     // s3이미지 삭제
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);
