@@ -10,7 +10,7 @@ import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
-import com.samcomo.dbz.notification.service.FcmService;
+import com.samcomo.dbz.notification.service.NotificationService;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
@@ -49,7 +49,7 @@ public class ReportServiceImpl implements ReportService {
   private final S3Service s3Service;
   private final ReportBulkRepository reportBulkRepository;
 
-  private final FcmService fcmService;
+  private final NotificationService notificationService;
 
   @Override
   public ReportDto.Response uploadReport(
@@ -77,7 +77,7 @@ public class ReportServiceImpl implements ReportService {
 
     List<ReportImage> savedImageList = reportBulkRepository.saveAllWithBulk(reportImageList);
 
-    fcmService.sendReportNotification(memberId, reportForm);
+    notificationService.sendReportNotification(memberId, reportForm);
 
     return ReportDto.Response.from(newReport, savedImageList.stream()
             .map(ReportImageDto.Response::from)

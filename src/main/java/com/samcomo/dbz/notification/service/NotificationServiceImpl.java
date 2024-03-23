@@ -17,6 +17,7 @@ import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.notification.exception.NotiException;
 import com.samcomo.dbz.notification.model.constants.NotificationType;
 import com.samcomo.dbz.notification.model.dto.FcmMessageDto;
+import com.samcomo.dbz.notification.model.dto.NotificationDto;
 import com.samcomo.dbz.notification.model.dto.SendPinDto;
 import com.samcomo.dbz.notification.model.dto.SendReportDto;
 import com.samcomo.dbz.notification.model.entity.Noti;
@@ -25,6 +26,7 @@ import com.samcomo.dbz.report.model.dto.ReportDto;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -40,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FcmServiceImpl implements FcmService {
+public class NotificationServiceImpl implements NotificationService {
 
   @Value("${fcm.key.path}")
   private String SERVICE_ACCOUNT_JSON;
@@ -121,6 +123,18 @@ public class FcmServiceImpl implements FcmService {
         .message(sendReportDto.getBody())
         .build());
 
+  }
+
+  @Override
+  public List<NotificationDto> getNotificationList(Long memberId){
+
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
+    return notificationRepository.findAllByMemberId(memberId)
+        .stream()
+        .map(NotificationDto::fromEntity)
+        .collect(Collectors.toList());
   }
 
   private String getAccessToken() throws IOException {
