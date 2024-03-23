@@ -89,7 +89,6 @@ public class JwtUtil {
   }
 
   public TokenValidationResponse getTokenValidationResponse(String token,TokenType requiredTokenType){
-    final String VALID_TOKEN_MESSAGE = "Token is Valid";
     try {
       validateTokenAndTokenType(token, requiredTokenType);
       // 토큰이 유효한 경우
