@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.AUTHENTICATION_FAILED;
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 import static org.springframework.http.HttpMethod.POST;
@@ -8,6 +9,8 @@ import static org.springframework.http.HttpMethod.POST;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
+import com.samcomo.dbz.member.model.entity.Member;
+import com.samcomo.dbz.member.model.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,18 +27,21 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
   private final JwtUtil jwtUtil;
+  private final MemberRepository memberRepository;
 
   private static final String LOGIN_URI = "/member/login";
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
+  private static final String FCM_TOKEN_KEY = "fcmToken";
 
   private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
       new AntPathRequestMatcher(LOGIN_URI, POST.name());
 
   public CustomLoginFilter(
-      AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+      AuthenticationManager authenticationManager, JwtUtil jwtUtil, MemberRepository memberRepository) {
     super(LOGIN_REQUEST_MATCHER, authenticationManager);
     this.jwtUtil = jwtUtil;
+    this.memberRepository = memberRepository;
   }
 
   @Override
@@ -62,24 +68,37 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     return request.getParameter(PASSWORD_KEY);
   }
 
+  protected String obtainFcmToken(HttpServletRequest request) {
+    return request.getParameter(FCM_TOKEN_KEY);
+  }
   // 로그인 성공 시 JWT 발급
   @Override
   protected void successfulAuthentication(HttpServletRequest request,
       HttpServletResponse response, FilterChain chain, Authentication authResult) {
 
-    String memberId = getMemberId(authResult);
+    Long memberId = getMemberId(authResult);
     String role = getMemberRole(authResult);
 
-    jwtUtil.checkAlreadyLoggedIn(Long.valueOf(memberId));
+    jwtUtil.checkAlreadyLoggedIn(memberId);
 
-    String accessToken = jwtUtil.createToken(ACCESS_TOKEN, memberId, role);
-    String refreshToken = jwtUtil.createToken(REFRESH_TOKEN, memberId, role);
+    String accessToken = jwtUtil.createToken(ACCESS_TOKEN, String.valueOf(memberId), role);
+    String refreshToken = jwtUtil.createToken(REFRESH_TOKEN, String.valueOf(memberId), role);
 
-    jwtUtil.saveRefreshTokenToDataBase(Long.valueOf(memberId), refreshToken);
+    jwtUtil.saveRefreshTokenToDataBase(memberId, refreshToken);
+
+    String fcmToken = obtainFcmToken(request);
+    saveFcmToken(memberId, fcmToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
     response.addCookie(createCookie(refreshToken));
     response.setStatus(HttpServletResponse.SC_OK);
+  }
+
+  private void saveFcmToken(Long memberId, String fcmToken) {
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+    member.setFcmToken(fcmToken);
+    memberRepository.save(member);
   }
 
   @Override
@@ -88,9 +107,9 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     throw new MemberException(AUTHENTICATION_FAILED);
   }
 
-  private String getMemberId(Authentication authResult) {
+  private Long getMemberId(Authentication authResult) {
     MemberDetails memberDetails = (MemberDetails) authResult.getPrincipal();
-    return String.valueOf(memberDetails.getId());
+    return memberDetails.getId();
   }
 
   private String getMemberRole(Authentication authResult) {

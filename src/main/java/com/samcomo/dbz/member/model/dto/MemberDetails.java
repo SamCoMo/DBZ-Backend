@@ -49,6 +49,10 @@ public class MemberDetails implements UserDetails {
     return member.getId();
   }
 
+  public String getIdAsString() {
+    return String.valueOf(member.getId());
+  }
+
   public String getEmail() {
     return member.getEmail();
   }

@@ -10,6 +10,7 @@ import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
+import com.samcomo.dbz.notification.service.NotificationService;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
@@ -48,6 +49,8 @@ public class ReportServiceImpl implements ReportService {
   private final S3Service s3Service;
   private final ReportBulkRepository reportBulkRepository;
 
+  private final NotificationService notificationService;
+
   @Override
   public ReportDto.Response uploadReport(
       long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
@@ -73,6 +76,8 @@ public class ReportServiceImpl implements ReportService {
         .toList();
 
     List<ReportImage> savedImageList = reportBulkRepository.saveAllWithBulk(reportImageList);
+
+    notificationService.sendReportNotification(memberId, reportForm);
 
     return ReportDto.Response.from(newReport, savedImageList.stream()
             .map(ReportImageDto.Response::from)
@@ -149,7 +154,7 @@ public class ReportServiceImpl implements ReportService {
     report.setRoadAddress(reportForm.getRoadAddress());
     report.setLatitude(reportForm.getLatitude());
     report.setLongitude(report.getLongitude());
-    report.setShowsPhone(reportForm.isShowsPhone());
+    report.setShowsPhone(reportForm.getShowsPhone());
 
     // s3이미지 삭제
     List<ReportImage> reportImageList = reportImageRepository.findAllByReport(report);

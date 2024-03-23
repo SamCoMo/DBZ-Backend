@@ -11,6 +11,9 @@ import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
 import com.samcomo.dbz.member.jwt.filter.FilterMemberExceptionHandler;
+import com.samcomo.dbz.member.model.repository.MemberRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +37,7 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationConfiguration configuration;
+  private final MemberRepository memberRepository;
 
   @Bean
   public AuthenticationManager authenticationManager(
@@ -46,6 +52,26 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+    http
+        .cors((cors) -> cors
+            .configurationSource(new CorsConfigurationSource() {
+              @Override
+              public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
+                CorsConfiguration configuration = new CorsConfiguration();
+
+                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                configuration.setAllowedMethods(Collections.singletonList("*"));
+                configuration.setAllowCredentials(true);
+                configuration.setAllowedHeaders(Collections.singletonList("*"));
+                configuration.setMaxAge(3600L);
+
+                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+
+                return null;
+              }
+            }));
 
     http
         .csrf((auth) -> auth.disable())
@@ -76,10 +102,13 @@ public class SecurityConfig {
             .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole("MEMBER") // Report 의 Pin List 가져오기
             .requestMatchers(GET, "/pin/{pinId}").hasRole("MEMBER") // Pin 상세정보 가져오기
             // chat
+            .requestMatchers("/ws").hasRole("MEMBER")
             .requestMatchers(POST, "/chat/room").hasRole("MEMBER") // 채팅방 생성
             .requestMatchers(GET, "/chat/member/room-list").hasRole("MEMBER") // 회원 채팅방 목록 조회
             .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole("MEMBER") // 채팅방 메시지 목록 조회
             .requestMatchers(DELETE, "/chat/room/{chatRoomId}").hasRole("MEMBER") // 채팅방 삭제
+            // notificaiton
+            .requestMatchers(GET, "/notification/list").hasRole("MEMBER") // 알림 목록 조회
             .anyRequest().authenticated());
 
     // session : stateless
@@ -94,7 +123,7 @@ public class SecurityConfig {
         .addFilterBefore(
             new FilterMemberExceptionHandler(), CustomLogoutFilter.class)
         .addFilterBefore(
-            new CustomLoginFilter(authenticationManager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            new CustomLoginFilter(authenticationManager(configuration), jwtUtil, memberRepository), UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new AccessTokenFilter(jwtUtil), CustomLoginFilter.class);
 

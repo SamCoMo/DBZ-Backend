@@ -29,7 +29,7 @@ public class ReportDto {
     private String roadAddress;
     private Double latitude;
     private Double longitude;
-    private boolean showsPhone;
+    private Boolean showsPhone;
   }
 
   @Getter

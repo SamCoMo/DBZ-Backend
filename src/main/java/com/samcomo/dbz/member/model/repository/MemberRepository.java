@@ -15,7 +15,7 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
 
   boolean existsByNickname(String nickname);
 
-  @Query(value = "select m "
+  @Query(value = "select m.fcmToken "
       + "from Member m "
       + "where ST_Distance_Sphere(Point(m.longitude, m.latitude), Point(:longitude, :latitude)) <= :distance "
       + "and m.status = 'INACTIVE'")
