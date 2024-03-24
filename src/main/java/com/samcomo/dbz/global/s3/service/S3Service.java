@@ -36,7 +36,8 @@ public class S3Service {
 
   private final int maxImageSize = 5 * 1024 * 1024; // 5MB
 
-  public ImageUploadState uploadMultipartFileByStream(MultipartFile multipartFile, ImageCategory imageCategory){
+  public ImageUploadState uploadMultipartFileByStream(MultipartFile multipartFile,
+      ImageCategory imageCategory) {
 
     String filename = multipartFile.getOriginalFilename();
 
@@ -62,14 +63,15 @@ public class S3Service {
         .build();
   }
 
-  public List<String> uploadImageList(List<MultipartFile> multipartFileList, ImageCategory imageCategory){
+  public List<String> uploadImageList(List<MultipartFile> multipartFileList,
+      ImageCategory imageCategory) {
     List<String> imageUrlList = new ArrayList<>();
 
     for (MultipartFile image : multipartFileList) {
       ImageUploadState imageUploadState = uploadMultipartFileByStream(image, imageCategory);
 
       // 이미지 업로드 실패
-      if(!imageUploadState.isSuccess()){
+      if (!imageUploadState.isSuccess()) {
         //지금까지 저장된 이미지 삭제
         deleteUploadedImageList(imageUrlList);
         throw new S3Exception(ErrorCode.IMAGE_UPLOAD_FAIL);
@@ -81,7 +83,7 @@ public class S3Service {
     return imageUrlList;
   }
 
-  public void deleteFile(String fileName){
+  public void deleteFile(String fileName) {
     try {
       amazonS3.deleteObject(bucket, fileName);
       log.info(" S3 객체 삭제 : {}", fileName);
@@ -90,7 +92,7 @@ public class S3Service {
     }
   }
 
-  public String createFileName(String fileName, ImageCategory imageCategory){
+  public String createFileName(String fileName, ImageCategory imageCategory) {
     String random = UUID.randomUUID().toString();
     return imageCategory.getName() + "-" + random + fileName;
   }
@@ -100,8 +102,9 @@ public class S3Service {
     String extension = filename.substring(idx + 1);
     return "image/" + extension;
   }
-  private void deleteUploadedImageList(List<String> imageUrlList){
-    for (String imageUrl : imageUrlList){
+
+  private void deleteUploadedImageList(List<String> imageUrlList) {
+    for (String imageUrl : imageUrlList) {
       int idx = imageUrl.lastIndexOf("/");
       String fileName = imageUrl.substring(idx + 1);
       deleteFile(fileName);
@@ -109,21 +112,23 @@ public class S3Service {
   }
 
   // Base64 이미지 업로드
-  public ImageUploadState uploadBase64ByStream(String base64ImageData, ImageCategory imageCategory) {
+  public ImageUploadState uploadBase64ByStream(String base64ImageData,
+      ImageCategory imageCategory) {
     // base64ImageData 형식 : "data:image/png;base64,iVBORw0KGgasdfQWhjfel"
 
     // MIME 타입 <-> 데이터 분리
     String[] base64Components = base64ImageData.split(",");
 
     // Base64 형식 검증
-    if(base64Components.length != 2){
+    if (base64Components.length != 2) {
       throw new S3Exception(ErrorCode.INVALID_BASE64_DATA);
     }
     String base64Data = base64Components[0];
 
     // 이미지 형식 검증
-    String imageFileType = base64Data.substring(base64Data.indexOf('/') + 1, base64Data.indexOf(';'));
-    if(!isValidImageFileType(imageFileType)){
+    String imageFileType = base64Data.substring(base64Data.indexOf('/') + 1,
+        base64Data.indexOf(';'));
+    if (!isValidImageFileType(imageFileType)) {
       throw new S3Exception(ErrorCode.INVALID_IMAGE_FILE_TYPE);
     }
 
@@ -136,13 +141,13 @@ public class S3Service {
     InputStream inputStream = new ByteArrayInputStream(imageBytes);
 
     // 이미지 크기 검증
-    if(imageBytes.length > maxImageSize){
+    if (imageBytes.length > maxImageSize) {
       throw new S3Exception(ErrorCode.IMAGE_FILE_SIZE_EXCEEDED);
     }
 
     ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentLength(imageBytes.length);
-    metadata.setContentType("image/"+imageFileType);
+    metadata.setContentType("image/" + imageFileType);
 
     // 이미지 업로드
     try {

@@ -21,5 +21,4 @@ public class RedisConfiguration {
     config.useSingleServer().setAddress("redis://" + host + ":" + port);
     return Redisson.create(config);
   }
-
 }
