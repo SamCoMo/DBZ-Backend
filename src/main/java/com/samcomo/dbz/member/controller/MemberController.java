@@ -1,13 +1,17 @@
 package com.samcomo.dbz.member.controller;
 
+import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
+import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN_KEY;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
 import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.dto.MyPageResponse;
 import com.samcomo.dbz.member.model.dto.RegisterRequest;
+import com.samcomo.dbz.member.model.dto.TokenValidationResponse;
 import com.samcomo.dbz.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +37,7 @@ public class MemberController {
 
   private final MemberService memberService;
   private final RefreshTokenFilter refreshTokenFilter;
+  private final JwtUtil jwtUtil;
 
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
@@ -61,6 +67,16 @@ public class MemberController {
     refreshTokenFilter.reissue(refreshToken, response);
 
     return ResponseEntity.status(CREATED).build();
+  }
+
+  @GetMapping("/validate-token")
+  @Operation(summary = " access 토큰 유효성 검사")
+  public ResponseEntity<TokenValidationResponse> validateAccessToken(
+      @RequestHeader(ACCESS_TOKEN_KEY) String accessToken
+  ){
+    TokenValidationResponse tokenValidationResponse
+        = jwtUtil.getTokenValidationResponse(accessToken, ACCESS_TOKEN);
+    return ResponseEntity.ok(tokenValidationResponse);
   }
 
   @PatchMapping("/location")

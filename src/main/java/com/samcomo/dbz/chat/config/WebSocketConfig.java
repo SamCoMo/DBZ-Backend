@@ -80,7 +80,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
       public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(
             message, StompHeaderAccessor.class);
-        try {
+        try{
           if (isConnectionRequest(accessor)) {
             String accessToken = getAccessToken(accessor);
             MemberDetails memberDetails = jwtUtil.extractMemberDetailsFrom(accessToken);
@@ -91,7 +91,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
           }
-        } catch (Exception e) {
+        } catch (Exception e){
+
           log.error("WebSocket Auth Failed: {}", e.getMessage());
           return null;
         }
