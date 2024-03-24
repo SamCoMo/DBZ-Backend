@@ -121,8 +121,8 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
   private Cookie createCookie(String refreshToken) {
     Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), refreshToken);
     cookie.setMaxAge(24 * 60 * 60);
-    cookie.setHttpOnly(true);
-     cookie.setSecure(true);
+//    cookie.setHttpOnly(true);
+//     cookie.setSecure(true);
     return cookie;
   }
 }
