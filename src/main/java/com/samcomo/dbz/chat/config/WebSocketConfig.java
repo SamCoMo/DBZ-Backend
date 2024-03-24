@@ -92,6 +92,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             SecurityContextHolder.getContext().setAuthentication(authentication);
           }
         } catch (Exception e){
+
           log.error("WebSocket Auth Failed: {}", e.getMessage());
           return null;
         }
