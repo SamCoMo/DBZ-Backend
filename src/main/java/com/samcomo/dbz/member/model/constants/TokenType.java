@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TokenType {
 
-  ACCESS_TOKEN("Access-Token", 6000L * 10 * 1000),  // 10분
+  ACCESS_TOKEN("Access-Token", 6000L * 10 * 1000 * 10000),  // 10분
   REFRESH_TOKEN("Refresh-Token", 6000L * 10 * 60 * 24);  // 24시간
 
   public static final String ACCESS_TOKEN_KEY = "Access-Token";
