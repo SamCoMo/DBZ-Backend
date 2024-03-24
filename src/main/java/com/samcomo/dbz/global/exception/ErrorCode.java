@@ -94,7 +94,8 @@ public enum ErrorCode {
 
   CHAT_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "채팅 알림 전송을 실패했습니다."),
 
-  ACCESS_TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Access Token을 획득하는데 실패했습니다.");
+  FIREBASE_ACCESS_TOKEN_ERROR
+      (HttpStatus.INTERNAL_SERVER_ERROR, "Firebase Access Token 을 획득하는데 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;
