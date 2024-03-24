@@ -11,6 +11,7 @@ import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
 import com.samcomo.dbz.member.jwt.filter.FilterMemberExceptionHandler;
+import com.samcomo.dbz.member.model.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationConfiguration configuration;
+  private final MemberRepository memberRepository;
 
   @Bean
   public AuthenticationManager authenticationManager(
@@ -65,9 +67,9 @@ public class SecurityConfig {
                 configuration.setAllowedHeaders(Collections.singletonList("*"));
                 configuration.setMaxAge(3600L);
 
-                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+                configuration.setExposedHeaders(Collections.singletonList("Access-Token"));
 
-                return null;
+                return configuration;
               }
             }));
 
@@ -100,6 +102,7 @@ public class SecurityConfig {
             .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole("MEMBER") // Report 의 Pin List 가져오기
             .requestMatchers(GET, "/pin/{pinId}").hasRole("MEMBER") // Pin 상세정보 가져오기
             // chat
+            .requestMatchers("/ws").hasRole("MEMBER")
             .requestMatchers(POST, "/chat/room").hasRole("MEMBER") // 채팅방 생성
             .requestMatchers(GET, "/chat/member/room-list").hasRole("MEMBER") // 회원 채팅방 목록 조회
             .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole("MEMBER") // 채팅방 메시지 목록 조회
@@ -120,7 +123,7 @@ public class SecurityConfig {
         .addFilterBefore(
             new FilterMemberExceptionHandler(), CustomLogoutFilter.class)
         .addFilterBefore(
-            new CustomLoginFilter(authenticationManager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class)
+            new CustomLoginFilter(authenticationManager(configuration), jwtUtil, memberRepository), UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new AccessTokenFilter(jwtUtil), CustomLoginFilter.class);
 
