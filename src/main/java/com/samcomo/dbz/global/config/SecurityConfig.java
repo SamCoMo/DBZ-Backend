@@ -61,13 +61,13 @@ public class SecurityConfig {
 
                 CorsConfiguration configuration = new CorsConfiguration();
 
-                configuration.setAllowedOrigins(Collections.singletonList("*"));
+                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
                 configuration.setAllowedMethods(Collections.singletonList("*"));
                 configuration.setAllowCredentials(true);
                 configuration.setAllowedHeaders(Collections.singletonList("*"));
                 configuration.setMaxAge(3600L);
 
-                configuration.setExposedHeaders(Collections.singletonList("*"));
+                configuration.setExposedHeaders(Collections.singletonList("Access-Token"));
 
                 return configuration;
               }
