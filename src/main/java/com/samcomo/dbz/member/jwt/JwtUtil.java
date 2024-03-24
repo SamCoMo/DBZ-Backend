@@ -13,7 +13,6 @@ import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.TokenType;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.dto.TokenValidationResponse;
 import com.samcomo.dbz.member.model.entity.RefreshToken;
 import com.samcomo.dbz.member.model.repository.RefreshTokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -85,26 +84,6 @@ public class JwtUtil {
           isRequiredAccessType ? ACCESS_TOKEN_EXPIRED : REFRESH_TOKEN_EXPIRED);
     } catch (JwtException | IllegalArgumentException e) {
       throw new MemberException(isRequiredAccessType ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
-    }
-  }
-
-  public TokenValidationResponse getTokenValidationResponse(String token,TokenType requiredTokenType){
-    try {
-      validateTokenAndTokenType(token, requiredTokenType);
-      // 토큰이 유효한 경우
-      return TokenValidationResponse.builder()
-          .isValid(true)
-          .isExpired(false)
-          .build();
-    }catch (MemberException e){
-      // 만료 여부 판단
-      boolean isExpired = e.getErrorCode() == ACCESS_TOKEN_EXPIRED ||
-          e.getErrorCode() == REFRESH_TOKEN_EXPIRED;
-      // 토큰이 만료 or 유효하지않은 경우
-      return TokenValidationResponse.builder()
-          .isValid(false)
-          .isExpired(isExpired)
-          .build();
     }
   }
 

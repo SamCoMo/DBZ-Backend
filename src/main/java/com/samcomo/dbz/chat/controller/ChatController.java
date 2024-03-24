@@ -34,8 +34,8 @@ public class ChatController {
       @AuthenticationPrincipal MemberDetails details,
       @RequestParam String recipientId
   ) {
-    ChatRoomDto chatRoomDto
-        = chatRoomServiceImpl.createOrGetChatRoom(details.getIdAsString(), recipientId);
+    ChatRoomDto chatRoomDto =
+        chatRoomServiceImpl.createOrGetChatRoom(details.getIdAsString(), recipientId);
 
     return ResponseEntity.ok(chatRoomDto);
   }

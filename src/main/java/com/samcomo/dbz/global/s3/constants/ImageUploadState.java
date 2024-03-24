@@ -13,6 +13,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class ImageUploadState {
+
   private boolean success;
   private String imageUrl;
 }

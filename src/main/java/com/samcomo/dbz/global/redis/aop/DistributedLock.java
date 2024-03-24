@@ -22,5 +22,4 @@ public @interface DistributedLock {
 
   // Lock을 소유하고 있는 시간
   long leaseTime() default 3L;
-
 }

@@ -7,5 +7,4 @@ public enum LockType {
   MEMBER,
   PIN,
   NOTIFICATION
-
 }

@@ -11,5 +11,4 @@ public class AopForTransaction {
   public Object proceed(ProceedingJoinPoint joinPoint) throws Throwable {
     return joinPoint.proceed();
   }
-
 }

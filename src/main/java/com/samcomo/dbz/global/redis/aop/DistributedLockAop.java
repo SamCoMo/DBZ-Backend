@@ -24,7 +24,7 @@ public class DistributedLockAop {
   private final AopForTransaction aopForTransaction;
 
   @Around("@annotation(com.samcomo.dbz.global.redis.aop.DistributedLock)")
-  public Object lock(ProceedingJoinPoint joinPoint) throws Throwable{
+  public Object lock(ProceedingJoinPoint joinPoint) throws Throwable {
 
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
     Method method = signature.getMethod();
@@ -34,9 +34,10 @@ public class DistributedLockAop {
     LockType type = distributedLock.lockType();
     RLock lock = redissonClient.getLock(type + ":" + lockName);
 
-    try{
+    try {
       if (!lock.tryLock(
-          distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit())){
+          distributedLock.waitTime(), distributedLock.leaseTime(),
+          distributedLock.timeUnit())) {
         throw new RedissonException(ErrorCode.LOCK_FAIL);
       }
 
@@ -44,13 +45,13 @@ public class DistributedLockAop {
 
       return aopForTransaction.proceed(joinPoint);
 
-    }catch (InterruptedException e){
+    } catch (InterruptedException e) {
       throw new RedissonException(ErrorCode.LOCK_FAIL);
-    }finally {
-      try{
+    } finally {
+      try {
         lock.unlock();
         log.info("Lock 제거");
-      }catch (IllegalMonitorStateException e) {
+      } catch (IllegalMonitorStateException e) {
         log.info("이미 Lock을 제거했습니다.");
       }
     }
