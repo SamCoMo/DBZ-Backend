@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/report")
+@Slf4j
 @Tag(name = "게시글 작성 컨트롤러", description = "게시글 관련 API")
 public class ReportController {
 
@@ -42,6 +44,8 @@ public class ReportController {
       @RequestPart ReportDto.Form reportForm,
       @RequestPart(value = "imageList", required = false) List<MultipartFile> imageList
   ) {
+
+    log.info("<<< ReportController - Register Report >>>");
 
     ReportDto.Response reportResponse =
         reportService.uploadReport(details.getId(), reportForm, imageList);
@@ -71,6 +75,8 @@ public class ReportController {
       @RequestParam boolean showsInProcessOnly,
       Pageable pageable
   ) {
+
+    log.info("<<< ReportController - Get Report List >>>");
 
     CustomSlice<ReportSummaryDto> result =
         reportService.getReportList(lastLongitude, lastLatitude, curLatitude, curLongitude,
