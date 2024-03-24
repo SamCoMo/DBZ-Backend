@@ -41,8 +41,9 @@ public class JwtUtil {
   }
 
   public Long getId(String token) {
-    return Long.valueOf(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
-        .get(ID_KEY, String.class));
+    return Long.valueOf(
+        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
+            .get(ID_KEY, String.class));
   }
 
   public String getRole(String token) {
@@ -83,7 +84,8 @@ public class JwtUtil {
       throw new MemberException(
           isRequiredAccessType ? ACCESS_TOKEN_EXPIRED : REFRESH_TOKEN_EXPIRED);
     } catch (JwtException | IllegalArgumentException e) {
-      throw new MemberException(isRequiredAccessType ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
+      throw new MemberException(
+          isRequiredAccessType ? INVALID_ACCESS_TOKEN : INVALID_REFRESH_TOKEN);
     }
   }
 
