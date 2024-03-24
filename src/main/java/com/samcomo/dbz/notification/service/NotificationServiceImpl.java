@@ -92,7 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
     } catch (IOException e) {
       throw new NotiException(PIN_NOTIFICATION_FAILED);
     }
-    getNotificationEntity(memberId, sendPinDto.getBody(), PIN);
+    notifiRepository.save(getNotificationEntity(memberId, sendPinDto.getBody(), PIN));
   }
 
   @Override
@@ -102,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
     List<Member> memberList = getActiveMemberNearBy(reportForm);
     List<String> fcmTokenList = getFcmTokenList(memberList);
 
-    SendReportDto sendReportDto = SendReportDto.of(reportForm.getDescriptions());
+    SendReportDto sendReportDto = SendReportDto.from(reportForm.getDescriptions());
 
     MulticastMessage message = makeMultipleMessage(sendReportDto, fcmTokenList);
 
@@ -132,7 +132,7 @@ public class NotificationServiceImpl implements NotificationService {
     Long recipientId = Long.valueOf(getRecipientId(chatRoomId, senderId));
     Member member = validateOrGetMember(recipientId);
 
-    SendChatDto sendChatDto = SendChatDto.of(
+    SendChatDto sendChatDto = SendChatDto.from(
         member.getNickname(), request.getContent(), member.getFcmToken());
 
     SendSingleDto sendSingleDto = SendSingleDto.from(sendChatDto);

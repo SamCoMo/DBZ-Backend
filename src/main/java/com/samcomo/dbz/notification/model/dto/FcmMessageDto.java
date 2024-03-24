@@ -13,7 +13,6 @@ public class FcmMessageDto {
   @Builder
   @Getter
   public static class Message {
-
     private Notification notification;
     private String token;
     private String topic;
@@ -22,7 +21,6 @@ public class FcmMessageDto {
   @Builder
   @Getter
   public static class Notification {
-
     private String title;
     private String body;
   }

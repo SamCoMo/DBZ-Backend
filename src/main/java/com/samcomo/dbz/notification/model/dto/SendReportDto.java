@@ -2,7 +2,6 @@ package com.samcomo.dbz.notification.model.dto;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +22,7 @@ public class SendReportDto {
     this.body = description + DEFAULT_BODY;
   }
 
-  public static SendReportDto of(String description) {
+  public static SendReportDto from(String description) {
     return new SendReportDto(description);
   }
 }

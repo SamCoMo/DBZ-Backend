@@ -20,7 +20,7 @@ public class SendChatDto {
     this.fcmToken = fcmToken;
   }
 
-  public static SendChatDto of(String memberNickname, String body, String fcmToken) {
+  public static SendChatDto from(String memberNickname, String body, String fcmToken) {
     return new SendChatDto(memberNickname, body, fcmToken);
   }
 }
