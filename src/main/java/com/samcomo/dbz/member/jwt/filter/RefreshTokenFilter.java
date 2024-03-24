@@ -59,7 +59,7 @@ public class RefreshTokenFilter {
   private Cookie createCookie(String newRefreshToken) {
     Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), newRefreshToken);
     cookie.setMaxAge(24 * 60 * 60);
-    // cookie.setSecure(true); // csrf 공격 방지
+    cookie.setSecure(true); // csrf 공격 방지
     cookie.setHttpOnly(true); // xss 공격 방지 (js 접근 불가)
     return cookie;
   }
