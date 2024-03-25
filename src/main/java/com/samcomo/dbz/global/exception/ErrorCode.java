@@ -42,7 +42,7 @@ public enum ErrorCode {
 
   INVALID_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "access 토큰 정보가 유효하지 않습니다."),
 
-  REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "refresh 토큰이 만료되었습니다."),
+  REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "refresh 토큰이 만료되었습니다. 다시 로그인해주세요."),
 
   INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "refresh 토큰 정보가 유효하지 않습니다."),
 
