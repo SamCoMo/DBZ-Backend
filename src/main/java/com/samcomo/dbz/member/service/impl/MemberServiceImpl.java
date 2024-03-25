@@ -62,7 +62,7 @@ public class MemberServiceImpl implements MemberService {
     if (!imageUploadState.isSuccess()) {
       throw new MemberException(PROFILE_IMAGE_NOT_UPLOADED);
     }
-    s3Service.deleteFile(s3Service.getFileName(imageUploadState.getImageUrl()));
+    s3Service.deleteFile(s3Service.getFileName(member.getProfileImageUrl()));
 
     member.setProfileImageUrl(imageUploadState.getImageUrl());
     memberRepository.save(member);

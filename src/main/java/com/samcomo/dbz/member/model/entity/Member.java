@@ -67,7 +67,6 @@ public class Member extends BaseEntity {
     return Member.builder()
         .email(request.getEmail())
         .nickname(request.getNickname())
-        .profileImageUrl("defaultImageUrl.jpg") // TODO 기본 이미지 url 정하기
         .phone(request.getPhone())
         .role(MEMBER)
         .status(ACTIVE)
