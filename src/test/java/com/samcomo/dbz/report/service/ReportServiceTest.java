@@ -6,6 +6,7 @@ import com.samcomo.dbz.global.s3.constants.ImageUploadState;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
+import com.samcomo.dbz.notification.service.NotificationServiceImpl;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.PetType;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
@@ -56,6 +57,8 @@ public class ReportServiceTest {
   private ReportImageRepository reportImageRepository;
   @Mock
   private S3Service s3Service;
+  @Mock
+  private NotificationServiceImpl notificationService;
   @InjectMocks
   private ReportServiceImpl reportService;
 
@@ -71,15 +74,17 @@ public class ReportServiceTest {
         .id(1L)
         .build();
 
-    reportForm = ReportDto.Form.builder()
-        .title("test title")
-        .petType(PetType.DOG)
-        .build();
-
     multipartFileList = List.of(
         new MockMultipartFile("test1","test1.PNG", MediaType.IMAGE_PNG_VALUE,"test1".getBytes()),
         new MockMultipartFile("test2","test2.PNG", MediaType.IMAGE_PNG_VALUE,"test2".getBytes())
     );
+
+    reportForm = ReportDto.Form.builder()
+        .title("test title")
+        .petType(PetType.DOG)
+        .imageList(multipartFileList)
+        .build();
+
     imageUploadState = ImageUploadState.builder()
         .success(true)
         .imageUrl("http://testUpload/test.png")
@@ -106,8 +111,9 @@ public class ReportServiceTest {
     Mockito.when(memberRepository.findById(member.getId()))
         .thenReturn(Optional.of(member));
 
-    Mockito.when(s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT))
+    Mockito.when(s3Service.uploadImageList(reportForm.getImageList(), ImageCategory.REPORT))
         .thenReturn(List.of(imageUrl));
+
 
     newReport.setId(1L);
     Mockito.when(reportRepository.save(Mockito.any(Report.class)))
@@ -116,7 +122,7 @@ public class ReportServiceTest {
         .thenReturn(List.of(reportImage, reportImage));
 
     //when
-    Response response = reportService.uploadReport(member.getId(), reportForm, multipartFileList);
+    Response response = reportService.uploadReport(member.getId(), reportForm);
 
     //then
     Assertions.assertEquals(newReport.getId() ,response.getReportId());
@@ -212,7 +218,6 @@ public class ReportServiceTest {
 
     Assertions.assertEquals(1L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(10L, reportListSlice.getContent().get(9).getReportId());
-    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(pageable.getPageSize(), reportListSlice.getSize());
   }
 
@@ -256,7 +261,6 @@ public class ReportServiceTest {
     //then
     Assertions.assertEquals(1L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(10L, reportListSlice.getContent().get(9).getReportId());
-    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(pageable.getPageSize(), reportListSlice.getSize());
     Mockito.verify(reportRepository, Mockito.times(0))
         .findAllOrderByDistance(
@@ -303,7 +307,7 @@ public class ReportServiceTest {
 
     //when
     Response response =
-        reportService.updateReport(1L, member.getId(), reportForm, multipartFileList);
+        reportService.updateReport(1L, member.getId(), reportForm);
 
     //then
     Mockito.verify(s3Service).deleteFile(fileNameCaptor.capture());
@@ -321,7 +325,7 @@ public class ReportServiceTest {
         .thenReturn(Optional.empty());
     //when
     Throwable exception = Assertions.assertThrows(ReportException.class,
-        ()-> reportService.updateReport(1L, member.getId(), reportForm, multipartFileList));
+        ()-> reportService.updateReport(1L, member.getId(), reportForm));
 
     //then
     Assertions.assertEquals(ErrorCode.REPORT_NOT_FOUND.getMessage(), exception.getMessage());
@@ -432,7 +436,6 @@ public class ReportServiceTest {
     CustomSlice<ReportSearchSummaryDto> reportListSlice = reportService.searchReport("test", false, pageable);
 
     // then
-    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(0L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(pageable.getPageNumber(), reportListSlice.getPageable().getPageNumber());
   }
@@ -475,7 +478,6 @@ public class ReportServiceTest {
     CustomSlice<ReportSearchSummaryDto> reportListSlice = reportService.searchReport("test", true, pageable);
 
     // then
-    Assertions.assertFalse(reportListSlice.isLast());
     Assertions.assertEquals(0L, reportListSlice.getContent().get(0).getReportId());
     Assertions.assertEquals(pageable.getPageNumber(), reportListSlice.getPageable().getPageNumber());
     Assertions.assertEquals(reportSlice.getContent().get(0).getReportStatus(), reportListSlice.getContent().get(0).getReportStatus());

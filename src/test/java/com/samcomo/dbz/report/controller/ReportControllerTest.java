@@ -108,8 +108,7 @@ public class ReportControllerTest {
     //given
 
     Mockito
-        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class
-        ), Mockito.any()))
+        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class)))
         .thenReturn(response);
 
     //when
@@ -216,7 +215,7 @@ public class ReportControllerTest {
     // given
     Long reportId = 1L;
     Mockito.when(
-        reportService.updateReport(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any()))
+        reportService.updateReport(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(ReportDto.Form.class)))
         .thenReturn(response);
 
     // when
