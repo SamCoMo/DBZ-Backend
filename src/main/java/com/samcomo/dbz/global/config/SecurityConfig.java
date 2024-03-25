@@ -6,6 +6,8 @@ import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
+import com.samcomo.dbz.member.jwt.AuthUtils;
+import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
@@ -36,6 +38,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
+  private final CookieUtil cookieUtil;
   private final AuthenticationConfiguration configuration;
   private final MemberRepository memberRepository;
 
@@ -43,6 +46,11 @@ public class SecurityConfig {
   public AuthenticationManager authenticationManager(
       AuthenticationConfiguration configuration) throws Exception {
     return configuration.getAuthenticationManager();
+  }
+
+  @Bean
+  public AuthUtils getAuthUtils() {
+    return AuthUtils.of(jwtUtil, cookieUtil);
   }
 
   @Bean
@@ -119,11 +127,11 @@ public class SecurityConfig {
     // filter
     http
         .addFilterBefore(
-            new CustomLogoutFilter(jwtUtil), LogoutFilter.class)
+            new CustomLogoutFilter(getAuthUtils()), LogoutFilter.class)
         .addFilterBefore(
             new FilterMemberExceptionHandler(), CustomLogoutFilter.class)
         .addFilterBefore(
-            new CustomLoginFilter(authenticationManager(configuration), jwtUtil, memberRepository), UsernamePasswordAuthenticationFilter.class)
+            new CustomLoginFilter(authenticationManager(configuration), getAuthUtils(), memberRepository), UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new AccessTokenFilter(jwtUtil), CustomLoginFilter.class);
 

@@ -7,6 +7,8 @@ import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 import static org.springframework.http.HttpMethod.POST;
 
 import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.jwt.AuthUtils;
+import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -15,7 +17,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Iterator;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,22 +28,23 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
   private final JwtUtil jwtUtil;
+  private final CookieUtil cookieUtil;
   private final MemberRepository memberRepository;
 
   private static final String LOGIN_URI = "/member/login";
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
   private static final String FCM_TOKEN_KEY = "fcmToken";
-  private static final String COOKIE_KEY = "Set-Cookie";
 
   private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
       new AntPathRequestMatcher(LOGIN_URI, POST.name());
 
   public CustomLoginFilter(
-      AuthenticationManager authenticationManager, JwtUtil jwtUtil, MemberRepository memberRepository) {
+      AuthenticationManager authenticationManager, AuthUtils authUtils, MemberRepository memberRepository) {
     super(LOGIN_REQUEST_MATCHER, authenticationManager);
-    this.jwtUtil = jwtUtil;
     this.memberRepository = memberRepository;
+    this.jwtUtil = authUtils.getJwtUtil();
+    this.cookieUtil = authUtils.getCookieUtil();
   }
 
   @Override
@@ -80,32 +82,32 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     Long memberId = getMemberId(authResult);
     String role = getMemberRole(authResult);
 
-    jwtUtil.checkAlreadyLoggedIn(memberId);
+    jwtUtil.deleteOldRefreshTokenFromDB(memberId);
 
     String accessToken = jwtUtil.createToken(ACCESS_TOKEN, String.valueOf(memberId), role);
     String refreshToken = jwtUtil.createToken(REFRESH_TOKEN, String.valueOf(memberId), role);
 
-    jwtUtil.saveRefreshTokenToDataBase(memberId, refreshToken);
+    jwtUtil.saveRefreshTokenToDB(memberId, refreshToken);
 
-    String fcmToken = obtainFcmToken(request);
-    saveFcmToken(memberId, fcmToken);
+    saveFcmToken(memberId, request);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
-    response.addHeader(COOKIE_KEY, String.valueOf(createCookie(refreshToken)));
+    response.addHeader(CookieUtil.COOKIE_KEY, cookieUtil.createCookie(refreshToken));
     response.setStatus(HttpServletResponse.SC_OK);
-  }
-
-  private void saveFcmToken(Long memberId, String fcmToken) {
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
-    member.setFcmToken(fcmToken);
-    memberRepository.save(member);
   }
 
   @Override
   protected void unsuccessfulAuthentication(HttpServletRequest request,
       HttpServletResponse response, AuthenticationException failed) {
     throw new MemberException(AUTHENTICATION_FAILED);
+  }
+
+  private void saveFcmToken(Long memberId, HttpServletRequest request) {
+    String fcmToken = obtainFcmToken(request);
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+    member.setFcmToken(fcmToken);
+    memberRepository.save(member);
   }
 
   private Long getMemberId(Authentication authResult) {
@@ -117,15 +119,5 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     Iterator<? extends GrantedAuthority> iterator = authResult.getAuthorities().iterator();
     GrantedAuthority auth = iterator.next();
     return auth.getAuthority();
-  }
-
-  private ResponseCookie createCookie(String refreshToken) {
-    return ResponseCookie.from(REFRESH_TOKEN.getKey(), refreshToken)
-        .path("/")
-        .sameSite("None")
-        .httpOnly(true)
-        .secure(true)
-        .maxAge(24 * 60 * 60)
-        .build();
   }
 }
