@@ -12,12 +12,15 @@ public class SendChatDto {
 
   private String title;
   private String body;
-  private String token;
+  private String fcmToken;
 
-  public SendChatDto(String member, String body, String token) {
-    this.title = member + DEFAULT_TITLE;
+  private SendChatDto(String memberNickname, String body, String fcmToken) {
+    this.title = memberNickname + DEFAULT_TITLE;
     this.body = body + DEFAULT_BODY;
-    this.token = token;
+    this.fcmToken = fcmToken;
   }
 
+  public static SendChatDto from(String memberNickname, String body, String fcmToken) {
+    return new SendChatDto(memberNickname, body, fcmToken);
+  }
 }

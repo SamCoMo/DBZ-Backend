@@ -5,8 +5,7 @@ import com.samcomo.dbz.global.exception.ErrorCode;
 
 public class NotiException extends CustomException {
 
-  public NotiException(ErrorCode errorCode){
+  public NotiException(ErrorCode errorCode) {
     super(errorCode);
   }
-
 }

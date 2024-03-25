@@ -20,14 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "알림", description = "알림 API")
 @RequestMapping("/notification")
 public class NotificationController {
+
   private final NotificationService notificationService;
 
   @Operation(summary = "알림 목록 조회")
   @GetMapping("/list")
-  public ResponseEntity<List<NotificationDto>> getNotificationList( @AuthenticationPrincipal
-      MemberDetails memberDetails) {
+  public ResponseEntity<List<NotificationDto>> getNotificationList(
+      @AuthenticationPrincipal MemberDetails details) {
 
-    List<NotificationDto> result = notificationService.getNotificationList(memberDetails.getId());
+    List<NotificationDto> result =
+        notificationService.getNotificationList(details.getIdAsString());
+
     return ResponseEntity.ok(result);
   }
 }

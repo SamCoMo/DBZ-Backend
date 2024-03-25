@@ -3,7 +3,6 @@ package com.samcomo.dbz.member.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
 import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
@@ -33,11 +32,11 @@ public class MemberController {
 
   private final MemberService memberService;
   private final RefreshTokenFilter refreshTokenFilter;
-  private final JwtUtil jwtUtil;
 
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
-  public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
+  public ResponseEntity<Void> register(
+      @Valid @RequestBody RegisterRequest request) {
 
     memberService.register(request);
 

@@ -1,13 +1,14 @@
 package com.samcomo.dbz.notification.model.dto;
 
-import lombok.AccessLevel;
+import static lombok.AccessLevel.PRIVATE;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = PRIVATE)
 public class SendReportDto {
 
   private static final String DEFAULT_TITLE = "새로운 게시글이 등록되었습니다.";
@@ -16,10 +17,12 @@ public class SendReportDto {
   private String title;
   private String body;
 
-  public SendReportDto(String description) {
+  private SendReportDto(String description) {
     this.title = DEFAULT_TITLE;
     this.body = description + DEFAULT_BODY;
-
   }
 
+  public static SendReportDto from(String description) {
+    return new SendReportDto(description);
+  }
 }
