@@ -7,10 +7,10 @@ import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.constants.TokenType;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 public class RefreshTokenFilter {
 
   private final JwtUtil jwtUtil;
+
+  private static final String COOKIE_KEY = "Set-Cookie";
 
   public void reissue(String oldRefreshToken, HttpServletResponse response) {
 
@@ -29,7 +31,7 @@ public class RefreshTokenFilter {
     rotateRefreshToken(oldRefreshToken, newRefreshToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), newAccessToken);
-    response.addCookie(createCookie(newRefreshToken));
+    response.addHeader(COOKIE_KEY, String.valueOf(createCookie(newRefreshToken)));
   }
 
   @Transactional
@@ -56,12 +58,14 @@ public class RefreshTokenFilter {
     return jwtUtil.createToken(tokenType, memberId, role);
   }
 
-  private Cookie createCookie(String newRefreshToken) {
-    Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), newRefreshToken);
-    cookie.setMaxAge(24 * 60 * 60);
-//    cookie.setSecure(true); // csrf 공격 방지
-//    cookie.setHttpOnly(true); // xss 공격 방지 (js 접근 불가)
-    return cookie;
+  private ResponseCookie createCookie(String refreshToken) {
+    return ResponseCookie.from(REFRESH_TOKEN.getKey(), refreshToken)
+        .path("/")
+        .sameSite("None")
+        .httpOnly(true)
+        .secure(true)
+        .maxAge(24 * 60 * 60)
+        .build();
   }
 
   private boolean isTokenInDataBase(String refreshToken) {

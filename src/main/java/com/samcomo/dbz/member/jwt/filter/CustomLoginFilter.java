@@ -12,10 +12,10 @@ import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Iterator;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,6 +33,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
   private static final String EMAIL_KEY = "email";
   private static final String PASSWORD_KEY = "password";
   private static final String FCM_TOKEN_KEY = "fcmToken";
+  private static final String COOKIE_KEY = "Set-Cookie";
 
   private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
       new AntPathRequestMatcher(LOGIN_URI, POST.name());
@@ -90,7 +91,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     saveFcmToken(memberId, fcmToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
-    response.addCookie(createCookie(refreshToken));
+    response.addHeader(COOKIE_KEY, String.valueOf(createCookie(refreshToken)));
     response.setStatus(HttpServletResponse.SC_OK);
   }
 
@@ -118,11 +119,13 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
     return auth.getAuthority();
   }
 
-  private Cookie createCookie(String refreshToken) {
-    Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), refreshToken);
-    cookie.setMaxAge(24 * 60 * 60);
-//    cookie.setHttpOnly(true);
-//     cookie.setSecure(true);
-    return cookie;
+  private ResponseCookie createCookie(String refreshToken) {
+    return ResponseCookie.from(REFRESH_TOKEN.getKey(), refreshToken)
+        .path("/")
+        .sameSite("None")
+        .httpOnly(true)
+        .secure(true)
+        .maxAge(24 * 60 * 60)
+        .build();
   }
 }
