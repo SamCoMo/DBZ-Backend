@@ -13,10 +13,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.filter.GenericFilterBean;
 
 @RequiredArgsConstructor
+@Slf4j
 public class CustomLogoutFilter extends GenericFilterBean {
 
   private final JwtUtil jwtUtil;
@@ -66,7 +69,9 @@ public class CustomLogoutFilter extends GenericFilterBean {
     String refreshToken = null;
 
     Cookie[] cookies = request.getCookies();
+    log.info("===== 로그아웃 요청 {} =====", Arrays.toString(cookies));
     for (Cookie cookie : cookies) {
+      log.info("===== Cookie : {} =====", cookie);
       if (cookie.getName().equals(REFRESH_TOKEN.getKey())) {
         refreshToken = cookie.getValue();
       }

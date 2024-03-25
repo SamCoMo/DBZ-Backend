@@ -44,7 +44,7 @@ jobs:
           docker build -t ${{secrets.DOCKER_USER}}/samcomo . 
           docker push ${{secrets.DOCKER_USER}}/samcomo:latest
 
-      - name: excuting remote ssh commands
+      - name: Excuting remote ssh commands & Run container
         uses: appleboy/ssh-action@v0.1.6 # ssh 접속하는 오픈소스
         with:
           host: ${{ secrets.EC2_HOST }} # 인스턴스 IP
