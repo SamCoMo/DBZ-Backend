@@ -44,6 +44,12 @@ public class ReportController {
 
     log.info("<<< ReportController - Register Report >>>");
 
+    log.info("title : {}", reportForm.getTitle());
+    log.info("petName : {}", reportForm.getPetName());
+    log.info("imageList : {}", reportForm.getImageList());
+
+
+
     ReportDto.Response reportResponse =
         reportService.uploadReport(details.getId(), reportForm);
 
@@ -56,14 +62,14 @@ public class ReportController {
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable(value = "reportId") long reportId
   ) {
-
+    log.info("<<< ReportController - Get Report >>>");
     ReportDto.Response reportResponse = reportService.getReport(reportId, details.getId());
 
     return ResponseEntity.ok(reportResponse);
   }
 
   @GetMapping("/list")
-  @Operation(summary = "현재 위치와 인접지역의 게시글 조회")
+  @Operation(summary = "현재 위치와 인접 지역의 게시글 조회")
   public ResponseEntity<CustomSlice<ReportSummaryDto>> getReportList(
       @RequestParam double lastLatitude,
       @RequestParam double lastLongitude,

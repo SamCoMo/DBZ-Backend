@@ -1,7 +1,6 @@
 package com.samcomo.dbz.member.jwt;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
-import static com.samcomo.dbz.global.exception.ErrorCode.ALREADY_LOGGED_IN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_TOKEN_TYPE;
@@ -89,12 +88,12 @@ public class JwtUtil {
     }
   }
 
-  public boolean isRefreshTokenInDataBase(String refreshToken) {
+  public boolean isRefreshTokenInDB(String refreshToken) {
     Long memberId = getId(refreshToken);
     return refreshTokenRepository.existsByRefreshTokenAndMemberId(refreshToken, memberId);
   }
 
-  public void saveRefreshTokenToDataBase(Long memberId, String refreshToken) {
+  public void saveRefreshTokenToDB(Long memberId, String refreshToken) {
     Date expiration = new Date(System.currentTimeMillis() + REFRESH_TOKEN.getExpiredMs());
     refreshTokenRepository.save(RefreshToken.builder()
         .memberId(memberId)
@@ -103,17 +102,17 @@ public class JwtUtil {
         .build());
   }
 
-  public void deleteRefreshTokenFromDataBase(String refreshToken) {
+  public void deleteRefreshTokenFromDB(String refreshToken) {
     refreshTokenRepository.deleteByRefreshToken(refreshToken);
   }
 
-  public void checkAlreadyLoggedIn(Long memberId) {
+  public void deleteOldRefreshTokenFromDB(Long memberId) {
     if (refreshTokenRepository.existsByMemberId(memberId)) {
-      throw new MemberException(ALREADY_LOGGED_IN);
+      refreshTokenRepository.deleteAllByMemberId(memberId);
     }
   }
 
-  public void deleteAllRefreshTokenFromDataBase(String oldRefreshToken) {
+  public void deleteAllRefreshTokenOfMemberFromDB(String oldRefreshToken) {
     refreshTokenRepository.deleteAllByMemberId(getId(oldRefreshToken));
   }
 

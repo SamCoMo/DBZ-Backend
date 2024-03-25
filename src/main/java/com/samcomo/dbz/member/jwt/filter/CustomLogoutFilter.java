@@ -1,31 +1,35 @@
 package com.samcomo.dbz.member.jwt.filter;
 
+import static com.google.api.client.http.HttpMethods.POST;
 import static com.samcomo.dbz.global.exception.ErrorCode.ALREADY_LOGGED_OUT;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.jwt.AuthUtils;
+import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.filter.GenericFilterBean;
 
-@RequiredArgsConstructor
 @Slf4j
 public class CustomLogoutFilter extends GenericFilterBean {
 
   private final JwtUtil jwtUtil;
+  private final CookieUtil cookieUtil;
 
   private static final String LOGOUT_URI = "\\/member\\/logout";
-  private static final String LOGOUT_METHOD = "POST";
+
+  public CustomLogoutFilter(AuthUtils authUtils) {
+    this.jwtUtil = authUtils.getJwtUtil();
+    this.cookieUtil = authUtils.getCookieUtil();
+  }
 
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -42,50 +46,25 @@ public class CustomLogoutFilter extends GenericFilterBean {
       return;
     }
 
-    String refreshToken = getRefreshToken(request);
+    String refreshToken = cookieUtil.getRefreshToken(request);
     validateRefreshToken(refreshToken);
 
-    jwtUtil.deleteRefreshTokenFromDataBase(refreshToken);
-    deleteCookie(response);
+    jwtUtil.deleteRefreshTokenFromDB(refreshToken);
+    response.setHeader(CookieUtil.COOKIE_KEY, cookieUtil.getNullCookie());
     response.setStatus(HttpServletResponse.SC_OK);
   }
 
   private void validateRefreshToken(String refreshToken) {
     jwtUtil.validateTokenAndTokenType(refreshToken, REFRESH_TOKEN);
-    if (!isTokenInDataBase(refreshToken)) {
+    if (!jwtUtil.isRefreshTokenInDB(refreshToken)) {
       throw new MemberException(ALREADY_LOGGED_OUT);
     }
   }
-  private void deleteCookie(HttpServletResponse response) {
-    Cookie cookie = new Cookie(REFRESH_TOKEN.getKey(), null);
-    cookie.setMaxAge(0);
-    cookie.setPath("/");
-    cookie.setHttpOnly(true);
-    // cookie.setSecure(true);
-    response.addCookie(cookie);
-  }
-
-  private String getRefreshToken(HttpServletRequest request) {
-    String refreshToken = null;
-    Cookie[] cookies = request.getCookies();
-    log.info("===== 로그아웃 요청 {} =====", Arrays.toString(cookies));
-    for (Cookie cookie : cookies) {
-      log.info("===== Cookie : {} =====", cookie);
-      if (cookie.getName().equals(REFRESH_TOKEN.getKey())) {
-        refreshToken = cookie.getValue();
-      }
-    }
-    return refreshToken;
-  }
 
   private boolean isLogoutRequest(HttpServletRequest request) {
-    if (!request.getMethod().equals(LOGOUT_METHOD)) {
+    if (!request.getMethod().equals(POST)) {
       return false;
     }
     return request.getRequestURI().matches(LOGOUT_URI);
-  }
-
-  private boolean isTokenInDataBase(String refreshToken) {
-    return jwtUtil.isRefreshTokenInDataBase(refreshToken);
   }
 }
