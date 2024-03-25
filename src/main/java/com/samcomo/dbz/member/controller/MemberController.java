@@ -3,9 +3,8 @@ package com.samcomo.dbz.member.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
-import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
-import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
+import com.samcomo.dbz.member.model.dto.LocationRequest;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.member.model.dto.MyPageResponse;
 import com.samcomo.dbz.member.model.dto.RegisterRequest;
@@ -23,7 +22,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +34,6 @@ public class MemberController {
 
   private final MemberService memberService;
   private final RefreshTokenFilter refreshTokenFilter;
-  private final JwtUtil jwtUtil;
 
   @PostMapping("/register")
   @Operation(summary = "신규 회원 가입")
@@ -69,9 +69,20 @@ public class MemberController {
   @Operation(summary = "회원 위치 업데이트")
   public ResponseEntity<Void> updateLocation(
       @AuthenticationPrincipal MemberDetails details,
-      @Valid @RequestBody LocationUpdateRequest request) {
+      @Valid @RequestBody LocationRequest request) {
 
     memberService.updateLocation(details.getId(), request);
+
+    return ResponseEntity.status(OK).build();
+  }
+
+  @PatchMapping("/profile-image")
+  @Operation(summary = "프로필 이미지 업데이트")
+  public ResponseEntity<Void> updateProfileImage(
+      @AuthenticationPrincipal MemberDetails details,
+      @RequestPart MultipartFile profileImage) {
+
+    memberService.updateProfileImage(details.getId(), profileImage);
 
     return ResponseEntity.status(OK).build();
   }

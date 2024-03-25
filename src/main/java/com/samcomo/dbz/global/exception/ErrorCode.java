@@ -56,6 +56,8 @@ public enum ErrorCode {
 
   AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인 인증에 실패했습니다."),
 
+  PROFILE_IMAGE_NOT_UPLOADED(HttpStatus.INTERNAL_SERVER_ERROR, "프로필 이미지 업데이트에 실패했습니다."),
+
   // Pin
 
   PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),

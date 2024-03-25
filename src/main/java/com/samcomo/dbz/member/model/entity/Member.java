@@ -38,6 +38,7 @@ public class Member extends BaseEntity {
 
   private String nickname;
 
+  @Setter
   private String profileImageUrl;
 
   private String phone;
