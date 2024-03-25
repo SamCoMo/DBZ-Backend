@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 public class ReportDto {
 
@@ -30,6 +31,7 @@ public class ReportDto {
     private Double latitude;
     private Double longitude;
     private Boolean showsPhone;
+    private List<MultipartFile> imageList;
   }
 
   @Getter

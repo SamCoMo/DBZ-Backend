@@ -36,7 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Repository
 @RequiredArgsConstructor
@@ -52,15 +51,13 @@ public class ReportServiceImpl implements ReportService {
   private final NotificationService notificationService;
 
   @Override
-  public ReportDto.Response uploadReport(
-      long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
-  ) {
+  public ReportDto.Response uploadReport(long memberId, ReportDto.Form reportForm) {
 
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
 
     // S3 이미지 저장
-    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
+    List<String> imageUrlList = s3Service.uploadImageList(reportForm.getImageList(), ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(Report.from(reportForm, member));
@@ -139,7 +136,7 @@ public class ReportServiceImpl implements ReportService {
   @Override
   @Transactional
   public ReportDto.Response updateReport(
-      long reportId, long memberId, ReportDto.Form reportForm, List<MultipartFile> multipartFileList
+      long reportId, long memberId, ReportDto.Form reportForm
   ) {
 
     Report report = reportRepository.findByIdAndMember_Id(reportId, memberId)
@@ -169,7 +166,7 @@ public class ReportServiceImpl implements ReportService {
     reportImageRepository.deleteAll(reportImageList);
 
     // 변경된 이미지 S3 저장
-    List<String> imageUrlList = s3Service.uploadImageList(multipartFileList, ImageCategory.REPORT);
+    List<String> imageUrlList = s3Service.uploadImageList(reportForm.getImageList(), ImageCategory.REPORT);
 
     // 게시글 저장
     Report newReport = reportRepository.save(report);

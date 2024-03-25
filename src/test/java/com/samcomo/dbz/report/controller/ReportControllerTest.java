@@ -96,7 +96,6 @@ public class ReportControllerTest {
         .reportId(1L)
         .memberId(1L)
         .title("test title")
-        .isWriter(true)
         .latitude(37.12345)
         .longitude(127.12345)
         .build();
@@ -109,8 +108,7 @@ public class ReportControllerTest {
     //given
 
     Mockito
-        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class
-        ), Mockito.any()))
+        .when(reportService.uploadReport(Mockito.anyLong(), Mockito.any(ReportDto.Form.class)))
         .thenReturn(response);
 
     //when
@@ -137,7 +135,6 @@ public class ReportControllerTest {
     Response response = Response.builder()
         .reportId(1L)
         .memberId(1L)
-        .isWriter(true)
         .latitude(37.12345)
         .longitude(127.12345)
         .build();
@@ -218,7 +215,7 @@ public class ReportControllerTest {
     // given
     Long reportId = 1L;
     Mockito.when(
-        reportService.updateReport(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(ReportDto.Form.class), Mockito.any()))
+        reportService.updateReport(Mockito.anyLong(), Mockito.anyLong(), Mockito.any(ReportDto.Form.class)))
         .thenReturn(response);
 
     // when
