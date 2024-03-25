@@ -3,18 +3,24 @@ package com.samcomo.dbz.member.service.impl;
 import static com.samcomo.dbz.global.exception.ErrorCode.EMAIL_ALREADY_EXISTS;
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static com.samcomo.dbz.global.exception.ErrorCode.NICKNAME_ALREADY_EXISTS;
+import static com.samcomo.dbz.global.exception.ErrorCode.PROFILE_IMAGE_NOT_UPLOADED;
 import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
 import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 
+import com.samcomo.dbz.global.s3.constants.ImageUploadState;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
-import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
+import com.samcomo.dbz.member.model.dto.LocationRequest;
 import com.samcomo.dbz.member.model.dto.MyPageResponse;
 import com.samcomo.dbz.member.model.dto.RegisterRequest;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -29,8 +35,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -40,6 +48,8 @@ class MemberServiceImplTest {
 
   @Mock
   private MemberRepository memberRepository;
+  @Mock
+  private S3Service s3Service;
 
   @Spy
   private PasswordEncoder passwordEncoder;
@@ -165,7 +175,7 @@ class MemberServiceImplTest {
   @DisplayName("위치업데이트[성공]")
   void successUpdateLocation() {
     // given
-    LocationUpdateRequest updateRequest = LocationUpdateRequest.builder()
+    LocationRequest updateRequest = LocationRequest.builder()
         .address("새로운 주소지")
         .longitude(37.12345)
         .latitude(127.12345)
@@ -191,7 +201,7 @@ class MemberServiceImplTest {
   @DisplayName("위치업데이트[실패] - DB 조회 실패")
   void failUpdateLocation() {
     // given
-    LocationUpdateRequest updateRequest = LocationUpdateRequest.builder()
+    LocationRequest updateRequest = LocationRequest.builder()
         .address("새로운 주소")
         .longitude(37.12345)
         .latitude(127.12345)
@@ -204,5 +214,54 @@ class MemberServiceImplTest {
 
     // then
     assertEquals(MEMBER_NOT_FOUND, e.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("프로필이미지업데이트[성공]")
+  void successUpdateProfileImage() {
+    // given
+    String beforeProfileImageUrl = savedMember.getProfileImageUrl();
+    MultipartFile profileImage = new MockMultipartFile(
+        "profileImage", "test.png", IMAGE_PNG_VALUE, "test".getBytes());
+    ImageUploadState imageUploadState = ImageUploadState.builder()
+        .imageUrl("https://samcomo.amazonaws.com/stringimage.jpg")
+        .success(true)
+        .build();
+
+    // when
+    given(memberRepository.findById(anyLong())).willReturn(Optional.of(savedMember));
+    given(s3Service.uploadMultipartFileByStream(any(), any())).willReturn(imageUploadState);
+    // then
+
+    memberService.updateProfileImage(savedMember.getId(), profileImage);
+
+    assertNull(beforeProfileImageUrl);
+    assertEquals("https://samcomo.amazonaws.com/stringimage.jpg", savedMember.getProfileImageUrl());
+  }
+
+  @Test
+  @DisplayName("프로필이미지업데이트[실패] - s3 업로드 실패")
+  void failUpdateProfileImage() {
+    // given
+    String beforeProfileImageUrl = savedMember.getProfileImageUrl();
+    MultipartFile profileImage = new MockMultipartFile(
+        "profileImage", "test.png", IMAGE_PNG_VALUE, "test".getBytes());
+    ImageUploadState imageUploadState = ImageUploadState.builder()
+        .imageUrl(null)
+        .success(false)
+        .build();
+
+    // when
+    given(memberRepository.findById(anyLong())).willReturn(Optional.of(savedMember));
+    given(s3Service.uploadMultipartFileByStream(any(), any())).willReturn(imageUploadState);
+    // then
+
+    MemberException e = assertThrows(MemberException.class, () -> {
+      memberService.updateProfileImage(savedMember.getId(), profileImage);
+    });
+
+    assertNull(beforeProfileImageUrl);
+    assertNull(savedMember.getProfileImageUrl());
+    assertEquals(PROFILE_IMAGE_NOT_UPLOADED, e.getErrorCode());
   }
 }
