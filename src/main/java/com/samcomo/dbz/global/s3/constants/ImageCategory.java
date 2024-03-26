@@ -9,7 +9,8 @@ public enum ImageCategory {
 
   REPORT("report"),
   PIN("pin"),
-  CHAT("chat");
+  CHAT("chat"),
+  MEMBER("member");
 
   private final String name;
 }

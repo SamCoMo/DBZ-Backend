@@ -56,6 +56,8 @@ public enum ErrorCode {
 
   AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인 인증에 실패했습니다."),
 
+  PROFILE_IMAGE_NOT_UPLOADED(HttpStatus.INTERNAL_SERVER_ERROR, "프로필 이미지 업데이트에 실패했습니다."),
+
   // Pin
 
   PIN_NOT_FOUND(HttpStatus.BAD_REQUEST, "핀 정보를 찾을 수 없습니다."),
@@ -94,7 +96,8 @@ public enum ErrorCode {
 
   CHAT_NOTIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "채팅 알림 전송을 실패했습니다."),
 
-  ACCESS_TOKEN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Access Token을 획득하는데 실패했습니다.");
+  FIREBASE_ACCESS_TOKEN_ERROR
+      (HttpStatus.INTERNAL_SERVER_ERROR, "Firebase Access Token 을 획득하는데 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;

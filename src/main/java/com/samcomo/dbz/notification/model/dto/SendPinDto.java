@@ -1,13 +1,14 @@
 package com.samcomo.dbz.notification.model.dto;
 
-import lombok.AccessLevel;
+import static lombok.AccessLevel.PRIVATE;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = PRIVATE)
 public class SendPinDto {
 
   private static final String DEFAULT_TITLE = "새로운 핀이 찍혔습니다.";
@@ -17,10 +18,13 @@ public class SendPinDto {
   private String title;
   private String body;
 
-  public SendPinDto(String token) {
+  private SendPinDto(String token) {
     this.title = DEFAULT_TITLE;
     this.body = DEFAULT_BODY;
     this.token = token;
   }
 
+  public static SendPinDto from(String token) {
+    return new SendPinDto(token);
+  }
 }

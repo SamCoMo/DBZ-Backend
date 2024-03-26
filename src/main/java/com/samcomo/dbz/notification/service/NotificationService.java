@@ -8,11 +8,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface NotificationService {
+
   void sendPinNotification(Long memberId);
 
-  void sendReportNotification(Long memberId, ReportDto.Form reportForm);
+  void sendReportNotification(ReportDto.Form reportForm);
 
-  List<NotificationDto> getNotificationList(Long memberId);
+  List<NotificationDto> getNotificationList(String memberId);
 
   void sendChatNotification(String chatRoomId, String senderId, ChatMessageDto.Request request);
 }

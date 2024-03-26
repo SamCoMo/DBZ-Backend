@@ -73,9 +73,8 @@ public class ReportServiceImpl implements ReportService {
         .toList();
 
     List<ReportImage> savedImageList = reportBulkRepository.saveAllWithBulk(reportImageList);
-    log.info("===< 1 >===");
-    notificationService.sendReportNotification(memberId, reportForm);
-    log.info("===< 2 >===");
+
+    notificationService.sendReportNotification(reportForm);
 
     return ReportDto.Response.from(newReport, savedImageList.stream()
             .map(ReportImageDto.Response::from)
