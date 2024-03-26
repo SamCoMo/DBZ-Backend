@@ -37,11 +37,11 @@ public class RegisterRequest {
             message = "영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요.")
   private String password;
 
-  @NotNull(message = "주소" + REQUIRED_FIELD_MESSAGE)
-  private Double latitude;
   @NotNull(message = "위도" + REQUIRED_FIELD_MESSAGE)
-  private Double longitude;
+  private Double latitude;
   @NotNull(message = "경도" + REQUIRED_FIELD_MESSAGE)
+  private Double longitude;
+  @NotBlank(message = "주소" + REQUIRED_FIELD_MESSAGE)
   private String address;
 }
 
