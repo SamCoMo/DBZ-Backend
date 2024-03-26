@@ -1,19 +1,24 @@
 package com.samcomo.dbz.member.controller;
 
+import static com.google.api.client.http.HttpMethods.PATCH;
+import static com.google.api.client.http.HttpMethods.PUT;
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
-import com.samcomo.dbz.member.model.dto.LocationUpdateRequest;
+import com.samcomo.dbz.member.model.dto.LocationRequest;
 import com.samcomo.dbz.member.model.dto.MyPageResponse;
 import com.samcomo.dbz.member.model.dto.RegisterRequest;
 import com.samcomo.dbz.member.model.entity.Member;
@@ -27,8 +32,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 @WebMvcTest(MemberController.class)
 @MockBean(JpaMetamodelMappingContext.class)
@@ -38,6 +48,8 @@ class MemberControllerTest {
   private MemberService memberService;
   @MockBean
   private RefreshTokenFilter refreshTokenFilter;
+  @MockBean
+  private S3Service s3Service;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -291,7 +303,7 @@ class MemberControllerTest {
   @WithMockMember
   @DisplayName(value = "위치업데이트[성공]")
   void successUpdateLocation() throws Exception {
-    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+    LocationRequest locationRequest = LocationRequest.builder()
         .address("새로운 주소")
         .latitude(37.12345)
         .longitude(127.12345)
@@ -302,7 +314,7 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(locationUpdateRequest)))
+                    objectMapper.writeValueAsString(locationRequest)))
         .andExpect(status().isOk());
   }
 
@@ -310,7 +322,7 @@ class MemberControllerTest {
   @WithMockMember
   @DisplayName(value = "위치업데이트[실패] - address null")
   void failUpdateLocation() throws Exception {
-    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+    LocationRequest locationRequest = LocationRequest.builder()
         .latitude(37.12345)
         .longitude(127.12345)
         .build();
@@ -320,7 +332,7 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(locationUpdateRequest)))
+                    objectMapper.writeValueAsString(locationRequest)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
         .andExpect(jsonPath("$.latitude").doesNotExist())
@@ -331,7 +343,7 @@ class MemberControllerTest {
   @WithMockMember
   @DisplayName(value = "위치업데이트[실패] - address blank/whiteSpace")
   void failUpdateLocation2() throws Exception {
-    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+    LocationRequest locationRequest = LocationRequest.builder()
         .address(" ")
         .latitude(37.12345)
         .longitude(127.12345)
@@ -342,7 +354,7 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(locationUpdateRequest)))
+                    objectMapper.writeValueAsString(locationRequest)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.address").value("주소는 필수 항목입니다."))
         .andExpect(jsonPath("$.latitude").doesNotExist())
@@ -353,7 +365,7 @@ class MemberControllerTest {
   @WithMockMember
   @DisplayName(value = "위치업데이트[실패] - latitude null")
   void failUpdateLocation3() throws Exception {
-    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+    LocationRequest locationRequest = LocationRequest.builder()
         .address("새로운 주소")
         .longitude(127.12345)
         .build();
@@ -363,7 +375,7 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(locationUpdateRequest)))
+                    objectMapper.writeValueAsString(locationRequest)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.address").doesNotExist())
         .andExpect(jsonPath("$.latitude").value("위도는 필수 항목입니다."))
@@ -374,7 +386,7 @@ class MemberControllerTest {
   @WithMockMember
   @DisplayName(value = "위치업데이트[실패] - longitude null")
   void failUpdateLocation4() throws Exception {
-    LocationUpdateRequest locationUpdateRequest = LocationUpdateRequest.builder()
+    LocationRequest locationRequest = LocationRequest.builder()
         .address("새로운 주소")
         .latitude(37.12345)
         .build();
@@ -384,10 +396,82 @@ class MemberControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    objectMapper.writeValueAsString(locationUpdateRequest)))
+                    objectMapper.writeValueAsString(locationRequest)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.address").doesNotExist())
         .andExpect(jsonPath("$.latitude").doesNotExist())
         .andExpect(jsonPath("$.longitude").value("경도는 필수 항목입니다."));
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName("프로필이미지업데이트[성공]")
+  void successUpdateProfileImage() throws Exception {
+    // given
+    MockMultipartFile profileImage = new MockMultipartFile(
+        "profileImage", "image.png", IMAGE_PNG_VALUE, "image".getBytes());
+
+    MockMultipartHttpServletRequestBuilder request1 = MockMvcRequestBuilders
+        .multipart("/member/profile-image").file(profileImage);
+    request1.with(new RequestPostProcessor() {
+      @Override
+      public MockHttpServletRequest postProcessRequest(MockHttpServletRequest rq) {
+        rq.setMethod(PATCH);
+        return rq;
+      }
+    });
+    // when
+    // then
+    mockMvc.perform(request1
+            .with(csrf()))
+        .andExpect(status().isOk())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName("프로필이미지업데이트[실패] - 이미지 null")
+  void failUpdateProfileImage() throws Exception {
+    // given
+    MockMultipartHttpServletRequestBuilder request1 = MockMvcRequestBuilders
+        .multipart("/member/profile-image");
+    request1.with(new RequestPostProcessor() {
+      @Override
+      public MockHttpServletRequest postProcessRequest(MockHttpServletRequest rq) {
+        rq.setMethod(PATCH);
+        return rq;
+      }
+    });
+    // when
+    // then
+    mockMvc.perform(request1
+            .with(csrf()))
+        .andExpect(status().isInternalServerError())
+        .andDo(print());
+  }
+
+  @Test
+  @WithMockMember
+  @DisplayName("프로필이미지업데이트[실패] - 요청 메서드 다름")
+  void failUpdateProfileImage2() throws Exception {
+    // given
+    MockMultipartFile profileImage = new MockMultipartFile(
+        "profileImage", "image.png", IMAGE_PNG_VALUE, "image".getBytes());
+
+    MockMultipartHttpServletRequestBuilder request1 = MockMvcRequestBuilders
+        .multipart("/member/profile-image").file(profileImage);
+    request1.with(new RequestPostProcessor() {
+      @Override
+      public MockHttpServletRequest postProcessRequest(MockHttpServletRequest rq) {
+        rq.setMethod(PUT);
+        return rq;
+      }
+    });
+    // when
+    // then
+    mockMvc.perform(request1
+            .with(csrf()))
+        .andExpect(status().isInternalServerError())
+        .andDo(print());
   }
 }

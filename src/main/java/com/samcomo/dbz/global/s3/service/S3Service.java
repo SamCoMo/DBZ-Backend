@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -105,10 +106,13 @@ public class S3Service {
 
   private void deleteUploadedImageList(List<String> imageUrlList) {
     for (String imageUrl : imageUrlList) {
-      int idx = imageUrl.lastIndexOf("/");
-      String fileName = imageUrl.substring(idx + 1);
-      deleteFile(fileName);
+      deleteFile(getFileName(imageUrl));
     }
+  }
+
+  @NotNull
+  public String getFileName(String imageUrl) {
+    return imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
   }
 
   // Base64 이미지 업로드
