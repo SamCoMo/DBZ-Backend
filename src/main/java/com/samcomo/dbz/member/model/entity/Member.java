@@ -70,6 +70,9 @@ public class Member extends BaseEntity {
         .phone(request.getPhone())
         .role(MEMBER)
         .status(ACTIVE)
+        .address(request.getAddress())
+        .latitude(request.getLatitude())
+        .longitude(request.getLongitude())
         .build();
   }
 }
