@@ -60,6 +60,9 @@ class MemberServiceImplTest {
   private String rawNickname;
   private String rawPhone;
   private String rawPassword;
+  private String validAddress;
+  private Double validLatitude;
+  private Double validLongitude;
 
   @BeforeEach
   void init() {
@@ -70,12 +73,18 @@ class MemberServiceImplTest {
     rawPhone = "010-1234-5678";
     rawNickname = "삼코모";
     rawPassword = "abcd123!";
+    validAddress = "제주시";
+    validLatitude = 34.12345;
+    validLongitude = 127.12345;
 
     request = RegisterRequest.builder()
         .email(rawEmail)
         .nickname(rawNickname)
         .phone(rawPhone)
         .password(rawPassword)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     savedMember = Member.builder()
@@ -86,6 +95,9 @@ class MemberServiceImplTest {
         .password(passwordEncoder.encode(rawPassword))
         .role(MEMBER)
         .status(ACTIVE)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
   }
 
@@ -109,6 +121,9 @@ class MemberServiceImplTest {
     assertEquals(request.getEmail(), captor.getValue().getEmail());
     assertEquals(request.getNickname(), captor.getValue().getNickname());
     assertEquals(request.getPhone(), captor.getValue().getPhone());
+    assertEquals(request.getAddress(), captor.getValue().getAddress());
+    assertEquals(request.getLatitude(), captor.getValue().getLatitude());
+    assertEquals(request.getLongitude(), captor.getValue().getLongitude());
 
     assertTrue(passwordEncoder.matches(rawPassword, savedMember.getPassword()));
   }

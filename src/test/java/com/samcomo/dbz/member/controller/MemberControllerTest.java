@@ -62,6 +62,9 @@ class MemberControllerTest {
   private String validPhone;
   private String validPassword;
   private String validProfileImageUrl;
+  private String validAddress;
+  private Double validLatitude;
+  private Double validLongitude;
   private MyPageResponse myPageResponse;
   private Member member;
   private static final String REQUIRED_FIELD_MESSAGE = "은(는) 필수 항목입니다.";
@@ -74,6 +77,9 @@ class MemberControllerTest {
     validNickname = "삼코모";
     validPassword = "abcd1234!";
     validProfileImageUrl = "image.jpg";
+    validAddress = "제주시";
+    validLatitude = 34.12345;
+    validLongitude = 127.12345;
 
     member = Member.builder()
         .id(1L)
@@ -81,6 +87,9 @@ class MemberControllerTest {
         .nickname(validNickname)
         .profileImageUrl(validProfileImageUrl)
         .phone(validPhone)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     request = RegisterRequest.builder()
@@ -88,6 +97,9 @@ class MemberControllerTest {
         .nickname(validNickname)
         .phone(validPhone)
         .password(validPassword)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     myPageResponse = MyPageResponse.from(member);
@@ -117,6 +129,9 @@ class MemberControllerTest {
         .nickname(validNickname)
         .phone(validPhone)
         .password(validPassword)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     mockMvc.perform(
@@ -129,7 +144,10 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist());
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
   }
 
   @Test
@@ -142,6 +160,9 @@ class MemberControllerTest {
         .nickname("x")
         .phone(validPhone)
         .password(validPassword)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     mockMvc.perform(
@@ -154,7 +175,10 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").doesNotExist());
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
   }
 
   @Test
@@ -167,6 +191,9 @@ class MemberControllerTest {
         .nickname(validNickname)
         .phone("x")
         .password(validPassword)
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     mockMvc.perform(
@@ -179,7 +206,10 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").doesNotExist());
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
   }
 
   @Test
@@ -192,6 +222,9 @@ class MemberControllerTest {
         .nickname(validNickname)
         .phone(validPhone)
         .password("x")
+        .address(validAddress)
+        .latitude(validLatitude)
+        .longitude(validLongitude)
         .build();
 
     mockMvc.perform(
@@ -204,7 +237,10 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").doesNotExist())
         .andExpect(jsonPath("$.nickname").doesNotExist())
         .andExpect(jsonPath("$.phone").doesNotExist())
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
+        .andExpect(jsonPath("$.address").doesNotExist())
+        .andExpect(jsonPath("$.latitude").doesNotExist())
+        .andExpect(jsonPath("$.longitude").doesNotExist());
   }
 
   @Test
@@ -217,6 +253,7 @@ class MemberControllerTest {
         .nickname("x")
         .phone("x")
         .password("x")
+        .address("")
         .build();
 
     mockMvc.perform(
@@ -229,7 +266,11 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("올바르지 않은 이메일 형식입니다."))
         .andExpect(jsonPath("$.nickname").value("특수문자를 제외한 2~10자 사이로 입력해주세요."))
         .andExpect(jsonPath("$.phone").value("올바르지 않은 전화번호 형식입니다."))
-        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."));
+        .andExpect(jsonPath("$.password").value("영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요."))
+        .andExpect(jsonPath("$.address").value("주소" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.latitude").value("위도" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.longitude").value("경도" + REQUIRED_FIELD_MESSAGE))
+        .andDo(print());
   }
 
   @Test
@@ -250,7 +291,10 @@ class MemberControllerTest {
         .andExpect(jsonPath("$.email").value("이메일" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.nickname").value("닉네임" + REQUIRED_FIELD_MESSAGE))
         .andExpect(jsonPath("$.phone").value("전화번호" + REQUIRED_FIELD_MESSAGE))
-        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE));
+        .andExpect(jsonPath("$.password").value("비밀번호" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.address").value("주소" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.latitude").value("위도" + REQUIRED_FIELD_MESSAGE))
+        .andExpect(jsonPath("$.longitude").value("경도" + REQUIRED_FIELD_MESSAGE));
   }
 
   @Test
