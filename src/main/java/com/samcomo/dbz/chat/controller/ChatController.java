@@ -32,8 +32,8 @@ public class ChatController {
   @PostMapping("/room")
   public ResponseEntity<ChatRoomDto> createChatRoom(
       @AuthenticationPrincipal MemberDetails details,
-      @RequestParam String recipientId
-  ) {
+      @RequestParam String recipientId) {
+
     ChatRoomDto chatRoomDto =
         chatRoomServiceImpl.createOrGetChatRoom(details.getIdAsString(), recipientId);
 
@@ -42,8 +42,8 @@ public class ChatController {
 
   @GetMapping("/member/room-list")
   public ResponseEntity<List<ChatRoomDto>> getChatRoomsForMember(
-      @AuthenticationPrincipal MemberDetails details
-  ) {
+      @AuthenticationPrincipal MemberDetails details) {
+
     List<ChatRoomDto> chatRoomDtoList =
         chatRoomServiceImpl.getChatRoomsFromMember(details.getIdAsString());
 
@@ -55,8 +55,8 @@ public class ChatController {
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
-  ) {
+      @RequestParam(defaultValue = "20") int size) {
+
     Slice<Response> chatMessageDtoSlice =
         chatServiceImpl.getChatMessageList(chatRoomId, details.getIdAsString(), page, size);
 
@@ -67,8 +67,8 @@ public class ChatController {
   public ResponseEntity<ChatMessageDto.Response> sendMessage(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
-      ChatMessageDto.Request request
-  ) {
+      ChatMessageDto.Request request) {
+
     ChatMessageDto.Response response =
         chatServiceImpl.sendMessage(chatRoomId, details.getIdAsString(), request);
 
@@ -78,8 +78,8 @@ public class ChatController {
   @PutMapping("/room-list/{chatRoomId}")
   public ResponseEntity<ChatRoomDto> updateLastChatMessageInfo(
       @AuthenticationPrincipal MemberDetails details,
-      @PathVariable String chatRoomId
-  ) {
+      @PathVariable String chatRoomId) {
+
     ChatRoomDto chatRoomDto =
         chatRoomServiceImpl.updateLastChatInfo(chatRoomId, details.getIdAsString());
 
@@ -89,8 +89,8 @@ public class ChatController {
   @DeleteMapping("/room/check-empty/{chatRoomId}")
   public ResponseEntity<Void> deleteChatRoomIfEmptyMessage(
       @AuthenticationPrincipal MemberDetails details,
-      @PathVariable String chatRoomId
-  ) {
+      @PathVariable String chatRoomId) {
+
     chatRoomServiceImpl.deleteChatRoomIfEmptyMessage(chatRoomId, details.getIdAsString());
 
     return ResponseEntity.noContent().build();
@@ -99,8 +99,8 @@ public class ChatController {
   @DeleteMapping("/room/{chatRoomId}")
   public ResponseEntity<Void> deleteChatRoom(
       @AuthenticationPrincipal MemberDetails details,
-      @PathVariable String chatRoomId
-  ) {
+      @PathVariable String chatRoomId) {
+
     chatRoomServiceImpl.deleteChatRoom(chatRoomId, details.getIdAsString());
 
     return ResponseEntity.noContent().build();

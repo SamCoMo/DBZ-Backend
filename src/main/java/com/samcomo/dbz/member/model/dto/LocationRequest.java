@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class LocationUpdateRequest {
+public class LocationRequest {
 
   private static final String REQUIRED_FIELD_MESSAGE = "는 필수 항목입니다.";
 
