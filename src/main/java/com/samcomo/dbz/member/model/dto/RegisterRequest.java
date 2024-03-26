@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.samcomo.dbz.global.utils.annotation.EmailCheck;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,5 +36,12 @@ public class RegisterRequest {
   @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
             message = "영문자+특수문자+숫자를 포함하여 8자 이상 입력해주세요.")
   private String password;
+
+  @NotNull(message = "위도" + REQUIRED_FIELD_MESSAGE)
+  private Double latitude;
+  @NotNull(message = "경도" + REQUIRED_FIELD_MESSAGE)
+  private Double longitude;
+  @NotBlank(message = "주소" + REQUIRED_FIELD_MESSAGE)
+  private String address;
 }
 
