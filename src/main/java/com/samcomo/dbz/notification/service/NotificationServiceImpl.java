@@ -100,6 +100,9 @@ public class NotificationServiceImpl implements NotificationService {
   public void sendReportNotification(ReportDto.Form reportForm) {
 
     List<Member> memberList = getActiveMemberNearBy(reportForm);
+
+    if(memberList.isEmpty()) return;
+
     List<String> fcmTokenList = getFcmTokenList(memberList);
 
     SendReportDto sendReportDto = SendReportDto.from(reportForm.getDescriptions());
