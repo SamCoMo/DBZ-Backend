@@ -1,4 +1,4 @@
-package com.samcomo.dbz.notification.service;
+package com.samcomo.dbz.notification.service.impl;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.FIREBASE_ACCESS_TOKEN_ERROR;
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
@@ -32,6 +32,7 @@ import com.samcomo.dbz.notification.model.dto.SendReportDto;
 import com.samcomo.dbz.notification.model.dto.SendSingleDto;
 import com.samcomo.dbz.notification.model.entity.Notification;
 import com.samcomo.dbz.notification.model.repository.NotifiRepository;
+import com.samcomo.dbz.notification.service.NotificationService;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportDto.Form;
 import java.io.IOException;
