@@ -41,7 +41,6 @@ public class PinServiceImpl implements PinService {
             .report(pinUtils.verifyReportById(reportId)) // report 검증
             .member(pinUtils.verifyMemberById(memberId)) // member 검증
             .description(request.getDescription())
-            .foundAt(request.getFoundAt())
             .address(request.getAddress())
             .latitude(request.getLatitude())
             .longitude(request.getLongitude())
@@ -105,7 +104,6 @@ public class PinServiceImpl implements PinService {
 
     // 핀 주소 업데이트
     pin.setDescription(request.getDescription());
-    pin.setFoundAt(request.getFoundAt());
     pin.setAddress(request.getAddress());
     pin.setLatitude(request.getLatitude());
     pin.setLongitude(request.getLongitude());
