@@ -11,8 +11,10 @@ import com.samcomo.dbz.member.model.constants.TokenType;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RefreshTokenFilter {
@@ -31,6 +33,7 @@ public class RefreshTokenFilter {
 
     response.setHeader(ACCESS_TOKEN.getKey(), newAccessToken);
     response.addHeader(CookieUtil.COOKIE_KEY, cookieUtil.createCookie(newRefreshToken));
+    log.info("[토큰재발급 성공]");
   }
 
   @Transactional

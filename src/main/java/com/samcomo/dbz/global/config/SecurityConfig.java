@@ -12,8 +12,10 @@ import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
-import com.samcomo.dbz.member.jwt.filter.FilterMemberExceptionHandler;
+import com.samcomo.dbz.member.jwt.filter.handler.FilterMemberExceptionHandler;
+import com.samcomo.dbz.member.jwt.filter.handler.LoginSuccessHandler;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
+import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,10 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final CookieUtil cookieUtil;
-  private final AuthenticationConfiguration configuration;
   private final MemberRepository memberRepository;
+  private final AuthenticationConfiguration configuration;
+  private final LoginSuccessHandler loginSuccessHandler;
+  private final Oauth2MemberServiceImpl oauth2MemberService;
 
   @Bean
   public AuthenticationManager authenticationManager(
@@ -90,6 +94,10 @@ public class SecurityConfig {
     http
         .authorizeHttpRequests((auth) -> auth
             .requestMatchers(
+                "/oauth2/authorization/samcomo", // 소셜 로그인
+                "/login/oauth2/code/**", // 소셜 로그인 콜백
+                "/home", // 소셜 로그인 성공 시 리다렉트 url(미정)
+                "/auth",
                 "/member/register", // 회원가입
                 "/member/login", // 로그인
                 "/member/reissue", // accessToken 재발급
@@ -119,6 +127,13 @@ public class SecurityConfig {
             .requestMatchers(GET, "/notification/list").hasRole("MEMBER") // 알림 목록 조회
             .anyRequest().authenticated());
 
+    // oauth2 social login
+    http
+        .oauth2Login((oauth2) -> oauth2
+            .userInfoEndpoint((config) -> config
+                .userService(oauth2MemberService))
+            .successHandler(loginSuccessHandler));
+
     // session : stateless
     http
         .sessionManagement((session) -> session
@@ -131,7 +146,7 @@ public class SecurityConfig {
         .addFilterBefore(
             new FilterMemberExceptionHandler(), CustomLogoutFilter.class)
         .addFilterBefore(
-            new CustomLoginFilter(authenticationManager(configuration), getAuthUtils(), memberRepository), UsernamePasswordAuthenticationFilter.class)
+            new CustomLoginFilter(authenticationManager(configuration), loginSuccessHandler), UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new AccessTokenFilter(jwtUtil), CustomLoginFilter.class);
 

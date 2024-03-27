@@ -52,6 +52,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
     jwtUtil.deleteRefreshTokenFromDB(refreshToken);
     response.setHeader(CookieUtil.COOKIE_KEY, cookieUtil.getNullCookie());
     response.setStatus(HttpServletResponse.SC_OK);
+    log.info("[로그아웃 성공] {}", cookieUtil.getNullCookie());
   }
 
   private void validateRefreshToken(String refreshToken) {
