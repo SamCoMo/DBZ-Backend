@@ -70,7 +70,7 @@ public class JwtUtil {
     MemberRole role = MemberRole.get(getRole(accessToken))
         .orElseThrow(() -> new MemberException(INVALID_ACCESS_TOKEN));
 
-    return MemberDetails.of(memberId, role);
+    return MemberDetails.from(memberId, role);
   }
 
   public void validateTokenAndTokenType(String token, TokenType requiredTokenType) {

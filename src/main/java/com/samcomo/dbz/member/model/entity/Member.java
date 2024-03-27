@@ -1,9 +1,11 @@
 package com.samcomo.dbz.member.model.entity;
 
+import static com.samcomo.dbz.member.model.constants.LoginType.DEFAULT;
 import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
 import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
 
 import com.samcomo.dbz.global.entity.BaseEntity;
+import com.samcomo.dbz.member.model.constants.LoginType;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.constants.MemberStatus;
 import com.samcomo.dbz.member.model.dto.RegisterRequest;
@@ -38,9 +40,6 @@ public class Member extends BaseEntity {
 
   private String nickname;
 
-  @Setter
-  private String profileImageUrl;
-
   private String phone;
 
   @Enumerated(EnumType.STRING)
@@ -50,14 +49,17 @@ public class Member extends BaseEntity {
   private MemberStatus status;
 
   @Setter
+  private String profileImageUrl;
+  @Setter
   private String fcmToken;
-
   @Setter
   private String address;
   @Setter
   private Double latitude;
   @Setter
   private Double longitude;
+  @Setter
+  private LoginType loginType;
 
   public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
     this.password = passwordEncoder.encode(rawPassword);
@@ -73,6 +75,12 @@ public class Member extends BaseEntity {
         .address(request.getAddress())
         .latitude(request.getLatitude())
         .longitude(request.getLongitude())
+        .loginType(DEFAULT)
         .build();
+  }
+
+  public void updateEmailAndNickname(String email, String nickname) {
+    this.email = email;
+    this.nickname = nickname;
   }
 }
