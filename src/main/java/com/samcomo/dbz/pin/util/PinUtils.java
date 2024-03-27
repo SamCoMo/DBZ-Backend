@@ -23,36 +23,37 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PinUtils {
+
   private final MemberRepository memberRepository;
   private final ReportRepository reportRepository;
   private final PinRepository pinRepository;
   private final PinImageRepository pinImageRepository;
 
   // 회원 이메일 검증
-  public Member verifyMemberById(Long memberId){
+  public Member verifyMemberById(Long memberId) {
     return memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
   }
 
   // 리포트 아이디 검증
-  public Report verifyReportById(Long reportId){
+  public Report verifyReportById(Long reportId) {
     return reportRepository.findById(reportId)
-        .orElseThrow(()-> new ReportException(REPORT_NOT_FOUND));
+        .orElseThrow(() -> new ReportException(REPORT_NOT_FOUND));
   }
 
   // 핀 검증
-  public Pin verifyPinById(Long pinId){
+  public Pin verifyPinById(Long pinId) {
     return pinRepository.findById(pinId)
         .orElseThrow(() -> new PinException(PIN_NOT_FOUND));
   }
 
   // 핀 검증 + 업데이트 권한 회원 검증
-  public Pin verifyUpdateMemberByPinId(Long memberId, Long pinId){
+  public Pin verifyUpdateMemberByPinId(Long memberId, Long pinId) {
     // 핀 검증
     Pin pin = verifyPinById(pinId);
 
     // 핀 작성자만 pin 수정 가능
-    if(!(pin.getMember().getId().equals(memberId))){
+    if (!(pin.getMember().getId().equals(memberId))) {
       throw new PinException(ACCESS_DENIED_PIN);
     }
 
@@ -60,7 +61,7 @@ public class PinUtils {
   }
 
   // 핀 검증 + 삭제 권한 회원 검증
-  public Pin verifyDeleteMemberByPinId (Long memberId, Long pinId){
+  public Pin verifyDeleteMemberByPinId(Long memberId, Long pinId) {
     // 핀 검증
     Pin pin = verifyPinById(pinId);
 
@@ -68,15 +69,15 @@ public class PinUtils {
     Report report = verifyReportById(pin.getReport().getId());
 
     // report 생성회원 or pin 생성회원만 삭제 가능
-    if(!(report.getMember().getId().equals(memberId) ||
-        pin.getMember().getId().equals(memberId))){
+    if (!(report.getMember().getId().equals(memberId) ||
+        pin.getMember().getId().equals(memberId))) {
       throw new PinException(ACCESS_DENIED_PIN);
     }
     return pin;
   }
 
   // 핀 사진 가져오기
-  public List<PinImage> getPinImageListByPinId(Long pinId){
+  public List<PinImage> getPinImageListByPinId(Long pinId) {
     return pinImageRepository.findAllByPin_PinId(pinId);
   }
 }

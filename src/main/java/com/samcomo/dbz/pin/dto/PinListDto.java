@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PinListDto {
+
   private Long pinId;
 
   private String description;
@@ -20,11 +21,10 @@ public class PinListDto {
 
   private Double longitude;
 
-  public static PinListDto from(Pin pin){
+  public static PinListDto from(Pin pin) {
     return PinListDto.builder()
         .pinId(pin.getPinId())
         .description(pin.getDescription())
-        .foundAt(pin.getFoundAt())
         .address(pin.getAddress())
         .latitude(pin.getLatitude())
         .longitude(pin.getLongitude())

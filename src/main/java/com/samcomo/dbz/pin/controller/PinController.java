@@ -1,9 +1,9 @@
 package com.samcomo.dbz.pin.controller;
 
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.pin.dto.RegisterPinDto;
 import com.samcomo.dbz.pin.dto.PinDto;
 import com.samcomo.dbz.pin.dto.PinListDto;
+import com.samcomo.dbz.pin.dto.RegisterPinDto;
 import com.samcomo.dbz.pin.dto.UpdatePinDto;
 import com.samcomo.dbz.pin.service.PinService;
 import java.util.List;
@@ -33,9 +33,9 @@ public class PinController {
       @AuthenticationPrincipal MemberDetails memberDetails,
       @ModelAttribute RegisterPinDto.Request request,
       @RequestParam Long reportId
-  ){
-    RegisterPinDto.Response createPinResponse = pinService.registerPin(
-        memberDetails.getId(),reportId,request);
+  ) {
+    RegisterPinDto.Response createPinResponse =
+        pinService.registerPin(memberDetails.getId(), reportId, request);
     return ResponseEntity.ok(createPinResponse);
   }
 
@@ -45,19 +45,18 @@ public class PinController {
       @AuthenticationPrincipal MemberDetails memberDetails,
       @ModelAttribute UpdatePinDto.Request request,
       @PathVariable Long pinId
-  ){
+  ) {
     PinDto updatedPinDto =
         pinService.updatePin(memberDetails.getId(), pinId, request);
     return ResponseEntity.ok(updatedPinDto);
   }
-
 
   // Pin 삭제
   @DeleteMapping("/{pinId}")
   public ResponseEntity<Void> deletePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId
-  ){
+  ) {
     pinService.deletePin(memberDetails.getId(), pinId);
     return ResponseEntity.ok().build();
   }
@@ -67,8 +66,8 @@ public class PinController {
   public ResponseEntity<List<PinListDto>> getPinList(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long reportId
-  ){
-    List<PinListDto> pinListDtoList = pinService.getPinList(memberDetails.getId(),reportId);
+  ) {
+    List<PinListDto> pinListDtoList = pinService.getPinList(memberDetails.getId(), reportId);
     return ResponseEntity.ok(pinListDtoList);
   }
 
@@ -77,8 +76,8 @@ public class PinController {
   public ResponseEntity<PinDto> getPin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId
-  ){
-    PinDto pinDto = pinService.getPin(memberDetails.getId(),pinId);
+  ) {
+    PinDto pinDto = pinService.getPin(memberDetails.getId(), pinId);
     return ResponseEntity.ok(pinDto);
   }
 }

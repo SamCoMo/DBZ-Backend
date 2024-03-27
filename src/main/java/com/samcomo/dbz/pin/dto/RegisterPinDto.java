@@ -2,7 +2,6 @@ package com.samcomo.dbz.pin.dto;
 
 import com.samcomo.dbz.pin.model.entity.Pin;
 import com.samcomo.dbz.pin.model.entity.PinImage;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -21,8 +20,6 @@ public class RegisterPinDto {
 
     private String address;
 
-    private LocalDateTime foundAt;
-
     private Double latitude;
 
     private Double longitude;
@@ -30,7 +27,7 @@ public class RegisterPinDto {
 
   @Getter
   @Builder
-  public static class Response{
+  public static class Response {
 
     private Long pinId;
 
@@ -40,8 +37,6 @@ public class RegisterPinDto {
 
     private String description;
 
-    private LocalDateTime foundAt;
-
     private String address;
 
     private Double latitude;
@@ -49,13 +44,13 @@ public class RegisterPinDto {
     private Double longitude;
 
     private List<PinImageDto> pinImageDtoList;
-    public static Response from(Pin pin, List<PinImage> pinImageList){
+
+    public static Response from(Pin pin, List<PinImage> pinImageList) {
       return Response.builder()
           .pinId(pin.getPinId())
           .reportId(pin.getReport().getId())
           .memberId(pin.getMember().getId())
           .description(pin.getDescription())
-          .foundAt(pin.getFoundAt())
           .address(pin.getAddress())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())

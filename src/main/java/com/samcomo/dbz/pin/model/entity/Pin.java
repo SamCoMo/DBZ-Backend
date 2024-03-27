@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,9 +39,6 @@ public class Pin extends BaseEntity {
 
   @Setter
   private String description;
-
-  @Setter
-  private LocalDateTime foundAt;
 
   @Setter
   private String address;
