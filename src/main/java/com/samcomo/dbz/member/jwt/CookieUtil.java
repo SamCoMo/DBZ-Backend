@@ -4,7 +4,6 @@ import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -39,11 +38,11 @@ public class CookieUtil {
   public String getRefreshToken(HttpServletRequest request) {
     String refreshToken = null;
 
+    log.info("[로그아웃 요청] /member/logout");
     Cookie[] cookies = request.getCookies();
-    log.info("===== 로그아웃 요청 {} =====", Arrays.toString(cookies));
     for (Cookie cookie : cookies) {
-      log.info("===== Cookie : {} =====", cookie);
       if (cookie.getName().equals(REFRESH_TOKEN.getKey())) {
+        log.info("===== Cookie : {} =====", cookie);
         refreshToken = cookie.getValue();
       }
     }

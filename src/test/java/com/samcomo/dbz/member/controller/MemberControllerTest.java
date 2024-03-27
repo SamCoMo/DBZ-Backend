@@ -518,4 +518,16 @@ class MemberControllerTest {
         .andExpect(status().isInternalServerError())
         .andDo(print());
   }
+
+  @Test
+  void test() {
+    // given
+    String str = "goo99google";
+    System.out.println(str.substring(str.indexOf('[') + 1, str.length() - 1));
+
+    // when
+
+    // then
+
+  }
 }

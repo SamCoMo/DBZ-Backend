@@ -1,6 +1,8 @@
 package com.samcomo.dbz.member.model.dto;
 
+import com.samcomo.dbz.member.model.constants.LoginType;
 import com.samcomo.dbz.member.model.constants.MemberRole;
+import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,11 +30,15 @@ public class MemberDetails implements UserDetails {
     return collection;
   }
 
-  public static MemberDetails of(Long memberId, MemberRole role) {
+  public static MemberDetails from(Long memberId, MemberRole role) {
     return new MemberDetails(Member.builder()
         .id(memberId)
         .role(role)
         .build());
+  }
+
+  public static MemberDetails from(Oauth2MemberDetails details) {
+    return new MemberDetails(details.getMember());
   }
 
   @Override
@@ -55,6 +61,10 @@ public class MemberDetails implements UserDetails {
 
   public String getEmail() {
     return member.getEmail();
+  }
+
+  public LoginType getLoginType() {
+    return member.getLoginType();
   }
 
   @Override

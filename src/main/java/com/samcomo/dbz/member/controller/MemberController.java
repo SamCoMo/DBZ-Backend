@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -29,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/member")
+@Slf4j
 @Tag(name = "회원 관리 컨트롤러", description = "회원 관련 API")
 public class MemberController {
 
@@ -40,6 +42,7 @@ public class MemberController {
   public ResponseEntity<Void> register(
       @Valid @RequestBody RegisterRequest request) {
 
+    log.info("[회원가입] /member/register {}", request.getEmail());
     memberService.register(request);
 
     return ResponseEntity.status(CREATED).build();
@@ -50,6 +53,7 @@ public class MemberController {
   public ResponseEntity<MyPageResponse> getMyInfo(
       @AuthenticationPrincipal MemberDetails details) {
 
+    log.info("[마이페이지] /member/my : {}", details.getId());
     MyPageResponse myPageResponse = memberService.getMyInfo(details.getId());
 
     return ResponseEntity.ok(myPageResponse);
@@ -61,6 +65,7 @@ public class MemberController {
       @CookieValue(value = "Refresh-Token", required = false) String refreshToken,
       HttpServletResponse response) {
 
+    log.info("[토큰재발급] /member/reissue : {}", refreshToken);
     refreshTokenFilter.reissue(refreshToken, response);
 
     return ResponseEntity.status(CREATED).build();
@@ -72,6 +77,7 @@ public class MemberController {
       @AuthenticationPrincipal MemberDetails details,
       @Valid @RequestBody LocationRequest request) {
 
+    log.info("[회원위치 업데이트] /member/location : {}", request.getAddress());
     memberService.updateLocation(details.getId(), request);
 
     return ResponseEntity.status(OK).build();
@@ -83,6 +89,7 @@ public class MemberController {
       @AuthenticationPrincipal MemberDetails details,
       @RequestPart MultipartFile profileImage) {
 
+    log.info("[프로필 이미지 업데이트] /member/profile-image: {}", profileImage.getName());
     memberService.updateProfileImage(details.getId(), profileImage);
 
     return ResponseEntity.status(OK).build();
