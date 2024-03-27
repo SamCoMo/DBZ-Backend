@@ -1,4 +1,4 @@
-package com.samcomo.dbz.member.jwt.filter;
+package com.samcomo.dbz.member.jwt.filter.handler;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static com.samcomo.dbz.member.model.constants.LoginType.DEFAULT;

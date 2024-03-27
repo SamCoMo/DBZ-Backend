@@ -1,4 +1,4 @@
-package com.samcomo.dbz.member.jwt.filter;
+package com.samcomo.dbz.member.jwt.filter.handler;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
