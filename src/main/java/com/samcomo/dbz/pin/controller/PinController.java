@@ -8,6 +8,7 @@ import com.samcomo.dbz.pin.dto.UpdatePinDto;
 import com.samcomo.dbz.pin.service.PinService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/pin")
+@Slf4j
 public class PinController {
 
   private final PinService pinService;
@@ -34,6 +36,14 @@ public class PinController {
       @ModelAttribute RegisterPinDto.Request request,
       @RequestParam Long reportId
   ) {
+    log.info("<<< ReportController - Register Report >>>");
+
+    log.info("multipartFileList : {}", request.getMultipartFileList());
+    log.info("latitude : {}", request.getLatitude());
+    log.info("longitude : {}", request.getLongitude());
+    log.info("address : {}", request.getAddress());
+    log.info("description : {}", request.getDescription());
+
     RegisterPinDto.Response createPinResponse =
         pinService.registerPin(memberDetails.getId(), reportId, request);
     return ResponseEntity.ok(createPinResponse);

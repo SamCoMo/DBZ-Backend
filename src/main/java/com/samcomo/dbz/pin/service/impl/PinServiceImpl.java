@@ -18,11 +18,13 @@ import com.samcomo.dbz.pin.util.PinUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PinServiceImpl implements PinService {
 
   private final PinRepository pinRepository;
@@ -45,12 +47,12 @@ public class PinServiceImpl implements PinService {
             .latitude(request.getLatitude())
             .longitude(request.getLongitude())
             .build());
-
+    log.info("핀 생성 검증 및 저장");
     // MultipartFile 리스트 S3 업로드
     List<String> imageUrlList =
         s3Service.uploadImageList(request.getMultipartFileList(),
             ImageCategory.PIN);
-
+    log.info("MultipartFile 리스트 S3 업로드");
     // PinImage 리스트 객체 생성
     List<PinImage> newPinImageList =
         pinImageRepository.saveAll(
@@ -60,9 +62,10 @@ public class PinServiceImpl implements PinService {
                     .pin(newPin)
                     .build())
                 .toList());
+    log.info("PinImage 리스트 객체 생성 후 저장");
 
     notificationService.sendPinNotification(memberId);
-
+    log.info("알림 전송");
     return RegisterPinDto.Response.from(
         newPin,
         newPinImageList);

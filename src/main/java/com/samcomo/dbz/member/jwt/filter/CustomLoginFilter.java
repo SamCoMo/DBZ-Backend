@@ -1,7 +1,7 @@
 package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.AUTHENTICATION_FAILED;
-import static com.samcomo.dbz.global.exception.ErrorCode.FCM_TOKEN_NULL;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_FCM_TOKEN;
 import static org.springframework.http.HttpMethod.POST;
 
 import com.samcomo.dbz.member.exception.MemberException;
@@ -43,7 +43,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     String fcmToken = obtainFcmToken(request);
     if (!StringUtils.hasText(fcmToken)) {
-      throw new MemberException(FCM_TOKEN_NULL);
+      throw new MemberException(INVALID_FCM_TOKEN);
     }
 
     String email = obtainEmail(request);
