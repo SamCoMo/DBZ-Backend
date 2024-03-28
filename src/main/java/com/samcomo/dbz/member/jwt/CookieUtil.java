@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class CookieUtil {
 
-  public final static String COOKIE_KEY = "Set-Cookie";
+  public final static String SAME_SITE_CONFIG = "None";
 
   public String createCookie(String refreshToken) {
     return String.valueOf(
         ResponseCookie.from(REFRESH_TOKEN.getKey(), refreshToken)
             .path("/")
             .maxAge(24 * 60 * 60)
-            .sameSite("None")
+            .sameSite(SAME_SITE_CONFIG)
             .httpOnly(true)
             .secure(true)
             .build());
@@ -30,6 +30,7 @@ public class CookieUtil {
         ResponseCookie.from(REFRESH_TOKEN.getKey(), null)
             .path("/")
             .maxAge(0)
+            .sameSite(SAME_SITE_CONFIG)
             .httpOnly(true)
             .secure(true)
             .build());

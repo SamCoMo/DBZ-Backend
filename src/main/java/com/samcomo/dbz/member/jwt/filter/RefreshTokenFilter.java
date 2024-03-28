@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_NOT_FOUND;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.COOKIE;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
@@ -32,7 +33,7 @@ public class RefreshTokenFilter {
     rotateRefreshToken(oldRefreshToken, newRefreshToken);
 
     response.setHeader(ACCESS_TOKEN.getKey(), newAccessToken);
-    response.addHeader(CookieUtil.COOKIE_KEY, cookieUtil.createCookie(newRefreshToken));
+    response.addHeader(COOKIE.getKey(), cookieUtil.createCookie(newRefreshToken));
     log.info("[토큰재발급 성공]");
   }
 

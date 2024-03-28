@@ -3,8 +3,10 @@ package com.samcomo.dbz.member.jwt;
 import static lombok.AccessLevel.PRIVATE;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
+@Getter
 @Component
 @AllArgsConstructor(access = PRIVATE)
 public class AuthUtils {
@@ -14,13 +16,5 @@ public class AuthUtils {
 
   public static AuthUtils of(JwtUtil jwtUtil, CookieUtil cookieUtil) {
     return new AuthUtils(jwtUtil, cookieUtil);
-  }
-
-  public JwtUtil getJwtUtil() {
-    return jwtUtil;
-  }
-
-  public CookieUtil getCookieUtil() {
-    return cookieUtil;
   }
 }
