@@ -1,6 +1,7 @@
 package com.samcomo.dbz.member.jwt.filter;
 
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
+import static com.samcomo.dbz.member.model.constants.UriKey.REISSUE;
 
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
@@ -19,8 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AccessTokenFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
-
-  private final static String REISSUE_URI = "/member/reissue";
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -42,7 +41,7 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   }
 
   private boolean isReIssueURI(HttpServletRequest request) {
-    return REISSUE_URI.equals(request.getRequestURI());
+    return REISSUE.getUri().equals(request.getRequestURI());
   }
 
   private String getAccessToken(HttpServletRequest request) {

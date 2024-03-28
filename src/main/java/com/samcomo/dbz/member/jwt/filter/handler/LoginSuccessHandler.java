@@ -3,6 +3,7 @@ package com.samcomo.dbz.member.jwt.filter.handler;
 import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
 import static com.samcomo.dbz.member.model.constants.LoginType.DEFAULT;
 import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.COOKIE;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
@@ -53,9 +54,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     if (details.getLoginType() == DEFAULT) saveFcmToken(memberId, request);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
-    response.addHeader(CookieUtil.COOKIE_KEY, cookieUtil.createCookie(refreshToken));
+    response.addHeader(COOKIE.getKey(), cookieUtil.createCookie(refreshToken));
     response.setStatus(HttpServletResponse.SC_OK);
-    log.info("[로그인성공] {}", accessToken);
+    log.info("[로그인성공 헤더] {}", response.getHeader(ACCESS_TOKEN.getKey()));
+    log.info("[로그인성공 쿠키] {}", response.getHeader(COOKIE.getKey()));
   }
 
   private MemberDetails getMemberDetails(Authentication authResult) {

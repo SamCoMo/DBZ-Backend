@@ -13,8 +13,8 @@ import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
 import com.samcomo.dbz.member.jwt.filter.handler.FilterMemberExceptionHandler;
+import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
 import com.samcomo.dbz.member.jwt.filter.handler.LoginSuccessHandler;
-import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -41,10 +41,12 @@ public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
   private final CookieUtil cookieUtil;
-  private final MemberRepository memberRepository;
   private final AuthenticationConfiguration configuration;
   private final LoginSuccessHandler loginSuccessHandler;
+  private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
   private final Oauth2MemberServiceImpl oauth2MemberService;
+
+  private final static String MEMBER = "MEMBER";
 
   @Bean
   public AuthenticationManager authenticationManager(
@@ -94,37 +96,37 @@ public class SecurityConfig {
     http
         .authorizeHttpRequests((auth) -> auth
             .requestMatchers(
-                "/oauth2/authorization/samcomo", // 소셜 로그인
+                "/", // home
+                "/oauth2/authorization/**", // 소셜 로그인 버튼
                 "/login/oauth2/code/**", // 소셜 로그인 콜백
-                "/home", // 소셜 로그인 성공 시 리다렉트 url(미정)
-                "/auth",
                 "/member/register", // 회원가입
-                "/member/login", // 로그인
-                "/member/reissue", // accessToken 재발급
+                "/member/login", // 기본 로그인
+                "/member/reissue", // access 토큰 재발급
                 "/docs/**",
                 "/v3/api-docs/**",
                 "/aop/",
                 "/actuator/**"
             ).permitAll()
             // member
-            .requestMatchers(GET, "/member/my").hasRole("MEMBER") // 마이페이지
-            .requestMatchers(PATCH, "/member/location").hasRole("MEMBER") // 위치 정보 업데이트
+            .requestMatchers(GET, "/member/my").hasRole(MEMBER) // 마이페이지
+            .requestMatchers(PATCH, "/member/location").hasRole(MEMBER) // 회원 위치 업데이트
+            .requestMatchers(PATCH, "/member/profile-image").hasRole(MEMBER) // 프로필 이미지 업데이트
             // report
-            .requestMatchers("/report/**").hasRole("MEMBER")
+            .requestMatchers("/report/**").hasRole(MEMBER)
             // pin
-            .requestMatchers(POST, "/pin").hasRole("MEMBER") // Pin 생성
-            .requestMatchers(PUT, "/pin/{pinId}").hasRole("MEMBER") // Pin 수정
-            .requestMatchers(DELETE, "/pin/{pinId}").hasRole("MEMBER") // Pin 삭제
-            .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole("MEMBER") // Report 의 Pin List 가져오기
-            .requestMatchers(GET, "/pin/{pinId}").hasRole("MEMBER") // Pin 상세정보 가져오기
+            .requestMatchers(POST, "/pin").hasRole(MEMBER) // Pin 생성
+            .requestMatchers(PUT, "/pin/{pinId}").hasRole(MEMBER) // Pin 수정
+            .requestMatchers(DELETE, "/pin/{pinId}").hasRole(MEMBER) // Pin 삭제
+            .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole(MEMBER) // Report 의 Pin List 가져오기
+            .requestMatchers(GET, "/pin/{pinId}").hasRole(MEMBER) // Pin 상세정보 가져오기
             // chat
-            .requestMatchers("/ws").hasRole("MEMBER")
-            .requestMatchers(POST, "/chat/room").hasRole("MEMBER") // 채팅방 생성
-            .requestMatchers(GET, "/chat/member/room-list").hasRole("MEMBER") // 회원 채팅방 목록 조회
-            .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole("MEMBER") // 채팅방 메시지 목록 조회
-            .requestMatchers(DELETE, "/chat/room/{chatRoomId}").hasRole("MEMBER") // 채팅방 삭제
-            // notificaiton
-            .requestMatchers(GET, "/notification/list").hasRole("MEMBER") // 알림 목록 조회
+            .requestMatchers("/ws").hasRole(MEMBER) // 웹소켓 접근
+            .requestMatchers(POST, "/chat/room").hasRole(MEMBER) // 채팅방 생성
+            .requestMatchers(GET, "/chat/member/room-list").hasRole(MEMBER) // 회원 채팅방 목록 조회
+            .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole(MEMBER) // 채팅방 메시지 목록 조회
+            .requestMatchers(DELETE, "/chat/room/{chatRoomId}").hasRole(MEMBER) // 채팅방 삭제
+            // notification
+            .requestMatchers(GET, "/notification/list").hasRole(MEMBER) // 알림 목록 조회
             .anyRequest().authenticated());
 
     // oauth2 social login
@@ -132,7 +134,8 @@ public class SecurityConfig {
         .oauth2Login((oauth2) -> oauth2
             .userInfoEndpoint((config) -> config
                 .userService(oauth2MemberService))
-            .successHandler(loginSuccessHandler));
+            .successHandler(loginSuccessHandler)
+            .failureHandler(oauth2LoginFailureHandler));
 
     // session : stateless
     http
