@@ -19,11 +19,11 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
   @Bean
   public OpenAPI openAPI(){
-    final String SECURITY_SCHEME_KEY = "accessAuth"; // 보안 스키마 키를 정의
-    final String JWT_HEADER = "Access-Token";
+    final String SECURITY_SCHEME_KEY = "accessAuth";
+    final String JWT_HEADER = "Access-Token"; // 커스텀 JWT 토큰 정의
 
     SecurityScheme securityScheme = new SecurityScheme()
-        .type(Type.APIKEY)
+        .type(Type.APIKEY) // 커스텀 토큰 키 설정
         .in(SecurityScheme.In.HEADER)
         .name(JWT_HEADER);
     SecurityRequirement securityRequirement = new SecurityRequirement().addList(SECURITY_SCHEME_KEY);
