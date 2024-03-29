@@ -1,5 +1,6 @@
 package com.samcomo.dbz.pin.controller;
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.pin.dto.PinDto;
 import com.samcomo.dbz.pin.dto.PinListDto;
@@ -31,19 +32,12 @@ public class PinController {
 
   // Pin 생성
   @PostMapping()
+  @LogMethodInvocation
   public ResponseEntity<RegisterPinDto.Response> registerPin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @ModelAttribute RegisterPinDto.Request request,
       @RequestParam Long reportId
   ) {
-    log.info("<<< ReportController - Register Report >>>");
-
-    log.info("multipartFileList : {}", request.getMultipartFileList());
-    log.info("latitude : {}", request.getLatitude());
-    log.info("longitude : {}", request.getLongitude());
-    log.info("address : {}", request.getAddress());
-    log.info("description : {}", request.getDescription());
-
     RegisterPinDto.Response createPinResponse =
         pinService.registerPin(memberDetails.getId(), reportId, request);
     return ResponseEntity.ok(createPinResponse);
@@ -51,6 +45,7 @@ public class PinController {
 
   // Pin 수정
   @PutMapping("/{pinId}")
+  @LogMethodInvocation
   public ResponseEntity<PinDto> updatePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @ModelAttribute UpdatePinDto.Request request,
@@ -63,6 +58,7 @@ public class PinController {
 
   // Pin 삭제
   @DeleteMapping("/{pinId}")
+  @LogMethodInvocation
   public ResponseEntity<Void> deletePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId
@@ -73,6 +69,7 @@ public class PinController {
 
   // Report 의 Pin List 가져오기
   @GetMapping("/report/{reportId}/pin-list")
+  @LogMethodInvocation
   public ResponseEntity<List<PinListDto>> getPinList(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long reportId
@@ -83,6 +80,7 @@ public class PinController {
 
   // Pin 상세정보 가져오기
   @GetMapping("/{pinId}")
+  @LogMethodInvocation
   public ResponseEntity<PinDto> getPin(
       @AuthenticationPrincipal MemberDetails memberDetails,
       @PathVariable Long pinId

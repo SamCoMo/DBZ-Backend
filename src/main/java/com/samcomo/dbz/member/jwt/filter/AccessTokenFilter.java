@@ -45,6 +45,9 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   }
 
   private String getAccessToken(HttpServletRequest request) {
+//    if(request.getHeader(ACCESS_TOKEN.getKey()).startsWith("Bearer")){
+//      return request.getHeader(ACCESS_TOKEN.getKey()).substring(7);
+//    }
     return request.getHeader(ACCESS_TOKEN.getKey());
   }
 

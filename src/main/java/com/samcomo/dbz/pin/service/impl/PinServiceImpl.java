@@ -1,6 +1,7 @@
 package com.samcomo.dbz.pin.service.impl;
 
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.notification.service.NotificationService;
@@ -35,6 +36,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
+  @LogMethodInvocation
   public Response registerPin(Long memberId, Long reportId,
       RegisterPinDto.Request request) {
     // 핀 생성 검증 및 저장
@@ -73,6 +75,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
+  @LogMethodInvocation
   public PinDto updatePin(
       Long memberId, Long pinId, UpdatePinDto.Request request) {
 

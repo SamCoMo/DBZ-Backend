@@ -3,7 +3,9 @@ package com.samcomo.dbz.member.model.dto;
 import com.samcomo.dbz.member.model.entity.Member;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 @Getter
 @Builder
 public class MyPageResponse {

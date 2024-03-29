@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 public class UpdatePinDto {
 
+  @ToString
   @Getter
   @Builder
   public static class Request {
@@ -25,6 +27,7 @@ public class UpdatePinDto {
     private List<MultipartFile> multipartFileList;
   }
 
+  @ToString
   @Getter
   @Builder
   public static class Response {
