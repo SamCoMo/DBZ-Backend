@@ -5,6 +5,7 @@ import com.samcomo.dbz.chat.model.dto.ChatMessageDto.Response;
 import com.samcomo.dbz.chat.model.dto.ChatRoomDto;
 import com.samcomo.dbz.chat.service.impl.ChatRoomServiceImpl;
 import com.samcomo.dbz.chat.service.impl.ChatServiceImpl;
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ChatController {
   private final ChatServiceImpl chatServiceImpl;
 
   @PostMapping("/room")
+  @LogMethodInvocation
   public ResponseEntity<ChatRoomDto> createChatRoom(
       @AuthenticationPrincipal MemberDetails details,
       @RequestParam String recipientId) {
@@ -41,6 +43,7 @@ public class ChatController {
   }
 
   @GetMapping("/member/room-list")
+  @LogMethodInvocation
   public ResponseEntity<List<ChatRoomDto>> getChatRoomsForMember(
       @AuthenticationPrincipal MemberDetails details) {
 
@@ -51,6 +54,7 @@ public class ChatController {
   }
 
   @GetMapping("/room/{chatRoomId}/message-list")
+  @LogMethodInvocation
   public ResponseEntity<Slice<ChatMessageDto.Response>> getChatMessageList(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
@@ -64,6 +68,7 @@ public class ChatController {
   }
 
   @MessageMapping("/room/{chatRoomId}/message")
+  @LogMethodInvocation
   public ResponseEntity<ChatMessageDto.Response> sendMessage(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId,
@@ -76,6 +81,7 @@ public class ChatController {
   }
 
   @PutMapping("/room-list/{chatRoomId}")
+  @LogMethodInvocation
   public ResponseEntity<ChatRoomDto> updateLastChatMessageInfo(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId) {
@@ -87,6 +93,7 @@ public class ChatController {
   }
 
   @DeleteMapping("/room/check-empty/{chatRoomId}")
+  @LogMethodInvocation
   public ResponseEntity<Void> deleteChatRoomIfEmptyMessage(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId) {
@@ -97,6 +104,7 @@ public class ChatController {
   }
 
   @DeleteMapping("/room/{chatRoomId}")
+  @LogMethodInvocation
   public ResponseEntity<Void> deleteChatRoom(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable String chatRoomId) {

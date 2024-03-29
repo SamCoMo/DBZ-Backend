@@ -1,5 +1,6 @@
 package com.samcomo.dbz.notification.controller;
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.notification.model.dto.NotificationDto;
 import com.samcomo.dbz.notification.service.NotificationService;
@@ -23,8 +24,9 @@ public class NotificationController {
 
   private final NotificationService notificationService;
 
-  @Operation(summary = "알림 목록 조회")
   @GetMapping("/list")
+  @LogMethodInvocation
+  @Operation(summary = "알림 목록 조회")
   public ResponseEntity<List<NotificationDto>> getNotificationList(
       @AuthenticationPrincipal MemberDetails details) {
 

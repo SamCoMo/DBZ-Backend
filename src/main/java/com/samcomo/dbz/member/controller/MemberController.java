@@ -3,6 +3,7 @@ package com.samcomo.dbz.member.controller;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.member.jwt.filter.RefreshTokenFilter;
 import com.samcomo.dbz.member.model.dto.LocationRequest;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
@@ -38,6 +39,7 @@ public class MemberController {
   private final RefreshTokenFilter refreshTokenFilter;
 
   @PostMapping("/register")
+  @LogMethodInvocation
   @Operation(summary = "신규 회원 가입")
   public ResponseEntity<Void> register(
       @Valid @RequestBody RegisterRequest request) {
@@ -49,6 +51,7 @@ public class MemberController {
   }
 
   @GetMapping("/my")
+  @LogMethodInvocation
   @Operation(summary = "회원 마이페이지")
   public ResponseEntity<MyPageResponse> getMyInfo(
       @AuthenticationPrincipal MemberDetails details) {
@@ -59,7 +62,9 @@ public class MemberController {
     return ResponseEntity.ok(myPageResponse);
   }
 
+
   @PostMapping("/reissue")
+  @LogMethodInvocation
   @Operation(summary = "access 토큰 재발급")
   public ResponseEntity<Void> reissue(
       @CookieValue(value = "Refresh-Token", required = false) String refreshToken,
