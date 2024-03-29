@@ -7,10 +7,12 @@ import com.samcomo.dbz.member.model.entity.Member;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @RequiredArgsConstructor
+@ToString
 public class MemberDetails implements UserDetails {
 
   private final Member member;

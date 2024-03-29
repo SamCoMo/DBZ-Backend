@@ -4,7 +4,9 @@ import com.samcomo.dbz.pin.model.entity.Pin;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 @Getter
 @Builder
 public class PinListDto {

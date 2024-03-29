@@ -3,7 +3,9 @@ package com.samcomo.dbz.pin.dto;
 import com.samcomo.dbz.pin.model.entity.PinImage;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 @Getter
 @Builder
 public class PinImageDto {
