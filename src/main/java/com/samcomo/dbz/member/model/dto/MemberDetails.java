@@ -2,7 +2,7 @@ package com.samcomo.dbz.member.model.dto;
 
 import com.samcomo.dbz.member.model.constants.LoginType;
 import com.samcomo.dbz.member.model.constants.MemberRole;
-import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
+//import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,9 +39,9 @@ public class MemberDetails implements UserDetails {
         .build());
   }
 
-  public static MemberDetails from(Oauth2MemberDetails details) {
-    return new MemberDetails(details.getMember());
-  }
+//  public static MemberDetails from(Oauth2MemberDetails details) {
+//    return new MemberDetails(details.getMember());
+//  }
 
   @Override
   public String getPassword() {
