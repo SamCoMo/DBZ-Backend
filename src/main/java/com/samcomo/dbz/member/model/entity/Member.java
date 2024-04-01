@@ -24,7 +24,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@ToString
+@ToString(exclude = "password")
 @Entity
 @Getter
 @Builder
