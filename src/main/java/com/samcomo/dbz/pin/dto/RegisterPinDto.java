@@ -2,11 +2,13 @@ package com.samcomo.dbz.pin.dto;
 
 import com.samcomo.dbz.pin.model.entity.Pin;
 import com.samcomo.dbz.pin.model.entity.PinImage;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 public class RegisterPinDto {
@@ -21,6 +23,9 @@ public class RegisterPinDto {
     private List<MultipartFile> multipartFileList;
 
     private String address;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime foundAt;
 
     private Double latitude;
 
@@ -42,6 +47,8 @@ public class RegisterPinDto {
 
     private String address;
 
+    private LocalDateTime foundAt;
+
     private Double latitude;
 
     private Double longitude;
@@ -55,6 +62,7 @@ public class RegisterPinDto {
           .memberId(pin.getMember().getId())
           .description(pin.getDescription())
           .address(pin.getAddress())
+          .foundAt(pin.getFoundAt())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .pinImageDtoList(pinImageList.stream()

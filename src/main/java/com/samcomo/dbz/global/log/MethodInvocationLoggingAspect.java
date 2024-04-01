@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class MethodInvocationLoggingAspect {
-  @Around("@annotation(LogMethodInvocation)")
+  @Around("@annotation(LogMethodInvocation) || @annotation(LogMonitoringInvocation)")
   public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 

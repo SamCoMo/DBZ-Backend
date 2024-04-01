@@ -2,6 +2,8 @@ package com.samcomo.dbz.report.controller;
 
 
 import com.samcomo.dbz.global.log.LogMethodInvocation;
+import com.samcomo.dbz.global.log.LogMonitoringInvocation;
+import com.samcomo.dbz.global.log.LogTimeInvocation;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
@@ -36,6 +38,7 @@ public class ReportController {
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @LogMethodInvocation
+  @LogTimeInvocation
   @Operation(summary = "게시글을 이미지와 함께 작성")
   public ResponseEntity<ReportDto.Response> registerReport(
       @AuthenticationPrincipal MemberDetails details,
@@ -48,7 +51,7 @@ public class ReportController {
   }
 
   @GetMapping("/{reportId}")
-  @LogMethodInvocation
+  @LogMonitoringInvocation
   @Operation(summary = "특정 게시글 정보 가져오기")
   public ResponseEntity<ReportDto.Response> getReport(
       @AuthenticationPrincipal MemberDetails details,
