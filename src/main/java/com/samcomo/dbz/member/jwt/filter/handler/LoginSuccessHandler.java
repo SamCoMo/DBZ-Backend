@@ -11,7 +11,7 @@ import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
-import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
+//import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,9 +63,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
   private MemberDetails getMemberDetails(Authentication authResult) {
     String nickname = authResult.getName();
     String loginType = nickname.substring(nickname.indexOf('[') + 1, nickname.length() - 1);
-    if (loginType.equals(GOOGLE.getKey())) {
-      return MemberDetails.from((Oauth2MemberDetails) authResult.getPrincipal());
-    }
+//    if (loginType.equals(GOOGLE.getKey())) {
+//      return MemberDetails.from((Oauth2MemberDetails) authResult.getPrincipal());
+//    }
     return (MemberDetails) authResult.getPrincipal();
   }
 
