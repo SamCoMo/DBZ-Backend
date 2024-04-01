@@ -86,10 +86,10 @@ public class SecurityConfig {
               }
             }));
 
-    http
-        .csrf((auth) -> auth.disable())
-        .formLogin((auth) -> auth.disable())
-        .httpBasic((auth) -> auth.disable());
+//    http
+//        .csrf((auth) -> auth.disable())
+//        .formLogin((auth) -> auth.disable())
+//        .httpBasic((auth) -> auth.disable());
 
     // mapping
     http
