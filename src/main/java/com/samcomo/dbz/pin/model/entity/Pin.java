@@ -23,6 +23,7 @@ import lombok.ToString;
 @ToString
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PROTECTED)
@@ -40,17 +41,13 @@ public class Pin extends BaseEntity {
   @JoinColumn
   private Member member;
 
-  @Setter
   private String description;
 
-  @Setter
   private String address;
 
   private LocalDateTime foundAt;
 
-  @Setter
   private Double latitude;
 
-  @Setter
   private Double longitude;
 }

@@ -28,6 +28,7 @@ public class PinListDto {
         .pinId(pin.getPinId())
         .description(pin.getDescription())
         .address(pin.getAddress())
+        .foundAt(pin.getFoundAt())
         .latitude(pin.getLatitude())
         .longitude(pin.getLongitude())
         .build();

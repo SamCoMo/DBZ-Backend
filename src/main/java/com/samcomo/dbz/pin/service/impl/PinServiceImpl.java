@@ -46,15 +46,14 @@ public class PinServiceImpl implements PinService {
             .member(pinUtils.verifyMemberById(memberId)) // member 검증
             .description(request.getDescription())
             .address(request.getAddress())
+            .foundAt(request.getFoundAt())
             .latitude(request.getLatitude())
             .longitude(request.getLongitude())
             .build());
-    log.info("핀 생성 검증 및 저장");
     // MultipartFile 리스트 S3 업로드
     List<String> imageUrlList =
         s3Service.uploadImageList(request.getMultipartFileList(),
             ImageCategory.PIN);
-    log.info("MultipartFile 리스트 S3 업로드");
     // PinImage 리스트 객체 생성
     List<PinImage> newPinImageList =
         pinImageRepository.saveAll(
@@ -64,10 +63,8 @@ public class PinServiceImpl implements PinService {
                     .pin(newPin)
                     .build())
                 .toList());
-    log.info("PinImage 리스트 객체 생성 후 저장");
 
     notificationService.sendPinNotification(memberId);
-    log.info("알림 전송");
     return RegisterPinDto.Response.from(
         newPin,
         newPinImageList);
@@ -111,6 +108,7 @@ public class PinServiceImpl implements PinService {
     // 핀 주소 업데이트
     pin.setDescription(request.getDescription());
     pin.setAddress(request.getAddress());
+    pin.setFoundAt(request.getFoundAt());
     pin.setLatitude(request.getLatitude());
     pin.setLongitude(request.getLongitude());
 
