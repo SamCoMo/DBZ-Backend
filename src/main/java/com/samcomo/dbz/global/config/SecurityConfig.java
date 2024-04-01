@@ -13,9 +13,9 @@ import com.samcomo.dbz.member.jwt.filter.AccessTokenFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
 import com.samcomo.dbz.member.jwt.filter.handler.FilterMemberExceptionHandler;
-import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
 import com.samcomo.dbz.member.jwt.filter.handler.LoginSuccessHandler;
-import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
+//import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
+//import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -43,8 +43,8 @@ public class SecurityConfig {
   private final CookieUtil cookieUtil;
   private final AuthenticationConfiguration configuration;
   private final LoginSuccessHandler loginSuccessHandler;
-  private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
-  private final Oauth2MemberServiceImpl oauth2MemberService;
+//  private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
+//  private final Oauth2MemberServiceImpl oauth2MemberService;
 
   private final static String MEMBER = "MEMBER";
 
@@ -86,10 +86,10 @@ public class SecurityConfig {
               }
             }));
 
-//    http
-//        .csrf((auth) -> auth.disable())
-//        .formLogin((auth) -> auth.disable())
-//        .httpBasic((auth) -> auth.disable());
+    http
+        .csrf((auth) -> auth.disable())
+        .formLogin((auth) -> auth.disable())
+        .httpBasic((auth) -> auth.disable());
 
     // mapping
     http
@@ -129,12 +129,12 @@ public class SecurityConfig {
             .anyRequest().authenticated());
 
     // oauth2 social login
-    http
-        .oauth2Login((oauth2) -> oauth2
-            .userInfoEndpoint((config) -> config
-                .userService(oauth2MemberService))
-            .successHandler(loginSuccessHandler)
-            .failureHandler(oauth2LoginFailureHandler));
+//    http
+//        .oauth2Login((oauth2) -> oauth2
+//            .userInfoEndpoint((config) -> config
+//                .userService(oauth2MemberService))
+//            .successHandler(loginSuccessHandler)
+//            .failureHandler(oauth2LoginFailureHandler));
 
     // session : stateless
     http
