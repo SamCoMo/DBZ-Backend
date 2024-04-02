@@ -18,20 +18,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/pin")
 @Slf4j
 public class PinController {
 
   private final PinService pinService;
 
   // Pin 생성
-  @PostMapping()
+  @PostMapping("/report/pin")
   @LogMethodInvocation
   public ResponseEntity<RegisterPinDto.Response> registerPin(
       @AuthenticationPrincipal MemberDetails memberDetails,
@@ -44,7 +42,7 @@ public class PinController {
   }
 
   // Pin 수정
-  @PutMapping("/{pinId}")
+  @PutMapping("/report/pin/{pinId}")
   @LogMethodInvocation
   public ResponseEntity<PinDto> updatePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
@@ -57,7 +55,7 @@ public class PinController {
   }
 
   // Pin 삭제
-  @DeleteMapping("/{pinId}")
+  @DeleteMapping("/report/pin/{pinId}")
   @LogMethodInvocation
   public ResponseEntity<Void> deletePin(
       @AuthenticationPrincipal MemberDetails memberDetails,
@@ -79,7 +77,7 @@ public class PinController {
   }
 
   // Pin 상세정보 가져오기
-  @GetMapping("/{pinId}")
+  @GetMapping("/report/pin/{pinId}")
   @LogMethodInvocation
   public ResponseEntity<PinDto> getPin(
       @AuthenticationPrincipal MemberDetails memberDetails,
