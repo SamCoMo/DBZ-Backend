@@ -1,20 +1,21 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
-import static com.samcomo.dbz.member.model.constants.UriKey.REISSUE;
-
 import com.samcomo.dbz.member.jwt.JwtUtil;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
+import static com.samcomo.dbz.member.model.constants.UriKey.REISSUE;
 
 @RequiredArgsConstructor
 public class AccessTokenFilter extends OncePerRequestFilter {
@@ -45,9 +46,6 @@ public class AccessTokenFilter extends OncePerRequestFilter {
   }
 
   private String getAccessToken(HttpServletRequest request) {
-//    if(request.getHeader(ACCESS_TOKEN.getKey()).startsWith("Bearer")){
-//      return request.getHeader(ACCESS_TOKEN.getKey()).substring(7);
-//    }
     return request.getHeader(ACCESS_TOKEN.getKey());
   }
 
