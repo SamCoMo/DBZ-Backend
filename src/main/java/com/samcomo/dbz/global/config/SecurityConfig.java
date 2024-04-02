@@ -1,11 +1,5 @@
 package com.samcomo.dbz.global.config;
 
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.PATCH;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
-
 import com.samcomo.dbz.member.jwt.AuthUtils;
 import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
@@ -14,10 +8,9 @@ import com.samcomo.dbz.member.jwt.filter.CustomLoginFilter;
 import com.samcomo.dbz.member.jwt.filter.CustomLogoutFilter;
 import com.samcomo.dbz.member.jwt.filter.handler.FilterMemberExceptionHandler;
 import com.samcomo.dbz.member.jwt.filter.handler.LoginSuccessHandler;
-//import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
-//import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
+import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
+import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +27,10 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Collections;
+
+import static org.springframework.http.HttpMethod.*;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -43,8 +40,8 @@ public class SecurityConfig {
   private final CookieUtil cookieUtil;
   private final AuthenticationConfiguration configuration;
   private final LoginSuccessHandler loginSuccessHandler;
-//  private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
-//  private final Oauth2MemberServiceImpl oauth2MemberService;
+  private final Oauth2LoginFailureHandler oauth2LoginFailureHandler;
+  private final Oauth2MemberServiceImpl oauth2MemberService;
 
   private final static String MEMBER = "MEMBER";
 
@@ -95,7 +92,6 @@ public class SecurityConfig {
     http
         .authorizeHttpRequests((auth) -> auth
             .requestMatchers(
-                "/", // home
                 "/oauth2/authorization/**", // 소셜 로그인 버튼
                 "/login/oauth2/code/**", // 소셜 로그인 콜백
                 "/member/register", // 회원가입
@@ -129,12 +125,12 @@ public class SecurityConfig {
             .anyRequest().authenticated());
 
     // oauth2 social login
-//    http
-//        .oauth2Login((oauth2) -> oauth2
-//            .userInfoEndpoint((config) -> config
-//                .userService(oauth2MemberService))
-//            .successHandler(loginSuccessHandler)
-//            .failureHandler(oauth2LoginFailureHandler));
+    http
+        .oauth2Login((oauth2) -> oauth2
+            .userInfoEndpoint((config) -> config
+                .userService(oauth2MemberService))
+            .successHandler(loginSuccessHandler)
+            .failureHandler(oauth2LoginFailureHandler));
 
     // session : stateless
     http
