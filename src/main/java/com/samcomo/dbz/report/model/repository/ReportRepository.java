@@ -18,7 +18,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
       + "new com.samcomo.dbz.report.model.dto.ReportWithUrl("
       + "r.id, r.member.id, r.petType, r.reportStatus, r.title, r.petName, r.species, r.streetAddress, r.roadAddress, r.latitude, r.longitude, ri.imageUrl, r.createdAt, r.updatedAt) "
       + "from Report r "
-      + "join ReportImage ri on r = ri.report "
+      + "join fetch ReportImage ri on r = ri.report "
       + "where ST_Distance_Sphere(Point(r.longitude, r.latitude), Point(:curLongitude, :curLatitude)) > "
       + " ST_Distance_Sphere(Point(:lastLongitude, :lastLatitude), Point(:curLongitude, :curLatitude)) "
       + "order by ST_Distance_Sphere(Point(r.longitude, r.latitude), Point(:curLongitude, :curLatitude)) ")
@@ -31,16 +31,17 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
       + "new com.samcomo.dbz.report.model.dto.ReportWithUrl("
       + "r.id, r.member.id, r.petType, r.reportStatus, r.title, r.petName, r.species, r.streetAddress, r.roadAddress, r.latitude, r.longitude, ri.imageUrl, r.createdAt, r.updatedAt) "
       + "from Report r "
-      + "join ReportImage ri on r = ri.report "
+      + "join fetch ReportImage ri on r = ri.report "
       + "where ST_Distance_Sphere(Point(r.longitude, r.latitude), Point(:curLongitude, :curLatitude)) > "
-      + " ST_Distance_Sphere(Point(r.longitude, r.latitude), Point(:curLongitude, :curLatitude)) "
-      + "and r.reportStatus = 'PUPLISHED' "
-      + "order by ST_Distance_Sphere(Point(:lastLongitude, :lastLatitude), Point(:curLongitude, :curLatitude)) ")
+      + " ST_Distance_Sphere(Point(:lastLongitude, :lastLatitude), Point(:curLongitude, :curLatitude)) "
+      + "and r.reportStatus = 'PUBLISHED' "
+      + " order by ST_Distance_Sphere(Point(r.longitude, r.latitude), Point(:curLongitude, :curLatitude)) ")
   Slice<ReportWithUrl> findAllInProcessOrderByDistance(
       @Param("lastLatitude") double lastLatitude, @Param("lastLongitude") double lastLongitude,
       @Param("curLatitude") double curLatitude, @Param("curLongitude") double curLongitude,
       Pageable pageable);
 
+  //TODO: 커서 페이징 적용하기
   Slice<Report> findAllByTitleContainsOrPetNameContainsOrSpeciesContains(String title, String petName, String species, Pageable pageable);
 
   Slice<Report> findAllByTitleContainsOrPetNameContainsOrSpeciesContainsAndReportStatus(String title, String petName, String species, ReportStatus reportStatus, Pageable pageable);
