@@ -11,6 +11,8 @@ import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import com.samcomo.dbz.notification.service.NotificationService;
+import com.samcomo.dbz.pin.model.entity.Pin;
+import com.samcomo.dbz.pin.model.repository.PinRepository;
 import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
@@ -49,6 +51,8 @@ public class ReportServiceImpl implements ReportService {
   private final ReportBulkRepository reportBulkRepository;
 
   private final NotificationService notificationService;
+
+  private final PinRepository pinRepository;
 
   @Override
   public ReportDto.Response uploadReport(long memberId, ReportDto.Form reportForm) {
@@ -203,7 +207,16 @@ public class ReportServiceImpl implements ReportService {
       s3Service.deleteFile(url.substring(idx + 1));
     }
 
+    // report image 삭제
     reportImageRepository.deleteAll(reportImageList);
+
+    // Pin 데이터 삭제
+    List<Pin> pinList = pinRepository.findByReport(report);
+    if (!pinList.isEmpty()){
+      pinRepository.deleteAll(pinList);
+    }
+
+    // report 삭제
     reportRepository.delete(report);
 
     return ReportStateDto.Response.builder()
