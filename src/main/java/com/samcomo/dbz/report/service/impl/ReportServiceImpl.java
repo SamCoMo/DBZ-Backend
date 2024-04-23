@@ -121,7 +121,7 @@ public class ReportServiceImpl implements ReportService {
     Slice<ReportWithUrl> reportSlice =
         showsInProcessOnly ?
             reportRepository.findAllInProcessOrderByDistance(
-                lastLongitude, lastLongitude,
+                lastLatitude, lastLongitude,
                 curLatitude, curLongitude,
                 pageable)
             :
