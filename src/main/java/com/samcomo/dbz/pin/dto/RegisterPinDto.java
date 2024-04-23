@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 public class RegisterPinDto {
 
+  @ToString
   @Getter
   @Builder
   public static class Request {
@@ -21,6 +24,7 @@ public class RegisterPinDto {
 
     private String address;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime foundAt;
 
     private Double latitude;
@@ -28,9 +32,10 @@ public class RegisterPinDto {
     private Double longitude;
   }
 
+  @ToString
   @Getter
   @Builder
-  public static class Response{
+  public static class Response {
 
     private Long pinId;
 
@@ -40,23 +45,24 @@ public class RegisterPinDto {
 
     private String description;
 
-    private LocalDateTime foundAt;
-
     private String address;
+
+    private LocalDateTime foundAt;
 
     private Double latitude;
 
     private Double longitude;
 
     private List<PinImageDto> pinImageDtoList;
-    public static Response from(Pin pin, List<PinImage> pinImageList){
+
+    public static Response from(Pin pin, List<PinImage> pinImageList) {
       return Response.builder()
           .pinId(pin.getPinId())
           .reportId(pin.getReport().getId())
           .memberId(pin.getMember().getId())
           .description(pin.getDescription())
-          .foundAt(pin.getFoundAt())
           .address(pin.getAddress())
+          .foundAt(pin.getFoundAt())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .pinImageDtoList(pinImageList.stream()

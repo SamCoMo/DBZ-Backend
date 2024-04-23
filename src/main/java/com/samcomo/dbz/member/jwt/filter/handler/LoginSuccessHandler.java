@@ -1,11 +1,5 @@
 package com.samcomo.dbz.member.jwt.filter.handler;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
-import static com.samcomo.dbz.member.model.constants.LoginType.DEFAULT;
-import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
-import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
-import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
-
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
@@ -15,13 +9,21 @@ import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Iterator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Iterator;
+
+import static com.samcomo.dbz.global.exception.ErrorCode.MEMBER_NOT_FOUND;
+import static com.samcomo.dbz.member.model.constants.LoginType.DEFAULT;
+import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.COOKIE;
+import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
+import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 @Slf4j
 @Component
@@ -53,9 +55,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     if (details.getLoginType() == DEFAULT) saveFcmToken(memberId, request);
 
     response.setHeader(ACCESS_TOKEN.getKey(), accessToken);
-    response.addHeader(CookieUtil.COOKIE_KEY, cookieUtil.createCookie(refreshToken));
+    response.addHeader(COOKIE.getKey(), cookieUtil.createCookie(refreshToken));
     response.setStatus(HttpServletResponse.SC_OK);
-    log.info("[로그인성공] {}", accessToken);
+    log.info("[로그인성공 헤더] {}", response.getHeader(ACCESS_TOKEN.getKey()));
+    log.info("[로그인성공 쿠키] {}", response.getHeader(COOKIE.getKey()));
   }
 
   private MemberDetails getMemberDetails(Authentication authResult) {

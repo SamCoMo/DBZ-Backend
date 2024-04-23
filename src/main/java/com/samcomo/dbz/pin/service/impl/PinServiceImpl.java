@@ -1,6 +1,7 @@
 package com.samcomo.dbz.pin.service.impl;
 
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
 import com.samcomo.dbz.global.s3.constants.ImageCategory;
 import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.notification.service.NotificationService;
@@ -18,11 +19,13 @@ import com.samcomo.dbz.pin.util.PinUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PinServiceImpl implements PinService {
 
   private final PinRepository pinRepository;
@@ -33,6 +36,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
+  @LogMethodInvocation
   public Response registerPin(Long memberId, Long reportId,
       RegisterPinDto.Request request) {
     // 핀 생성 검증 및 저장
@@ -41,17 +45,15 @@ public class PinServiceImpl implements PinService {
             .report(pinUtils.verifyReportById(reportId)) // report 검증
             .member(pinUtils.verifyMemberById(memberId)) // member 검증
             .description(request.getDescription())
-            .foundAt(request.getFoundAt())
             .address(request.getAddress())
+            .foundAt(request.getFoundAt())
             .latitude(request.getLatitude())
             .longitude(request.getLongitude())
             .build());
-
     // MultipartFile 리스트 S3 업로드
     List<String> imageUrlList =
         s3Service.uploadImageList(request.getMultipartFileList(),
             ImageCategory.PIN);
-
     // PinImage 리스트 객체 생성
     List<PinImage> newPinImageList =
         pinImageRepository.saveAll(
@@ -63,7 +65,6 @@ public class PinServiceImpl implements PinService {
                 .toList());
 
     notificationService.sendPinNotification(memberId);
-
     return RegisterPinDto.Response.from(
         newPin,
         newPinImageList);
@@ -71,6 +72,7 @@ public class PinServiceImpl implements PinService {
 
   @Override
   @Transactional
+  @LogMethodInvocation
   public PinDto updatePin(
       Long memberId, Long pinId, UpdatePinDto.Request request) {
 
@@ -105,8 +107,8 @@ public class PinServiceImpl implements PinService {
 
     // 핀 주소 업데이트
     pin.setDescription(request.getDescription());
-    pin.setFoundAt(request.getFoundAt());
     pin.setAddress(request.getAddress());
+    pin.setFoundAt(request.getFoundAt());
     pin.setLatitude(request.getLatitude());
     pin.setLongitude(request.getLongitude());
 

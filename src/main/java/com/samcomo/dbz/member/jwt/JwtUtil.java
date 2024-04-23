@@ -5,6 +5,8 @@ import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
 import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_TOKEN_TYPE;
 import static com.samcomo.dbz.global.exception.ErrorCode.REFRESH_TOKEN_EXPIRED;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.ID;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.ROLE;
 import static com.samcomo.dbz.member.model.constants.TokenType.ACCESS_TOKEN;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
@@ -27,9 +29,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtil {
 
-  private static final String ID_KEY = "id";
-  private static final String ROLE_KEY = "role";
-
   private final SecretKey secretKey;
   private final RefreshTokenRepository refreshTokenRepository;
 
@@ -42,12 +41,12 @@ public class JwtUtil {
   public Long getId(String token) {
     return Long.valueOf(
         Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
-            .get(ID_KEY, String.class));
+            .get(ID.getKey(), String.class));
   }
 
   public String getRole(String token) {
     return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
-        .get(ROLE_KEY, String.class);
+        .get(ROLE.getKey(), String.class);
   }
 
   private String getTokenType(String token) {
@@ -119,8 +118,8 @@ public class JwtUtil {
   public String createToken(TokenType tokenType, String id, String role) {
     return Jwts.builder()
         .subject(tokenType.getKey())
-        .claim(ID_KEY, id)
-        .claim(ROLE_KEY, role)
+        .claim(ID.getKey(), id)
+        .claim(ROLE.getKey(), role)
         .issuedAt(new Date(System.currentTimeMillis()))
         .expiration(new Date(System.currentTimeMillis() + tokenType.getExpiredMs()))
         .signWith(secretKey)

@@ -1,6 +1,9 @@
 package com.samcomo.dbz.report.controller;
 
 
+import com.samcomo.dbz.global.log.LogMethodInvocation;
+import com.samcomo.dbz.global.log.LogMonitoringInvocation;
+import com.samcomo.dbz.global.log.LogTimeInvocation;
 import com.samcomo.dbz.member.model.dto.MemberDetails;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
 import com.samcomo.dbz.report.model.dto.ReportDto;
@@ -11,7 +14,6 @@ import com.samcomo.dbz.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,27 +31,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/report")
-@Slf4j
 @Tag(name = "게시글 작성 컨트롤러", description = "게시글 관련 API")
 public class ReportController {
 
   private final ReportService reportService;
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+  @LogMethodInvocation
+  @LogTimeInvocation
   @Operation(summary = "게시글을 이미지와 함께 작성")
   public ResponseEntity<ReportDto.Response> registerReport(
       @AuthenticationPrincipal MemberDetails details,
       @ModelAttribute ReportDto.Form reportForm
   ) {
-
-    log.info("<<< ReportController - Register Report >>>");
-
-    log.info("title : {}", reportForm.getTitle());
-    log.info("petName : {}", reportForm.getPetName());
-    log.info("imageList : {}", reportForm.getImageList());
-
-
-
     ReportDto.Response reportResponse =
         reportService.uploadReport(details.getId(), reportForm);
 
@@ -57,18 +51,19 @@ public class ReportController {
   }
 
   @GetMapping("/{reportId}")
+  @LogMonitoringInvocation
   @Operation(summary = "특정 게시글 정보 가져오기")
   public ResponseEntity<ReportDto.Response> getReport(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable(value = "reportId") long reportId
   ) {
-    log.info("<<< ReportController - Get Report >>>");
     ReportDto.Response reportResponse = reportService.getReport(reportId, details.getId());
 
     return ResponseEntity.ok(reportResponse);
   }
 
   @GetMapping("/list")
+  @LogMethodInvocation
   @Operation(summary = "현재 위치와 인접 지역의 게시글 조회")
   public ResponseEntity<CustomSlice<ReportSummaryDto>> getReportList(
       @RequestParam double lastLatitude,
@@ -78,9 +73,6 @@ public class ReportController {
       @RequestParam boolean showsInProcessOnly,
       Pageable pageable
   ) {
-
-    log.info("<<< ReportController - Get Report List >>>");
-
     CustomSlice<ReportSummaryDto> result =
         reportService.getReportList(lastLatitude, lastLongitude, curLatitude, curLongitude,
             showsInProcessOnly, pageable);
@@ -90,6 +82,7 @@ public class ReportController {
 
   @PutMapping(value = "/{reportId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE,
       MediaType.APPLICATION_JSON_VALUE})
+  @LogMethodInvocation
   @Operation(summary = "게시글 수정")
   public ResponseEntity<ReportDto.Response> updateReport(
       @AuthenticationPrincipal MemberDetails details,
@@ -104,6 +97,7 @@ public class ReportController {
   }
 
   @DeleteMapping("/{reportId}")
+  @LogMethodInvocation
   @Operation(summary = "게시글 삭제")
   public ResponseEntity<ReportStateDto.Response> deleteReport(
       @AuthenticationPrincipal MemberDetails details,
@@ -116,6 +110,7 @@ public class ReportController {
   }
 
   @PutMapping("/{reportId}/complete")
+  @LogMethodInvocation
   @Operation(summary = "게시글 완료 처리")
   public ResponseEntity<ReportStateDto.Response> completeProcess(
       @AuthenticationPrincipal MemberDetails details,
@@ -129,6 +124,7 @@ public class ReportController {
   }
 
   @GetMapping("/search")
+  @LogMethodInvocation
   @Operation(summary = "게시글 검색")
   public ResponseEntity<CustomSlice<ReportSearchSummaryDto>> searchReport(
       @RequestParam boolean showsInProgressOnly,

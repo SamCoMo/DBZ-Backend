@@ -1,9 +1,5 @@
 package com.samcomo.dbz.member.service.impl;
 
-import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
-import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
-import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
-
 import com.samcomo.dbz.member.model.dto.oauth2.GoogleResponse;
 import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
 import com.samcomo.dbz.member.model.dto.oauth2.Oauth2Response;
@@ -17,6 +13,10 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
+import static com.samcomo.dbz.member.model.constants.MemberRole.MEMBER;
+import static com.samcomo.dbz.member.model.constants.MemberStatus.ACTIVE;
 
 @Service
 @Slf4j

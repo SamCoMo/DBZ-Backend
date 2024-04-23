@@ -2,6 +2,7 @@ package com.samcomo.dbz.member.jwt.filter;
 
 import static com.google.api.client.http.HttpMethods.POST;
 import static com.samcomo.dbz.global.exception.ErrorCode.ALREADY_LOGGED_OUT;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.COOKIE;
 import static com.samcomo.dbz.member.model.constants.TokenType.REFRESH_TOKEN;
 
 import com.samcomo.dbz.member.exception.MemberException;
@@ -24,7 +25,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
   private final JwtUtil jwtUtil;
   private final CookieUtil cookieUtil;
 
-  private static final String LOGOUT_URI = "\\/member\\/logout";
+  private static final String LOGOUT_URI_REGEX = "\\/member\\/logout";
 
   public CustomLogoutFilter(AuthUtils authUtils) {
     this.jwtUtil = authUtils.getJwtUtil();
@@ -50,9 +51,9 @@ public class CustomLogoutFilter extends GenericFilterBean {
     validateRefreshToken(refreshToken);
 
     jwtUtil.deleteRefreshTokenFromDB(refreshToken);
-    response.setHeader(CookieUtil.COOKIE_KEY, cookieUtil.getNullCookie());
+    response.setHeader(COOKIE.getKey(), cookieUtil.getNullCookie());
     response.setStatus(HttpServletResponse.SC_OK);
-    log.info("[로그아웃 성공] {}", cookieUtil.getNullCookie());
+    log.info("[로그아웃 성공] {}", response.getHeader(COOKIE.getKey()));
   }
 
   private void validateRefreshToken(String refreshToken) {
@@ -66,6 +67,6 @@ public class CustomLogoutFilter extends GenericFilterBean {
     if (!request.getMethod().equals(POST)) {
       return false;
     }
-    return request.getRequestURI().matches(LOGOUT_URI);
+    return request.getRequestURI().matches(LOGOUT_URI_REGEX);
   }
 }

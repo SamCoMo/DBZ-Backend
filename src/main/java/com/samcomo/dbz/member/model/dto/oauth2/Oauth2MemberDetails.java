@@ -1,12 +1,13 @@
 package com.samcomo.dbz.member.model.dto.oauth2;
 
 import com.samcomo.dbz.member.model.entity.Member;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class Oauth2MemberDetails implements OAuth2User {

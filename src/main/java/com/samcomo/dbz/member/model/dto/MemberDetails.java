@@ -4,13 +4,16 @@ import com.samcomo.dbz.member.model.constants.LoginType;
 import com.samcomo.dbz.member.model.constants.MemberRole;
 import com.samcomo.dbz.member.model.dto.oauth2.Oauth2MemberDetails;
 import com.samcomo.dbz.member.model.entity.Member;
-import java.util.ArrayList;
-import java.util.Collection;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 @RequiredArgsConstructor
+@ToString
 public class MemberDetails implements UserDetails {
 
   private final Member member;

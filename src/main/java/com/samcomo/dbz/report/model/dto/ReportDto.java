@@ -12,10 +12,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 public class ReportDto {
 
+  @ToString
   @Getter
   @Setter
   @Builder
@@ -54,7 +56,7 @@ public class ReportDto {
     private Double latitude;
     private Double longitude;
     private String phone;
-    private boolean showsPhone;
+    private Boolean showsPhone;
     private Long writerId;
     private Long views;
     private ReportStatus reportStatus;

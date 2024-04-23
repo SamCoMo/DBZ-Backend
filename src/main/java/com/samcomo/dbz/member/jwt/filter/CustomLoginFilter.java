@@ -1,15 +1,11 @@
 package com.samcomo.dbz.member.jwt.filter;
 
-import static com.samcomo.dbz.global.exception.ErrorCode.AUTHENTICATION_FAILED;
-import static com.samcomo.dbz.global.exception.ErrorCode.FCM_TOKEN_NULL;
-import static org.springframework.http.HttpMethod.POST;
-
 import com.samcomo.dbz.member.exception.MemberException;
+import com.samcomo.dbz.member.model.constants.ParameterKey;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,16 +16,20 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+
+import static com.samcomo.dbz.global.exception.ErrorCode.AUTHENTICATION_FAILED;
+import static com.samcomo.dbz.global.exception.ErrorCode.INVALID_FCM_TOKEN;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.FCM_TOKEN;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.PASSWORD;
+import static com.samcomo.dbz.member.model.constants.UriKey.LOGIN;
+import static org.springframework.http.HttpMethod.POST;
+
 @Slf4j
 public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-  private static final String LOGIN_URI = "/member/login";
-  private static final String EMAIL_KEY = "email";
-  private static final String PASSWORD_KEY = "password";
-  private static final String FCM_TOKEN_KEY = "fcmToken";
-
   private static final AntPathRequestMatcher LOGIN_REQUEST_MATCHER =
-      new AntPathRequestMatcher(LOGIN_URI, POST.name());
+      new AntPathRequestMatcher(LOGIN.getUri(), POST.name());
 
   public CustomLoginFilter(
       AuthenticationManager manager, AuthenticationSuccessHandler successHandler) {
@@ -43,7 +43,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     String fcmToken = obtainFcmToken(request);
     if (!StringUtils.hasText(fcmToken)) {
-      throw new MemberException(FCM_TOKEN_NULL);
+      throw new MemberException(INVALID_FCM_TOKEN);
     }
 
     String email = obtainEmail(request);
@@ -61,16 +61,17 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
   }
 
   protected String obtainEmail(HttpServletRequest request) {
-    return request.getParameter(EMAIL_KEY);
+    return request.getParameter(ParameterKey.EMAIL.getKey());
   }
 
   protected String obtainPassword(HttpServletRequest request) {
-    return request.getParameter(PASSWORD_KEY);
+    return request.getParameter(PASSWORD.getKey());
   }
 
   protected String obtainFcmToken(HttpServletRequest request) {
-    return request.getParameter(FCM_TOKEN_KEY);
+    return request.getParameter(FCM_TOKEN.getKey());
   }
+
   // 로그인 성공 시 JWT 발급
   @Override
   protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,

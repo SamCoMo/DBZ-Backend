@@ -1,11 +1,16 @@
 package com.samcomo.dbz.member.model.dto.oauth2;
 
-import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
-
 import com.samcomo.dbz.member.model.constants.LoginType;
+
 import java.util.Map;
 
+import static com.samcomo.dbz.member.model.constants.LoginType.GOOGLE;
+import static com.samcomo.dbz.member.model.constants.ParameterKey.EMAIL;
+
 public class GoogleResponse implements Oauth2Response {
+
+  private final static String NICKNAME_KEY = "name";
+  private final static String PROFILE_IMAGE_KEY = "picture";
 
   private final Map<String, Object> attribute;
 
@@ -20,16 +25,16 @@ public class GoogleResponse implements Oauth2Response {
 
   @Override
   public String getEmail() {
-    return String.valueOf(attribute.get("email"));
+    return (String) attribute.get(EMAIL.getKey());
   }
 
   @Override
   public String getNickname() {
-    return String.valueOf(attribute.get("name")).replaceAll(" ", "");
+    return String.valueOf(attribute.get(NICKNAME_KEY)).replaceAll(" ", "");
   }
 
   @Override
   public String getProfileImageUrl() {
-    return String.valueOf(attribute.get("picture"));
+    return (String) attribute.get(PROFILE_IMAGE_KEY);
   }
 }

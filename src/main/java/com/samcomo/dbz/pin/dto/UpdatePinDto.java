@@ -7,19 +7,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
 public class UpdatePinDto {
 
+  @ToString
   @Getter
   @Builder
   public static class Request {
 
     private String description;
 
-    private LocalDateTime foundAt;
-
     private String address;
+
+    private LocalDateTime foundAt;
 
     private Double latitude;
 
@@ -28,6 +30,7 @@ public class UpdatePinDto {
     private List<MultipartFile> multipartFileList;
   }
 
+  @ToString
   @Getter
   @Builder
   public static class Response {
@@ -36,9 +39,9 @@ public class UpdatePinDto {
 
     private String description;
 
-    private LocalDateTime foundAt;
-
     private String address;
+
+    private LocalDateTime foundAt;
 
     private Double latitude;
 
@@ -46,12 +49,12 @@ public class UpdatePinDto {
 
     private List<PinImageDto> pinImageDtoList;
 
-    public static UpdatePinDto.Response from(Pin pin, List<PinImage> pinImageList){
+    public static UpdatePinDto.Response from(Pin pin, List<PinImage> pinImageList) {
       return Response.builder()
           .pinId(pin.getPinId())
           .description(pin.getDescription())
-          .foundAt(pin.getFoundAt())
           .address(pin.getAddress())
+          .foundAt(pin.getFoundAt())
           .latitude(pin.getLatitude())
           .longitude(pin.getLongitude())
           .pinImageDtoList(pinImageList.stream()

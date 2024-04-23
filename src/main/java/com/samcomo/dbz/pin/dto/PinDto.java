@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 @Getter
 @Builder
 public class PinDto {
+
   private Long pinId;
 
   private Long reportId;
@@ -19,9 +22,9 @@ public class PinDto {
 
   private String description;
 
-  private LocalDateTime foundAt;
-
   private String address;
+
+  private LocalDateTime foundAt;
 
   private Double latitude;
 
@@ -29,14 +32,14 @@ public class PinDto {
 
   private List<PinImageDto> pinImageDtoList;
 
-  public static PinDto from(Pin pin, List<PinImage> pinImageList){
+  public static PinDto from(Pin pin, List<PinImage> pinImageList) {
     return PinDto.builder()
         .pinId(pin.getPinId())
         .reportId(pin.getReport().getId())
         .memberId(pin.getMember().getId())
         .description(pin.getDescription())
-        .foundAt(pin.getFoundAt())
         .address(pin.getAddress())
+        .foundAt(pin.getFoundAt())
         .latitude(pin.getLatitude())
         .longitude(pin.getLongitude())
         .pinImageDtoList(pinImageList.stream()
