@@ -10,6 +10,7 @@ import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
+import com.samcomo.dbz.report.model.dto.ReportWithProfile;
 import com.samcomo.dbz.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,11 +54,11 @@ public class ReportController {
   @GetMapping("/{reportId}")
   @LogMonitoringInvocation
   @Operation(summary = "특정 게시글 정보 가져오기")
-  public ResponseEntity<ReportDto.Response> getReport(
+  public ResponseEntity<ReportWithProfile> getReport(
       @AuthenticationPrincipal MemberDetails details,
       @PathVariable(value = "reportId") long reportId
   ) {
-    ReportDto.Response reportResponse = reportService.getReport(reportId, details.getId());
+    ReportWithProfile reportResponse = reportService.getReport(reportId, details.getId());
 
     return ResponseEntity.ok(reportResponse);
   }

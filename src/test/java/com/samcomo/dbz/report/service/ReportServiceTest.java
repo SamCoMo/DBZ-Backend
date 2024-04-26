@@ -16,6 +16,7 @@ import com.samcomo.dbz.report.model.dto.ReportDto.Response;
 import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
+import com.samcomo.dbz.report.model.dto.ReportWithProfile;
 import com.samcomo.dbz.report.model.dto.ReportWithUrl;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.entity.ReportImage;
@@ -156,7 +157,7 @@ public class ReportServiceTest {
         ));
 
     //when
-    ReportDto.Response response = reportService.getReport(1L, member.getId());
+    ReportWithProfile response = reportService.getReport(1L, member.getId());
 
     //then
     Assertions.assertEquals(report.getId(), response.getReportId());
