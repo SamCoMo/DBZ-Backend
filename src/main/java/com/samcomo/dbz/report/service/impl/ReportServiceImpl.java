@@ -10,6 +10,7 @@ import com.samcomo.dbz.global.s3.service.S3Service;
 import com.samcomo.dbz.member.exception.MemberException;
 import com.samcomo.dbz.member.model.entity.Member;
 import com.samcomo.dbz.member.model.repository.MemberRepository;
+import com.samcomo.dbz.member.service.MemberService;
 import com.samcomo.dbz.notification.service.NotificationService;
 import com.samcomo.dbz.pin.model.entity.Pin;
 import com.samcomo.dbz.pin.model.repository.PinRepository;
@@ -17,11 +18,13 @@ import com.samcomo.dbz.report.exception.ReportException;
 import com.samcomo.dbz.report.model.constants.ReportStatus;
 import com.samcomo.dbz.report.model.dto.CustomPageable;
 import com.samcomo.dbz.report.model.dto.CustomSlice;
+import com.samcomo.dbz.report.model.dto.WriterProfile;
 import com.samcomo.dbz.report.model.dto.ReportDto;
 import com.samcomo.dbz.report.model.dto.ReportImageDto;
 import com.samcomo.dbz.report.model.dto.ReportSearchSummaryDto;
 import com.samcomo.dbz.report.model.dto.ReportStateDto;
 import com.samcomo.dbz.report.model.dto.ReportSummaryDto;
+import com.samcomo.dbz.report.model.dto.ReportWithProfile;
 import com.samcomo.dbz.report.model.dto.ReportWithUrl;
 import com.samcomo.dbz.report.model.entity.Report;
 import com.samcomo.dbz.report.model.entity.ReportImage;
@@ -53,6 +56,7 @@ public class ReportServiceImpl implements ReportService {
   private final NotificationService notificationService;
 
   private final PinRepository pinRepository;
+  private final MemberService memberService;
 
   @Override
   public ReportDto.Response uploadReport(long memberId, ReportDto.Form reportForm) {
@@ -89,7 +93,7 @@ public class ReportServiceImpl implements ReportService {
 
   @Override
   @DistributedLock(lockType = LockType.REPORT ,key = "redisLock", waitTime = 3L, leaseTime = 5L)
-  public ReportDto.Response getReport(long reportId, long memberId) {
+  public ReportWithProfile getReport(long reportId, long memberId) {
 
     Report report = reportRepository.findById(reportId)
         .orElseThrow(() -> new ReportException(ErrorCode.REPORT_NOT_FOUND));
@@ -107,7 +111,10 @@ public class ReportServiceImpl implements ReportService {
     }
 
     log.info("================Finish 조회수 : {}===================", newReport.getViews());
-    return ReportDto.Response.from(newReport, reportImageResponseList, report.getMember().getId());
+
+
+
+    return ReportWithProfile.from(newReport, reportImageResponseList, WriterProfile.from(report.getMember()));
   }
 
   @Override
