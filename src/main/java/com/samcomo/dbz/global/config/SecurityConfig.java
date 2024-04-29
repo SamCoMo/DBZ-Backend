@@ -1,5 +1,11 @@
 package com.samcomo.dbz.global.config;
 
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
+
 import com.samcomo.dbz.member.jwt.AuthUtils;
 import com.samcomo.dbz.member.jwt.CookieUtil;
 import com.samcomo.dbz.member.jwt.JwtUtil;
@@ -11,6 +17,7 @@ import com.samcomo.dbz.member.jwt.filter.handler.LoginSuccessHandler;
 import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
 import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +33,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-
-import java.util.Collections;
-
-import static org.springframework.http.HttpMethod.*;
 
 @Configuration
 @EnableWebSecurity
@@ -100,7 +103,9 @@ public class SecurityConfig {
                 "/docs/**",
                 "/v3/api-docs/**",
                 "/aop/",
-                "/actuator/**"
+                "/actuator/**",
+                "/ws/**",
+                "/chat/room"
             ).permitAll()
             // member
             .requestMatchers(GET, "/member/my").hasRole(MEMBER) // 마이페이지
@@ -115,7 +120,7 @@ public class SecurityConfig {
             .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole(MEMBER) // Report 의 Pin List 가져오기
             .requestMatchers(GET, "/pin/{pinId}").hasRole(MEMBER) // Pin 상세정보 가져오기
             // chat
-            .requestMatchers("/ws").hasRole(MEMBER) // 웹소켓 접근
+//            .requestMatchers("/ws").hasRole(MEMBER) // 웹소켓 접근
             .requestMatchers(POST, "/chat/room").hasRole(MEMBER) // 채팅방 생성
             .requestMatchers(GET, "/chat/member/room-list").hasRole(MEMBER) // 회원 채팅방 목록 조회
             .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole(MEMBER) // 채팅방 메시지 목록 조회
