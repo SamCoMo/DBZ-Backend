@@ -100,7 +100,9 @@ public class SecurityConfig {
                 "/docs/**",
                 "/v3/api-docs/**",
                 "/aop/",
-                "/actuator/**"
+                "/actuator/**",
+                "/ws/**",
+                "/chat/room"
             ).permitAll()
             // member
             .requestMatchers(GET, "/member/my").hasRole(MEMBER) // 마이페이지
