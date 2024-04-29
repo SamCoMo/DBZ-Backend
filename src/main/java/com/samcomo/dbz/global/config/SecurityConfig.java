@@ -120,7 +120,7 @@ public class SecurityConfig {
             .requestMatchers(GET, "/pin/report/{reportId}/pin-list").hasRole(MEMBER) // Report 의 Pin List 가져오기
             .requestMatchers(GET, "/pin/{pinId}").hasRole(MEMBER) // Pin 상세정보 가져오기
             // chat
-//            .requestMatchers("/ws").hasRole(MEMBER) // 웹소켓 접근
+            .requestMatchers("/ws").hasRole(MEMBER) // 웹소켓 접근
             .requestMatchers(POST, "/chat/room").hasRole(MEMBER) // 채팅방 생성
             .requestMatchers(GET, "/chat/member/room-list").hasRole(MEMBER) // 회원 채팅방 목록 조회
             .requestMatchers(GET, "/chat/room/{chatRoomId}/message-list").hasRole(MEMBER) // 채팅방 메시지 목록 조회
