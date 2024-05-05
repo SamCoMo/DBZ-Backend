@@ -4,17 +4,20 @@ import static com.samcomo.dbz.global.exception.ErrorCode.CHAT_MESSAGE_NOT_FOUND;
 
 import com.samcomo.dbz.chat.exception.ChatException;
 import com.samcomo.dbz.chat.model.dto.ChatRoomDto;
+import com.samcomo.dbz.chat.model.dto.Participant;
 import com.samcomo.dbz.chat.model.entity.ChatMessage;
 import com.samcomo.dbz.chat.model.entity.ChatRoom;
 import com.samcomo.dbz.chat.model.repository.ChatMessageRepository;
 import com.samcomo.dbz.chat.model.repository.ChatRoomRepository;
 import com.samcomo.dbz.chat.service.ChatRoomService;
 import com.samcomo.dbz.chat.util.ChatUtils;
+import com.samcomo.dbz.member.model.entity.Member;
+import com.samcomo.dbz.member.service.MemberService;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   private final ChatRoomRepository chatRoomRepository;
   private final ChatMessageRepository chatMessageRepository;
   private final ChatUtils chatUtils;
+  private final MemberService memberService;
 
   @Override
   @Transactional
@@ -52,9 +56,26 @@ public class ChatRoomServiceImpl implements ChatRoomService {
   @Transactional(readOnly = true)
   public List<ChatRoomDto> getChatRoomsFromMember(String memberId) {
     // 채팅방 리스트 불러오기 ( 최신 업데이트된 메시지 순서 )
-    return chatRoomRepository.findByMemberIdSortedByLastChatMessageAtDesc(memberId)
-        .stream().map(ChatRoomDto::from)
-        .collect(Collectors.toList());
+
+    List<ChatRoom> chatRoomList =
+        chatRoomRepository.findByMemberIdSortedByLastChatMessageAtDesc(memberId);
+
+
+    List<ChatRoomDto> chatRoomDtoList = new ArrayList<>();
+    for (ChatRoom chatRoom : chatRoomList) {
+
+      List<Participant> participantList = chatRoom.getMemberIdList().stream()
+          .map(participantId -> {
+            Member member = memberService.getMember(Long.parseLong(participantId));
+            return Participant.from(member, !memberId.equals(participantId));
+          })
+          .toList();
+
+      chatRoomDtoList.add(ChatRoomDto.from(chatRoom, participantList));
+    }
+
+
+    return chatRoomDtoList;
   }
 
   @Override
