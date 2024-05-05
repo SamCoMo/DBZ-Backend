@@ -60,20 +60,23 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     List<ChatRoom> chatRoomList =
         chatRoomRepository.findByMemberIdSortedByLastChatMessageAtDesc(memberId);
 
-
     List<ChatRoomDto> chatRoomDtoList = new ArrayList<>();
     for (ChatRoom chatRoom : chatRoomList) {
 
-      List<Participant> participantList = chatRoom.getMemberIdList().stream()
-          .map(participantId -> {
-            Member member = memberService.getMember(Long.parseLong(participantId));
-            return Participant.from(member, !memberId.equals(participantId));
-          })
-          .toList();
+      List<Participant> participantList = new ArrayList<>();
+
+      for (String participantId : chatRoom.getMemberIdList()) {
+        log.info("participantId : {}", participantId);
+        Arrays.stream(participantId.split(","))
+            .forEach(id -> {
+              Member member = memberService.getMember(Long.parseLong(participantId));
+              participantList.add(Participant.from(member, !memberId.equals(participantId)));
+            });
+
+      }
 
       chatRoomDtoList.add(ChatRoomDto.from(chatRoom, participantList));
     }
-
 
     return chatRoomDtoList;
   }
