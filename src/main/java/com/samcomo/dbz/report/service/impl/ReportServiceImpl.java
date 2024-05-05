@@ -114,7 +114,7 @@ public class ReportServiceImpl implements ReportService {
 
 
 
-    return ReportWithProfile.from(newReport, reportImageResponseList, WriterProfile.from(report.getMember()));
+    return ReportWithProfile.from(newReport, reportImageResponseList, WriterProfile.from(report.getMember()), memberId);
   }
 
   @Override

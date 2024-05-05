@@ -20,6 +20,7 @@ import lombok.Setter;
 public class ReportWithProfile {
 
   private Long reportId;
+  private Long memberId;
   private WriterProfile writerProfile;
   private String title;
   private String petName;
@@ -39,9 +40,10 @@ public class ReportWithProfile {
   private List<Response> imageList;
 
   public static ReportWithProfile from(Report report,
-      List<ReportImageDto.Response> reportImageResponseList, WriterProfile profile) {
+      List<ReportImageDto.Response> reportImageResponseList, WriterProfile profile, long memberId) {
     return ReportWithProfile.builder()
         .reportId(report.getId())
+        .memberId(memberId)
         .writerProfile(profile)
         .title(report.getTitle())
         .petName(report.getPetName())
