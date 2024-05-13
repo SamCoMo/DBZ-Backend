@@ -18,6 +18,7 @@ import com.samcomo.dbz.member.jwt.filter.handler.Oauth2LoginFailureHandler;
 import com.samcomo.dbz.member.service.impl.Oauth2MemberServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -75,7 +76,7 @@ public class SecurityConfig {
 
                 CorsConfiguration configuration = new CorsConfiguration();
 
-                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:3000","https://samcomo.site"));
                 configuration.setAllowedMethods(Collections.singletonList("*"));
                 configuration.setAllowCredentials(true);
                 configuration.setAllowedHeaders(Collections.singletonList("*"));
