@@ -66,7 +66,3 @@
 
 #### 글 삭제여부 알림 서비스
 - 특정 시간이 지난 실종신고 게시글
-
----
-
-▶️ [Trouble Shooting](https://goo99.notion.site/55c157561a2a42d1990a9f67861e0e62?pvs=4)
