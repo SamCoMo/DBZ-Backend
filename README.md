@@ -66,3 +66,11 @@
 
 #### 글 삭제여부 알림 서비스
 - 특정 시간이 지난 실종신고 게시글
+
+## ERD
+
+<img src="samcomo_ERD.png">
+
+## Architecture
+
+<img src="samcomo_architecture.jpg">
